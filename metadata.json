@@ -1,0 +1,7 @@
+{
+  "name": "SmritiSaathi",
+  "description": "Adaptive cognitive stimulation, personalized reminiscence therapy, and CareCompass AI elder safety & wandering protection system with live GPS geofencing and dual-mode portals.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,2 +1,20 @@
-# SmritiSathi
-Progressive cognitive games train memory, attention &amp; daily reasoning. Adaptive Bridge Levels respond to user performance. AI-powered Reality Quest connects cognition to real-world objects, while 300m geofencing enables SOS, live-location &amp; family alerts—creating one loop: Play → Measure → Adapt → Reinforce → Protect.
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
+
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/027a34fe-193c-4ccc-9d2a-a5edafd51f82
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
