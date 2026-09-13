@@ -31,7 +31,7 @@ import {
   startEmergencySiren,
   stopEmergencySiren,
 } from '../utils/audioUtils';
-import { generateWhatsAppSOSUrl, INDIAN_LANGUAGES } from '../utils/geoUtils';
+import { INDIAN_LANGUAGES, generateWhatsAppSOSUrl } from '../utils/geoUtils';
 import { DirectCallModal } from './DirectCallModal';
 import { sosDispatchService } from '../services/sosDispatchService';
 import type { AutomatedSOSDispatchResult } from '../types';
@@ -147,7 +147,32 @@ export const PatientMode: React.FC<PatientModeProps> = ({
     startEmergencySiren();
     if (onTriggerSOS) onTriggerSOS('Manual SOS Pressed by Elder');
 
-    // AUTOMATICALLY DISPATCH SOS MESSAGE (No manual click or tap in WhatsApp required)
+    const sosData = generateWhatsAppSOSUrl({
+      caregiverPhone: config.caregiverPhone,
+      patientName: config.patientName,
+      latitude: telemetry.latitude,
+      longitude: telemetry.longitude,
+      distanceMeters: telemetry.distanceMeters,
+      homeLabel: config.homeLocation.label,
+      batteryLevel: telemetry.batteryLevel,
+      cause: 'Manual 1-Tap SOS Pressed by Elder',
+    });
+
+    // Auto-launch WhatsApp message
+    try {
+      window.open(sosData.url, '_blank');
+    } catch (e) {
+      console.warn('Auto WhatsApp trigger error:', e);
+    }
+
+    // Auto-trigger native phone dialer to ring phone
+    try {
+      window.location.href = sosData.telUrl;
+    } catch (e) {
+      console.warn('Native phone trigger error:', e);
+    }
+
+    // AUTOMATICALLY DISPATCH SOS MESSAGE (Cellular Relay)
     sosDispatchService
       .dispatchAutomatedSOSMessage({
         patientName: config.patientName,
@@ -167,11 +192,8 @@ export const PatientMode: React.FC<PatientModeProps> = ({
         console.warn('Automated SOS dispatch completed with fallback:', e);
       });
 
-    speakReassurance({
-      text: `${config.patientName}, emergency alert has been sent automatically to ${config.caregiverName}. Help is on the way. Please stay calm.`,
-      languageCode: config.preferredLanguage || 'en-IN',
-      rate: 0.88,
-    });
+    // Open Direct Call dialog
+    setIsDirectCallOpen(true);
   };
 
   const handlePlayGreeting = () => {

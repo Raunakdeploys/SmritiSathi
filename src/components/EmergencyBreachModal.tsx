@@ -15,15 +15,16 @@ import {
   Clock,
   Battery,
   Zap,
+  MessageSquare,
+  Copy,
 } from 'lucide-react';
 import {
   startEmergencySiren,
   stopEmergencySiren,
   isSirenPlaying,
-  speakReassurance,
   stopVoiceSpeech,
 } from '../utils/audioUtils';
-import { generateWhatsAppSOSUrl, INDIA_EMERGENCY_SERVICES, INDIAN_LANGUAGES } from '../utils/geoUtils';
+import { INDIA_EMERGENCY_SERVICES, INDIAN_LANGUAGES, generateWhatsAppSOSUrl } from '../utils/geoUtils';
 import type { CareCompassConfig, CareCompassTelemetry, AutomatedSOSDispatchResult } from '../types';
 import { sosDispatchService } from '../services/sosDispatchService';
 import { DirectCallModal } from './DirectCallModal';
@@ -46,10 +47,12 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
   const [autoDispatched, setAutoDispatched] = useState<boolean>(false);
   const [dispatchResult, setDispatchResult] = useState<AutomatedSOSDispatchResult | null>(null);
   const [sirenOn, setSirenOn] = useState<boolean>(true);
-  const [isSpeakingVoice, setIsSpeakingVoice] = useState<boolean>(false);
+  const [copiedText, setCopiedText] = useState<boolean>(false);
   const [directCallTarget, setDirectCallTarget] = useState<{ name: string; phone: string; role: string } | null>(null);
 
-  const { message: sosMessage, url: whatsAppUrl } = generateWhatsAppSOSUrl({
+  const cleanPhone = config.caregiverPhone.replace(/\s+/g, '');
+
+  const sosData = generateWhatsAppSOSUrl({
     caregiverPhone: config.caregiverPhone,
     patientName: config.patientName,
     latitude: telemetry.latitude,
@@ -57,10 +60,10 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
     distanceMeters: telemetry.distanceMeters,
     homeLabel: config.homeLocation.label,
     batteryLevel: telemetry.batteryLevel,
-    cause: 'Critical Geofence Breach Outside Fixed Radar',
+    cause: 'Critical Geofence Breach Outside Safe Perimeter',
   });
 
-  // Automated Siren, Voice, and IMMEDIATE Automated Message Dispatch
+  // Automated Siren and IMMEDIATE Automated Message Dispatch
   useEffect(() => {
     if (!isOpen) {
       stopEmergencySiren();
@@ -73,16 +76,22 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
       setSirenOn(true);
     }
 
-    // Spoken Indian language voice alert
-    const lang = INDIAN_LANGUAGES.find((l) => l.code === config.preferredLanguage) || INDIAN_LANGUAGES[0];
-    speakReassurance({
-      text: lang.emergencyAlertIntro || `Alert: ${config.patientName} has moved outside the designated safe zone.`,
-      languageCode: config.preferredLanguage || 'en-IN',
-      rate: 0.9,
-    });
-    setIsSpeakingVoice(true);
+    // AUTOMATICALLY REDIRECT TO WHATSAPP & RING PHONE IF CONFIGURED
+    if (config.autoWhatsAppOnBreach) {
+      try {
+        window.open(sosData.url, '_blank');
+      } catch (e) {
+        console.warn('Auto WhatsApp trigger blocked:', e);
+      }
 
-    // AUTOMATICALLY TRANSMIT SOS MESSAGE IMMEDIATELY (Zero manual taps required)
+      try {
+        window.location.href = sosData.telUrl;
+      } catch (e) {
+        console.warn('Auto phone ring error:', e);
+      }
+    }
+
+    // AUTOMATICALLY TRANSMIT SOS MESSAGE TO CARRIER RELAY
     sosDispatchService
       .dispatchAutomatedSOSMessage({
         patientName: config.patientName,
@@ -129,11 +138,12 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
     onClose();
   };
 
-  const cleanPhone = config.caregiverPhone.replace(/\s+/g, '');
-
-  const handleManualDispatchWhatsApp = () => {
-    setAutoDispatched(true);
-    window.open(whatsAppUrl, '_blank');
+  const handleCopySOSMessage = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(sosData.message);
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 3000);
+    }
   };
 
   return (
@@ -238,114 +248,100 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
           </div>
         </div>
 
-        {/* Action 1: AUTOMATED SOS MESSAGE DISPATCH (Sent automatically, 0 taps required) */}
-        <div className="bg-emerald-950/70 border-2 border-emerald-500/70 p-4 rounded-2xl space-y-2.5">
+        {/* Action 1: AUTOMATED WHATSAPP SOS */}
+        <div className="bg-emerald-950/70 border-2 border-emerald-500/70 p-4 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-emerald-400 font-bold text-sm">
               <Zap className="w-4 h-4 text-emerald-300" />
-              <span>Automated SOS Message Dispatch</span>
+              <span>Automated WhatsApp SOS Dispatch</span>
             </div>
             <span className="text-xs font-mono font-bold text-emerald-300 bg-emerald-900/80 px-2.5 py-0.5 rounded-full border border-emerald-400/50 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Sent Automatically (0 Taps Required)</span>
+              <span>Target: {config.caregiverPhone}</span>
             </span>
           </div>
 
-          <div className="bg-slate-950/70 border border-emerald-500/30 p-3 rounded-xl space-y-1.5 font-mono text-xs">
-            <div className="flex items-center justify-between text-slate-300">
-              <span className="text-slate-400">Recipient:</span>
-              <span className="text-white font-bold">{config.caregiverName} ({config.caregiverPhone})</span>
-            </div>
-            <div className="flex items-center justify-between text-slate-300">
-              <span className="text-slate-400">Dispatch Status:</span>
-              <span className="text-emerald-400 font-black">DELIVERED & ACKNOWLEDGED</span>
-            </div>
-            {dispatchResult && (
-              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-                <span>Dispatch ID:</span>
-                <span className="text-emerald-300 font-mono">{dispatchResult.dispatchId}</span>
-              </div>
-            )}
-          </div>
+          {/* Direct WhatsApp Action Link */}
+          <a
+            href={sosData.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl font-black text-sm flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer no-underline"
+          >
+            <Send className="w-4 h-4" />
+            <span>Open WhatsApp SOS ({config.caregiverPhone})</span>
+          </a>
 
-          <div className="flex items-center justify-between gap-3 pt-1">
+          <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
             <button
-              onClick={handleManualDispatchWhatsApp}
-              className="w-full py-2.5 px-3 bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/40 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+              type="button"
+              onClick={handleCopySOSMessage}
+              className="text-emerald-300 hover:text-emerald-200 flex items-center gap-1 font-bold cursor-pointer"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>Open Auxiliary WhatsApp View (Already Sent)</span>
+              <Copy className="w-3.5 h-3.5" />
+              <span>{copiedText ? 'Copied SOS Message!' : 'Copy Formatted SOS Text'}</span>
             </button>
+            {dispatchResult && (
+              <span className="text-slate-400 font-mono text-[11px]">
+                Ref: {dispatchResult.dispatchId}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Action 2: AUTOMATIC DIRECT CALL TO CAREGIVER & HELPLINES (Dialed Straight) */}
+        {/* Action 2: DIRECT TELEPHONE CALL & HELPLINES (Auto-Rings Phone) */}
         <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-sm font-bold text-slate-200">
               <Phone className="w-4 h-4 text-rose-400 animate-pulse" />
-              <span>Direct Emergency Voice Line (Dials Straight)</span>
+              <span>Direct Emergency Voice Line (Auto-Rings Phone)</span>
             </div>
             <span className="text-[10px] font-mono text-rose-300 bg-rose-950 px-2 py-0.5 rounded-full border border-rose-500/40">
-              Instant In-App Audio
+              Direct Phone Call
             </span>
           </div>
 
-          <button
-            onClick={() =>
-              setDirectCallTarget({
-                name: config.caregiverName,
-                phone: cleanPhone,
-                role: 'Primary Family Caregiver',
-              })
-            }
-            className="w-full py-3.5 px-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-xl font-black text-sm flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer"
-          >
-            <Phone className="w-4 h-4" />
-            <span>Call {config.caregiverName} Directly (Dial Straight)</span>
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <a
+              href={sosData.telUrl}
+              className="py-3 px-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-xl font-black text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer no-underline"
+            >
+              <Phone className="w-4 h-4" />
+              <span>Ring Caregiver ({config.caregiverPhone})</span>
+            </a>
+
+            <a
+              href={sosData.smsUrl}
+              className="py-3 px-4 bg-slate-800 hover:bg-slate-750 active:bg-slate-900 text-slate-200 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 border border-slate-700 transition-all cursor-pointer no-underline"
+            >
+              <MessageSquare className="w-4 h-4 text-emerald-400" />
+              <span>Send Native SMS</span>
+            </a>
+          </div>
 
           {/* Indian Emergency Services Speed-Dial */}
           <div className="grid grid-cols-3 gap-2 pt-1">
-            <button
-              onClick={() =>
-                setDirectCallTarget({
-                  name: 'Emergency Helpline 112',
-                  phone: '112',
-                  role: 'Police & All-Emergency Center',
-                })
-              }
-              className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-center text-xs font-bold transition-all cursor-pointer"
+            <a
+              href="tel:112"
+              className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-center text-xs font-bold transition-all cursor-pointer no-underline block"
             >
               <span className="text-[10px] text-slate-400 block">All Emergency</span>
               <span className="text-sm font-black text-white font-mono">112</span>
-            </button>
-            <button
-              onClick={() =>
-                setDirectCallTarget({
-                  name: 'Ambulance 108',
-                  phone: '108',
-                  role: 'Emergency Medical Service',
-                })
-              }
-              className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-center text-xs font-bold transition-all cursor-pointer"
+            </a>
+            <a
+              href="tel:108"
+              className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-center text-xs font-bold transition-all cursor-pointer no-underline block"
             >
               <span className="text-[10px] text-slate-400 block">Ambulance</span>
               <span className="text-sm font-black text-emerald-400 font-mono">108</span>
-            </button>
-            <button
-              onClick={() =>
-                setDirectCallTarget({
-                  name: 'Police Control 100',
-                  phone: '100',
-                  role: 'State Police Command',
-                })
-              }
-              className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-center text-xs font-bold transition-all cursor-pointer"
+            </a>
+            <a
+              href="tel:100"
+              className="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-center text-xs font-bold transition-all cursor-pointer no-underline block"
             >
               <span className="text-[10px] text-slate-400 block">Police</span>
               <span className="text-sm font-black text-sky-400 font-mono">100</span>
-            </button>
+            </a>
           </div>
         </div>
 

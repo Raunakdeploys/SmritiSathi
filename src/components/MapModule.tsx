@@ -57,6 +57,7 @@ import {
   deviceLocationService,
   DeviceLocationState,
 } from '../services/deviceLocationService';
+import { sosDispatchService } from '../services/sosDispatchService';
 
 interface MapModuleProps {
   telemetry?: CareCompassTelemetry;
@@ -95,6 +96,7 @@ export const MapModule: React.FC<MapModuleProps> = ({
   const [googleMapType, setGoogleMapType] = useState<GoogleMapType>('hybrid');
   const [copiedLink, setCopiedLink] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(16);
+  const [sosSuccessBanner, setSosSuccessBanner] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({
     lat: telemetry.latitude,
     lng: telemetry.longitude,
@@ -235,8 +237,8 @@ export const MapModule: React.FC<MapModuleProps> = ({
     }
   };
 
-  const handleSendWhatsAppSOS = () => {
-    const { url } = generateWhatsAppSOSUrl({
+  const handleDispatchAutomatedSOS = () => {
+    const sosData = generateWhatsAppSOSUrl({
       caregiverPhone: config.caregiverPhone,
       patientName: config.patientName,
       latitude: telemetry.latitude,
@@ -244,9 +246,42 @@ export const MapModule: React.FC<MapModuleProps> = ({
       distanceMeters: telemetry.distanceMeters,
       homeLabel: config.homeLocation.label,
       batteryLevel: telemetry.batteryLevel,
-      cause: 'Map Module SOS Button Pressed',
+      cause: 'Tactical Map Module Automated SOS Dispatched',
     });
-    window.open(url, '_blank');
+
+    // Auto-open WhatsApp with pre-composed coordinates and alert details
+    try {
+      window.open(sosData.url, '_blank');
+    } catch (e) {
+      console.warn('WhatsApp auto open error:', e);
+    }
+
+    // Auto-trigger native phone dialer
+    try {
+      window.location.href = sosData.telUrl;
+    } catch (e) {
+      console.warn('Phone dialer trigger error:', e);
+    }
+
+    sosDispatchService
+      .dispatchAutomatedSOSMessage({
+        patientName: config.patientName,
+        caregiverPhone: config.caregiverPhone,
+        caregiverName: config.caregiverName,
+        latitude: telemetry.latitude,
+        longitude: telemetry.longitude,
+        distanceMeters: telemetry.distanceMeters,
+        homeLabel: config.homeLocation.label,
+        batteryLevel: telemetry.batteryLevel,
+        cause: 'Tactical Map Module Automated SOS Dispatched',
+      })
+      .then((res) => {
+        setSosSuccessBanner(`Automated SOS Triggered: WhatsApp & Call to ${config.caregiverName} (${config.caregiverPhone}) • Ref: ${res.dispatchId}`);
+        setTimeout(() => setSosSuccessBanner(null), 6000);
+      })
+      .catch((e) => {
+        console.warn('Map SOS dispatch handled:', e);
+      });
   };
 
   const openGoogleDirections = () => {
@@ -385,14 +420,14 @@ export const MapModule: React.FC<MapModuleProps> = ({
             <span className="hidden sm:inline">Home</span>
           </button>
 
-          {/* Send WhatsApp SOS */}
+          {/* Automated SOS (0 Taps Required) */}
           <button
-            onClick={handleSendWhatsAppSOS}
-            title="Dispatch Instant WhatsApp SOS with Coordinates"
-            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-xs cursor-pointer"
+            onClick={handleDispatchAutomatedSOS}
+            title="Dispatch Instant Automated SOS with Coordinates (0 Manual Taps Required)"
+            className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-xs cursor-pointer"
           >
             <Send className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">SOS WhatsApp</span>
+            <span className="hidden lg:inline">Automated SOS</span>
           </button>
 
           {/* Share Live Link */}
@@ -804,6 +839,14 @@ export const MapModule: React.FC<MapModuleProps> = ({
             )}
           </div>
         </div>
+
+        {/* Floating Automated SOS Success Toast */}
+        {sosSuccessBanner && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-emerald-950/95 border-2 border-emerald-400 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-black animate-in fade-in slide-in-from-top-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{sosSuccessBanner}</span>
+          </div>
+        )}
 
         {/* Floating Fixed Radar Legend */}
         <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-slate-700 text-xs shadow-xl space-y-2 z-20">

@@ -1,4 +1,5 @@
 import { storeService } from './storeService';
+import { sosDispatchService } from './sosDispatchService';
 import {
   calculateHaversineDistanceMeters,
   calculateBearingDegrees,
@@ -329,6 +330,23 @@ class DeviceLocationManager {
       // Throttle breach triggers to at most once every 30 seconds
       if (now - this.lastBreachTriggerTime > 30000) {
         this.lastBreachTriggerTime = now;
+        // Automatically transmit SOS message immediately (0 manual taps required)
+        sosDispatchService
+          .dispatchAutomatedSOSMessage({
+            patientName: config.patientName,
+            caregiverPhone: config.caregiverPhone,
+            caregiverName: config.caregiverName,
+            latitude: lat,
+            longitude: lng,
+            distanceMeters,
+            homeLabel: config.homeLocation.label,
+            batteryLevel: updatedTelemetry.batteryLevel,
+            cause: 'Automated Real-Time GPS Geofence Breach',
+          })
+          .catch((e) => {
+            console.warn('Real-time GPS breach auto SOS error:', e);
+          });
+
         const { url: whatsAppUrl } = generateWhatsAppSOSUrl({
           caregiverPhone: config.caregiverPhone,
           patientName: config.patientName,

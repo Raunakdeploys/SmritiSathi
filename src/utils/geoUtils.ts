@@ -626,10 +626,15 @@ export function generateWhatsAppSOSUrl({
   homeLabel?: string;
   batteryLevel?: number;
   cause?: string;
-}): { message: string; url: string } {
+}): { message: string; url: string; waMeUrl: string; telUrl: string; smsUrl: string; cleanDigits: string } {
   // Normalize phone (strip spaces, +, -, etc. Keep leading country code)
-  const cleanPhone = caregiverPhone.replace(/[^0-9]/g, '');
-  const targetPhone = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
+  let cleanDigits = caregiverPhone.replace(/[^0-9]/g, '');
+  if (cleanDigits.startsWith('0')) {
+    cleanDigits = cleanDigits.replace(/^0+/, '');
+  }
+  if (cleanDigits.length === 10) {
+    cleanDigits = `91${cleanDigits}`;
+  }
 
   const mapsLink = `https://maps.google.com/?q=${latitude.toFixed(6)},${longitude.toFixed(6)}`;
   const message = `🚨 EMERGENCY DEMENTIA ALERT: ${patientName} has triggered an alert (${cause})!
@@ -640,8 +645,62 @@ export function generateWhatsAppSOSUrl({
 
 Please check immediately or call local emergency services if unreachable.`;
 
-  const url = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(message)}`;
-  return { message, url };
+  const url = `https://api.whatsapp.com/send?phone=${cleanDigits}&text=${encodeURIComponent(message)}`;
+  const waMeUrl = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(message)}`;
+  const telUrl = `tel:+${cleanDigits}`;
+  const smsUrl = `sms:+${cleanDigits}?body=${encodeURIComponent(message)}`;
+
+  return { message, url, waMeUrl, telUrl, smsUrl, cleanDigits };
+}
+
+/**
+ * Directly launches WhatsApp message and/or native phone call
+ */
+export function triggerDirectContactAction({
+  phone,
+  message,
+  actionType = 'both',
+}: {
+  phone: string;
+  message?: string;
+  actionType?: 'whatsapp' | 'call' | 'sms' | 'both';
+}) {
+  let cleanDigits = phone.replace(/[^0-9]/g, '');
+  if (cleanDigits.startsWith('0')) {
+    cleanDigits = cleanDigits.replace(/^0+/, '');
+  }
+  if (cleanDigits.length === 10) {
+    cleanDigits = `91${cleanDigits}`;
+  }
+
+  if (actionType === 'whatsapp' || actionType === 'both') {
+    if (message) {
+      const waUrl = `https://api.whatsapp.com/send?phone=${cleanDigits}&text=${encodeURIComponent(message)}`;
+      try {
+        window.open(waUrl, '_blank');
+      } catch (e) {
+        console.warn('WhatsApp window.open blocked:', e);
+      }
+    }
+  }
+
+  if (actionType === 'call' || actionType === 'both') {
+    try {
+      window.location.href = `tel:+${cleanDigits}`;
+    } catch (e) {
+      console.warn('Direct telephone trigger error:', e);
+    }
+  }
+
+  if (actionType === 'sms') {
+    if (message) {
+      try {
+        window.location.href = `sms:+${cleanDigits}?body=${encodeURIComponent(message)}`;
+      } catch (e) {
+        console.warn('SMS trigger error:', e);
+      }
+    }
+  }
 }
 
 /**

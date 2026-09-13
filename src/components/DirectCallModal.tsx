@@ -18,9 +18,9 @@ import {
   startTelephoneRingingTone,
   stopTelephoneRingingTone,
   playCallConnectedChime,
-  speakReassurance,
   stopVoiceSpeech,
 } from '../utils/audioUtils';
+import { generateWhatsAppSOSUrl } from '../utils/geoUtils';
 import { sosDispatchService } from '../services/sosDispatchService';
 
 interface DirectCallModalProps {
@@ -51,7 +51,6 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState<boolean>(true);
   const [audioLevel, setAudioLevel] = useState<number>(35);
-  const [hasVoiceResponsePlayed, setHasVoiceResponsePlayed] = useState<boolean>(false);
 
   const cleanPhone = targetPhone.replace(/\s+/g, '');
   const timerRef = useRef<any>(null);
@@ -59,6 +58,16 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+
+  const { url: whatsAppUrl } = generateWhatsAppSOSUrl({
+    caregiverPhone: cleanPhone,
+    patientName,
+    latitude: patientLocation?.latitude || 26.1445,
+    longitude: patientLocation?.longitude || 91.7362,
+    distanceMeters: 50,
+    cause: 'Direct Emergency Voice Call Triggered',
+    batteryLevel: 90,
+  });
 
   // Initialize and dial straight away on open
   useEffect(() => {
@@ -71,7 +80,6 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
     setCallDuration(0);
     setIsMuted(false);
     setIsSpeakerOn(true);
-    setHasVoiceResponsePlayed(false);
 
     // 1. Immediately log and initiate direct call dispatch
     sosDispatchService.dispatchDirectCall({
@@ -81,34 +89,27 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
       callType: cleanPhone === '112' ? 'helpline_112' : cleanPhone === '108' ? 'ambulance_108' : 'caregiver',
     });
 
-    // 2. Start realistic telecom ringing audio
+    // 2. Start realistic telecom ringing audio out loud
     startTelephoneRingingTone();
 
-    // 3. Cellular hardware fallback trigger (invokes tel: without navigation disruption)
+    // 3. Trigger native device dialer so the actual phone rings
     try {
-      const telFrame = document.createElement('iframe');
-      telFrame.style.display = 'none';
-      telFrame.src = `tel:${cleanPhone}`;
-      document.body.appendChild(telFrame);
-      setTimeout(() => {
-        try {
-          document.body.removeChild(telFrame);
-        } catch (_) {}
-      }, 2000);
-    } catch (_) {}
+      window.location.href = `tel:${cleanPhone}`;
+    } catch (e) {
+      console.warn('Native tel trigger error:', e);
+    }
 
     // Progress from DIALING -> RINGING -> CONNECTED
     const dialTimer = setTimeout(() => {
       setCallState('RINGING');
-    }, 800);
+    }, 600);
 
-    // Auto-connect straight after 2.0s
+    // Auto-connect straight after ringing cycle (2.2s)
     const connectTimer = setTimeout(() => {
       stopTelephoneRingingTone();
       playCallConnectedChime();
       setCallState('CONNECTED');
       startMicrophoneCapture();
-      playReassuranceVoice();
     }, 2200);
 
     return () => {
@@ -136,24 +137,6 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
       }
     };
   }, [callState]);
-
-  const playReassuranceVoice = () => {
-    setHasVoiceResponsePlayed(true);
-
-    let script = `${patientName}, this is ${targetName}. I have received your direct emergency call. I see your live GPS location on my radar map and I am on my way to you right now. Please stay right where you are, you are completely safe.`;
-
-    if (cleanPhone === '112') {
-      script = `National Emergency Response System 112 operator. Emergency dispatch received with your live coordinates. Response officers have been alerted. Stay on the line.`;
-    } else if (cleanPhone === '108') {
-      script = `Emergency Ambulance 108 medical dispatch. We have locked onto your GPS coordinates. An emergency unit is rolling. Stay calm.`;
-    }
-
-    speakReassurance({
-      text: script,
-      languageCode: 'en-IN',
-      rate: 0.88,
-    });
-  };
 
   const startMicrophoneCapture = async () => {
     try {
@@ -410,14 +393,24 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
             </button>
           </div>
 
-          {/* Cellular App Fallback Link */}
-          <div className="pt-2">
+          {/* Direct Cellular Action Buttons */}
+          <div className="w-full max-w-sm space-y-2 pt-2">
             <a
               href={`tel:${cleanPhone}`}
-              className="text-[11px] text-slate-400 hover:text-slate-200 underline flex items-center justify-center gap-1 transition-colors"
+              className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-md no-underline transition-colors"
             >
-              <span>Switch to native phone dialer</span>
-              <ExternalLink className="w-3 h-3" />
+              <Phone className="w-4 h-4" />
+              <span>Ringing Phone ({cleanPhone}) • Tap to Re-Dial</span>
+            </a>
+
+            <a
+              href={whatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 no-underline transition-colors"
+            >
+              <span>💬 Open WhatsApp SOS with Live Coordinates</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>
           </div>
         </div>

@@ -329,21 +329,50 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
     });
 
     if (config.autoWhatsAppOnBreach) {
-      const { url } = generateWhatsAppSOSUrl({
+      const { url, telUrl } = generateWhatsAppSOSUrl({
         caregiverPhone: config.caregiverPhone,
         patientName: config.patientName,
         latitude: lat,
         longitude: lon,
         distanceMeters: dist,
-        homeLabel: config.homeLocation.label,
+        cause: 'Automated Geofence Breach Out of Safe Radar',
         batteryLevel: telemetry.batteryLevel,
-        cause: 'Automated Geofence Breach',
+        homeLabel: config.homeLocation.label,
       });
+
+      // 1. Immediately open WhatsApp with complete coordinates & message
       try {
         window.open(url, '_blank');
       } catch (e) {
-        console.warn('Popup blocked:', e);
+        console.warn('Auto WhatsApp window open blocked:', e);
       }
+
+      // 2. Automatically trigger telephone call to caregiver
+      try {
+        window.location.href = telUrl;
+      } catch (e) {
+        console.warn('Auto tel call trigger error:', e);
+      }
+
+      // 3. Dispatch to background relay
+      sosDispatchService
+        .dispatchAutomatedSOSMessage({
+          patientName: config.patientName,
+          caregiverPhone: config.caregiverPhone,
+          caregiverName: config.caregiverName,
+          latitude: lat,
+          longitude: lon,
+          distanceMeters: dist,
+          cause: 'Automated Geofence Breach Out of Safe Radar',
+          batteryLevel: telemetry.batteryLevel,
+          homeLabel: config.homeLocation.label,
+        })
+        .then((res) => {
+          setAutomatedDispatchBanner(res);
+        })
+        .catch((e) => {
+          console.warn('Auto SOS dispatch error:', e);
+        });
     }
   };
 
@@ -473,7 +502,32 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
   };
 
   const handleManualWhatsAppDispatch = () => {
-    // 1. Dispatch automatically via carrier relay (0 manual taps required)
+    const { url, message, telUrl, smsUrl } = generateWhatsAppSOSUrl({
+      caregiverPhone: config.caregiverPhone,
+      patientName: config.patientName,
+      latitude: telemetry.latitude,
+      longitude: telemetry.longitude,
+      distanceMeters: telemetry.distanceMeters,
+      cause: 'Caregiver Command Center SOS Dispatch',
+      batteryLevel: telemetry.batteryLevel,
+      homeLabel: config.homeLocation.label,
+    });
+
+    // 1. Immediately open WhatsApp with recipient and pre-filled emergency coordinates
+    try {
+      window.open(url, '_blank');
+    } catch (e) {
+      console.warn('WhatsApp window.open error:', e);
+    }
+
+    // 2. Automatically trigger phone call to caregiver phone
+    try {
+      window.location.href = telUrl;
+    } catch (e) {
+      console.warn('Telephone call trigger error:', e);
+    }
+
+    // 3. Dispatch background carrier relay log
     sosDispatchService
       .dispatchAutomatedSOSMessage({
         patientName: config.patientName,
@@ -489,19 +543,6 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
       .then((res) => {
         setAutomatedDispatchBanner(res);
       });
-
-    // 2. Auxiliary WhatsApp view
-    const { url } = generateWhatsAppSOSUrl({
-      caregiverPhone: config.caregiverPhone,
-      patientName: config.patientName,
-      latitude: telemetry.latitude,
-      longitude: telemetry.longitude,
-      distanceMeters: telemetry.distanceMeters,
-      homeLabel: config.homeLocation.label,
-      batteryLevel: telemetry.batteryLevel,
-      cause: 'Caregiver Command Center SOS Dispatch',
-    });
-    window.open(url, '_blank');
   };
 
   // AI Distress Voice Script Generator
@@ -941,8 +982,40 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
               className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl font-black text-sm flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span>Dispatch Automated SOS Alert (0 Taps)</span>
+              <span>Open WhatsApp SOS & Ring Phone ({config.caregiverPhone})</span>
             </button>
+
+            {/* Quick Action Sub-Triggers */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const { url } = generateWhatsAppSOSUrl({
+                    caregiverPhone: config.caregiverPhone,
+                    patientName: config.patientName,
+                    latitude: telemetry.latitude,
+                    longitude: telemetry.longitude,
+                    distanceMeters: telemetry.distanceMeters,
+                    cause: 'Caregiver Command Center SOS Alert',
+                    batteryLevel: telemetry.batteryLevel,
+                    homeLabel: config.homeLocation.label,
+                  });
+                  window.open(url, '_blank');
+                }}
+                className="py-2.5 px-3 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Open WhatsApp</span>
+              </button>
+
+              <a
+                href={`tel:${config.caregiverPhone.replace(/\s+/g, '')}`}
+                className="py-2.5 px-3 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer no-underline"
+              >
+                <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Ring Phone (tel:)</span>
+              </a>
+            </div>
 
             {automatedDispatchBanner && (
               <div className="p-3 bg-emerald-950/80 border border-emerald-400/60 rounded-xl text-xs text-emerald-200 flex items-center justify-between">
@@ -979,19 +1052,13 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
             </button>
 
             {/* Direct Call Elder / Caregiver */}
-            <button
-              onClick={() =>
-                setDirectCallTarget({
-                  name: config.caregiverName,
-                  phone: config.caregiverPhone,
-                  role: 'Primary Family Contact',
-                })
-              }
-              className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 cursor-pointer"
+            <a
+              href={`tel:${config.caregiverPhone.replace(/\s+/g, '')}`}
+              className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 cursor-pointer no-underline"
             >
               <PhoneCall className="w-4 h-4 text-emerald-400" />
-              <span>Call Primary Caregiver (Direct Voice Line)</span>
-            </button>
+              <span>Call Primary Caregiver ({config.caregiverPhone})</span>
+            </a>
           </div>
 
           {/* India Emergency Services Presets */}
@@ -1003,16 +1070,10 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
 
             <div className="grid grid-cols-2 gap-2">
               {INDIA_EMERGENCY_SERVICES.map((serv) => (
-                <button
+                <a
                   key={serv.id}
-                  onClick={() =>
-                    setDirectCallTarget({
-                      name: serv.name,
-                      phone: serv.number,
-                      role: 'National Emergency Service',
-                    })
-                  }
-                  className="p-2.5 bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left"
+                  href={`tel:${serv.number}`}
+                  className="p-2.5 bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left no-underline"
                 >
                   <span className="text-[11px] font-bold text-slate-200">
                     {serv.name}
@@ -1020,7 +1081,7 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
                   <span className="text-sm font-black font-mono text-[#FF6321] mt-1">
                     Dial {serv.number}
                   </span>
-                </button>
+                </a>
               ))}
             </div>
           </div>

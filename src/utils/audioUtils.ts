@@ -124,11 +124,18 @@ export function startTelephoneRingingTone(): void {
   const ctx = getAudioContext();
   if (!ctx) return;
 
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+
   isTelephoneRinging = true;
 
   const playRingBurst = () => {
     if (!isTelephoneRinging) return;
     try {
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
       const now = ctx.currentTime;
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
@@ -140,8 +147,8 @@ export function startTelephoneRingingTone(): void {
       osc2.frequency.setValueAtTime(480, now);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.12, now + 0.05);
-      gain.gain.setValueAtTime(0.12, now + 1.2);
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.05);
+      gain.gain.setValueAtTime(0.25, now + 1.2);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.35);
 
       osc1.connect(gain);

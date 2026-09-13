@@ -22,6 +22,7 @@ import {
   generateWhatsAppSOSUrl,
 } from '../utils/geoUtils';
 import { deviceLocationService } from '../services/deviceLocationService';
+import { sosDispatchService } from '../services/sosDispatchService';
 
 interface CareCompassSettingsModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
   const [formData, setFormData] = useState<CareCompassConfig>({ ...config });
   const [searchQuery, setSearchQuery] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -72,8 +74,8 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
     }, 800);
   };
 
-  const handleTestWhatsApp = () => {
-    const { url } = generateWhatsAppSOSUrl({
+  const handleTestAutomatedSOS = () => {
+    const sosData = generateWhatsAppSOSUrl({
       caregiverPhone: formData.caregiverPhone,
       patientName: formData.patientName,
       latitude: formData.homeLocation.latitude,
@@ -83,7 +85,38 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
       batteryLevel: 92,
       cause: 'Manual Test Trigger from Settings',
     });
-    window.open(url, '_blank');
+
+    try {
+      window.open(sosData.url, '_blank');
+    } catch (e) {
+      console.warn('Auto WhatsApp window open error:', e);
+    }
+
+    try {
+      window.location.href = sosData.telUrl;
+    } catch (e) {
+      console.warn('Auto phone dialer trigger error:', e);
+    }
+
+    sosDispatchService
+      .dispatchAutomatedSOSMessage({
+        caregiverPhone: formData.caregiverPhone,
+        caregiverName: formData.caregiverName,
+        patientName: formData.patientName,
+        latitude: formData.homeLocation.latitude,
+        longitude: formData.homeLocation.longitude,
+        distanceMeters: 45,
+        homeLabel: formData.homeLocation.label,
+        batteryLevel: 92,
+        cause: 'Manual Test Trigger from Settings',
+      })
+      .then((res) => {
+        setTestResult(`Automated Test Dispatched to ${formData.caregiverPhone}! Ref: ${res.dispatchId}`);
+        setTimeout(() => setTestResult(null), 6000);
+      })
+      .catch((e) => {
+        console.warn('Test dispatch error:', e);
+      });
   };
 
   return (
@@ -187,14 +220,20 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
                 />
                 <button
                   type="button"
-                  onClick={handleTestWhatsApp}
-                  title="Test WhatsApp SOS Trigger"
-                  className="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 rounded-xl text-xs font-bold text-white flex items-center gap-1 shrink-0 cursor-pointer"
+                  onClick={handleTestAutomatedSOS}
+                  title="Test Automated SOS Dispatch (0 Manual Taps Required)"
+                  className="px-3 py-2 bg-rose-600 hover:bg-rose-500 rounded-xl text-xs font-bold text-white flex items-center gap-1 shrink-0 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Test SOS</span>
+                  <span>Test Automated SOS</span>
                 </button>
               </div>
+              {testResult && (
+                <p className="text-xs text-emerald-400 font-bold mt-1.5 flex items-center gap-1 animate-in fade-in">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{testResult}</span>
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -445,10 +484,10 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
               />
               <div>
                 <span className="font-bold text-white block">
-                  Auto-Prompt WhatsApp SOS to {formData.caregiverPhone}
+                  Automated SOS Message Dispatch (0 Manual Taps Required)
                 </span>
                 <span className="text-slate-400">
-                  Pre-formats live coordinate map link and battery telemetry ready for instant dispatch
+                  Transmits live coordinates, battery level, and emergency alert straight to {formData.caregiverPhone} without requiring any manual typing or sending
                 </span>
               </div>
             </label>
