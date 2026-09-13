@@ -1,0 +1,359 @@
+{
+  "user": {
+    "name": "Asha Devi",
+    "age": 72,
+    "avatarUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAA3vTPO3PBXp5bhV0lAERWIbYe_mD11Xsxvgtnjk_IS922tqHF_X4Ninxyv-XJym9luxWTY2iieVmPSXTQ85kKk4bxebqSJPdgV1gFh3heXS2vLr2gZc2wQZttnmpxaVVtxWKIfCsq65wVp6GoBw9vVqkwI3F3Lrrm50zVkP1ak9yyfoy930EHkmmdUBAyhxtQq-13R3WYYzFbDL66Psy_LD7plhX9VSGTcrGlMftDQXmE3RqWCtTf",
+    "mindPoints": 1450,
+    "currentStreak": 6,
+    "longestStreak": 14,
+    "totalSessions": 39,
+    "dailyGoalCompleted": false,
+    "caregiverName": "Rohan Sharma (Son)",
+    "caregiverPhone": "+91 98765 43210",
+    "preferences": {
+      "fontSize": "large",
+      "highContrast": false,
+      "voiceGuidance": true,
+      "soundEffects": true,
+      "reminders": true
+    }
+  },
+  "progress": {
+    "memory": 98,
+    "attention": 65,
+    "planning": 55,
+    "lastUpdated": "2026-08-27T05:54:58.776Z"
+  },
+  "activities": [
+    {
+      "id": "act-1787810098776",
+      "title": "Reality Quest",
+      "category": "Planning",
+      "points": 120,
+      "timestamp": "Just now",
+      "icon": "map",
+      "durationMinutes": 6,
+      "accuracy": 100,
+      "notes": "Completed full daily orientation questionnaire"
+    },
+    {
+      "id": "act-1787808980498",
+      "title": "Word Pair Memory (Leveled Up to Lvl 2!)",
+      "category": "Memory",
+      "points": 90,
+      "timestamp": "Just now",
+      "icon": "menu_book",
+      "durationMinutes": 5,
+      "accuracy": 100,
+      "notes": "🎉 Promoted to Level 2! Scored 135 pts with 100% accuracy"
+    },
+    {
+      "id": "act-1",
+      "title": "Shape Sorter",
+      "category": "Attention",
+      "points": 45,
+      "timestamp": "Today, 10:30 AM",
+      "icon": "extension",
+      "durationMinutes": 4,
+      "accuracy": 92,
+      "notes": "Excellent pattern identification"
+    },
+    {
+      "id": "act-2",
+      "title": "Name That Face",
+      "category": "Memory",
+      "points": 60,
+      "timestamp": "Yesterday",
+      "icon": "psychiatry",
+      "durationMinutes": 5,
+      "accuracy": 100,
+      "notes": "Recognized all family members quickly"
+    },
+    {
+      "id": "act-3",
+      "title": "Reality Quest",
+      "category": "Planning",
+      "points": 120,
+      "timestamp": "Yesterday",
+      "icon": "map",
+      "durationMinutes": 6,
+      "accuracy": 100,
+      "notes": "Daily orientation & calendar verification complete"
+    },
+    {
+      "id": "act-4",
+      "title": "Clock & Schedule Master",
+      "category": "Planning",
+      "points": 50,
+      "timestamp": "2 days ago",
+      "icon": "schedule",
+      "durationMinutes": 4,
+      "accuracy": 88,
+      "notes": "Correctly set medicine schedule"
+    },
+    {
+      "id": "act-5",
+      "title": "Word Pair Recall",
+      "category": "Memory",
+      "points": 75,
+      "timestamp": "3 days ago",
+      "icon": "menu_book",
+      "durationMinutes": 5,
+      "accuracy": 95,
+      "notes": "Recalled 8/8 word associations"
+    }
+  ],
+  "games": [
+    {
+      "id": "name-that-face",
+      "title": "Name That Face",
+      "category": "Memory",
+      "durationText": "5 mins",
+      "description": "Strengthen neural pathways by recalling beloved family members and historical landmarks.",
+      "isFavorite": true,
+      "icon": "psychiatry",
+      "color": "#002045",
+      "highScore": 320,
+      "timesPlayed": 19,
+      "level": 2,
+      "maxLevel": 3,
+      "xp": 80,
+      "xpToNextLevel": 100,
+      "stars": 2
+    },
+    {
+      "id": "shape-sorter",
+      "title": "Shape Sorter",
+      "category": "Attention",
+      "durationText": "4 mins",
+      "description": "Sharpen your visual focus and quick discrimination by matching geometric tiles and colors.",
+      "isFavorite": false,
+      "icon": "extension",
+      "color": "#1a365d",
+      "highScore": 280,
+      "timesPlayed": 15,
+      "level": 2,
+      "maxLevel": 3,
+      "xp": 60,
+      "xpToNextLevel": 100,
+      "stars": 2
+    },
+    {
+      "id": "reality-quest",
+      "title": "Reality Quest",
+      "category": "Planning",
+      "durationText": "6 mins",
+      "description": "Daily orientation and temporal awareness questions to keep your present-day memory anchored.",
+      "isFavorite": false,
+      "icon": "map",
+      "color": "#2d1d00",
+      "highScore": 400,
+      "timesPlayed": 12,
+      "level": 2,
+      "maxLevel": 3,
+      "xp": 90,
+      "xpToNextLevel": 100,
+      "stars": 3
+    },
+    {
+      "id": "word-pair-recall",
+      "title": "Word Pair Memory",
+      "category": "Memory",
+      "durationText": "4 mins",
+      "description": "Learn and retrieve paired words to exercise short-term verbal recall and active retention.",
+      "isFavorite": false,
+      "icon": "menu_book",
+      "color": "#455f88",
+      "highScore": 250,
+      "timesPlayed": 9,
+      "level": 2,
+      "maxLevel": 3,
+      "xp": 0,
+      "xpToNextLevel": 100,
+      "stars": 2
+    },
+    {
+      "id": "clock-planner",
+      "title": "TimeSense (ADL Temporal Cognition)",
+      "category": "Planning",
+      "durationText": "5 mins",
+      "description": "Temporal reasoning & ADL cognitive stimulation: Clock setting, working memory recall, audio translation, and daily scheduling.",
+      "isFavorite": true,
+      "icon": "schedule",
+      "color": "#002045",
+      "highScore": 340,
+      "timesPlayed": 8,
+      "level": 1,
+      "maxLevel": 10,
+      "xp": 50,
+      "xpToNextLevel": 100,
+      "stars": 1
+    },
+    {
+      "id": "live-camera-spotter",
+      "title": "Live Camera Object Spotter",
+      "category": "Attention",
+      "durationText": "4 mins",
+      "description": "Use your live device camera to spot and identify everyday room items, anchoring active real-world visual memory.",
+      "isFavorite": true,
+      "icon": "photo_camera",
+      "color": "#002045",
+      "highScore": 300,
+      "timesPlayed": 9,
+      "level": 1,
+      "maxLevel": 3,
+      "xp": 45,
+      "xpToNextLevel": 100,
+      "stars": 1
+    }
+  ],
+  "familyFaces": [
+    {
+      "id": "face-1",
+      "name": "Ananya Sharma",
+      "relation": "Granddaughter",
+      "imageUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+      "hint": "Your bright grandchild studying architecture in Bengaluru. She loves classical dance.",
+      "funFact": "She calls you every Sunday morning at 10 AM!"
+    },
+    {
+      "id": "face-2",
+      "name": "Rohan Sharma",
+      "relation": "Eldest Son",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
+      "hint": "Your son who lives in Delhi and works as a doctor. Loves making your favorite cardamom chai.",
+      "funFact": "He helped set up this tablet for you!"
+    },
+    {
+      "id": "face-3",
+      "name": "Pooja Devi",
+      "relation": "Daughter-in-law",
+      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80",
+      "hint": "She enjoys gardening with you and making fresh marigold garlands for morning prayer.",
+      "funFact": "Won the regional botanical award last year."
+    },
+    {
+      "id": "face-4",
+      "name": "Dr. APJ Abdul Kalam",
+      "relation": "Historical Hero",
+      "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80",
+      "hint": "The People's President of India and legendary scientist from Rameswaram.",
+      "funFact": "You attended his lecture in New Delhi in 2003."
+    },
+    {
+      "id": "face-5",
+      "name": "Kabir Sharma",
+      "relation": "Grandson",
+      "imageUrl": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80",
+      "hint": "Your energetic grandson who plays football and loves your homemade mango pickles.",
+      "funFact": "Always gives you a high-five when visiting."
+    }
+  ],
+  "realityQuests": {
+    "todayCompleted": true,
+    "completedDate": "2026-08-27T05:54:58.776Z",
+    "questions": [
+      {
+        "id": "rq-1",
+        "question": "Which day of the week is today?",
+        "options": [
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Sunday"
+        ],
+        "correctAnswer": "Wednesday",
+        "explanation": "Today is Wednesday in the current week.",
+        "category": "Temporal Awareness"
+      },
+      {
+        "id": "rq-2",
+        "question": "What is the current season of the year?",
+        "options": [
+          "Monsoon / Autumn",
+          "Peak Winter",
+          "Spring",
+          "Mid Summer"
+        ],
+        "correctAnswer": "Monsoon / Autumn",
+        "explanation": "Late August corresponds to the pleasant monsoon/autumn transition.",
+        "category": "Environmental Orientation"
+      },
+      {
+        "id": "rq-3",
+        "question": "What is the most important morning step after your tea?",
+        "options": [
+          "Take prescribed morning tablets",
+          "Water the rose plants",
+          "Turn on the evening lamp",
+          "Pack for travel"
+        ],
+        "correctAnswer": "Take prescribed morning tablets",
+        "explanation": "Taking regular morning vitamins and health capsules keeps your mind and heart protected.",
+        "category": "Routine Autonomy"
+      },
+      {
+        "id": "rq-4",
+        "question": "Who is your designated primary family caregiver?",
+        "options": [
+          "Rohan Sharma (Son)",
+          "The postal officer",
+          "Unknown volunteer",
+          "Train conductor"
+        ],
+        "correctAnswer": "Rohan Sharma (Son)",
+        "explanation": "Rohan is your primary family contact and caregiver.",
+        "category": "Social Grounding"
+      }
+    ]
+  },
+  "rewards": [
+    {
+      "id": "rew-1",
+      "title": "Family Audio Blessing Message Pack",
+      "category": "Family Moments",
+      "cost": 300,
+      "description": "Receive custom recorded voice messages from your grandchildren sent straight to your tablet.",
+      "imageUrl": "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=500&auto=format&fit=crop&q=80",
+      "isClaimed": false
+    },
+    {
+      "id": "rew-2",
+      "title": "Large-Print Crossword & Sudoku Digest",
+      "category": "Brain Goods",
+      "cost": 600,
+      "description": "A physical high-contrast puzzle book delivered to your doorstep for relaxing afternoon teas.",
+      "imageUrl": "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=500&auto=format&fit=crop&q=80",
+      "isClaimed": false
+    },
+    {
+      "id": "rew-3",
+      "title": "Artisanal Chamomile & Cardamom Herbal Tea",
+      "category": "Wellness",
+      "cost": 1000,
+      "description": "A calming selection of pure loose-leaf herbal teas crafted for soothing sleep and peaceful memory.",
+      "imageUrl": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&auto=format&fit=crop&q=80",
+      "isClaimed": true,
+      "claimedAt": "Yesterday, 4:15 PM",
+      "claimCode": "TEA-8821-DEL"
+    },
+    {
+      "id": "rew-4",
+      "title": "Custom Framed Family Photo Album",
+      "category": "Family Moments",
+      "cost": 1200,
+      "description": "A deluxe wooden-framed print of your family reunion in Jaipur with high-gloss protective acrylic.",
+      "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500&auto=format&fit=crop&q=80",
+      "isClaimed": false
+    },
+    {
+      "id": "rew-5",
+      "title": "Donation to Senior ElderCare Community Care",
+      "category": "Good Karma",
+      "cost": 1500,
+      "description": "Sponsor a full week of nutritious warm meals and medical checkups for underprivileged elders.",
+      "imageUrl": "https://images.unsplash.com/photo-1532629345422-7515f3d16bb7?w=500&auto=format&fit=crop&q=80",
+      "isClaimed": false
+    }
+  ]
+}

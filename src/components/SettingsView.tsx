@@ -1,0 +1,318 @@
+import React, { useState } from 'react';
+import type { UserProfile, FamilyFaceItem } from '../types';
+import { playSuccessChime, playGentleClick } from '../utils/audio';
+
+interface SettingsViewProps {
+  user: UserProfile | null;
+  familyFaces: FamilyFaceItem[];
+  onUpdateUser: (updated: Partial<UserProfile>) => Promise<void>;
+  onAddFamilyFace: (face: Omit<FamilyFaceItem, 'id'>) => Promise<void>;
+  onDeleteFamilyFace: (id: string) => Promise<void>;
+  onResetDemo: () => Promise<void>;
+}
+
+export const SettingsView: React.FC<SettingsViewProps> = ({
+  user,
+  familyFaces,
+  onUpdateUser,
+  onAddFamilyFace,
+  onDeleteFamilyFace,
+  onResetDemo,
+}) => {
+  const [userName, setUserName] = useState(user?.name || 'Asha Devi');
+  const [caregiverName, setCaregiverName] = useState(user?.caregiverName || 'Rohan Sharma (Son)');
+  const [caregiverPhone, setCaregiverPhone] = useState(user?.caregiverPhone || '+91 98765 43210');
+  const [fontSize, setFontSize] = useState(user?.preferences?.fontSize || 'large');
+  const [voiceGuidance, setVoiceGuidance] = useState(user?.preferences?.voiceGuidance ?? true);
+  const [soundEffects, setSoundEffects] = useState(user?.preferences?.soundEffects ?? true);
+
+  const [isSaved, setIsSaved] = useState(false);
+  const [showAddFaceModal, setShowAddFaceModal] = useState(false);
+  const [newFaceName, setNewFaceName] = useState('');
+  const [newFaceRelation, setNewFaceRelation] = useState('');
+  const [newFaceImageUrl, setNewFaceImageUrl] = useState('');
+  const [newFaceHint, setNewFaceHint] = useState('');
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    playGentleClick();
+    await onUpdateUser({
+      name: userName,
+      caregiverName,
+      caregiverPhone,
+      preferences: {
+        fontSize,
+        highContrast: user?.preferences?.highContrast ?? false,
+        voiceGuidance,
+        soundEffects,
+        reminders: true,
+      },
+    });
+    playSuccessChime();
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  const handleCreateFace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFaceName.trim()) return;
+    await onAddFamilyFace({
+      name: newFaceName,
+      relation: newFaceRelation || 'Family Member',
+      imageUrl:
+        newFaceImageUrl.trim() ||
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80',
+      hint: newFaceHint || 'A beloved family relative.',
+      funFact: 'Cherished family memory.',
+    });
+    setShowAddFaceModal(false);
+    setNewFaceName('');
+    setNewFaceRelation('');
+    setNewFaceImageUrl('');
+    setNewFaceHint('');
+  };
+
+  return (
+    <main id="settings-view-main" className="flex-1 p-4 sm:p-6 md:p-12 bg-[#ffffff] overflow-y-auto">
+      <div className="mb-8">
+        <h1 className="font-extrabold text-[28px] md:text-[34px] leading-tight text-[#002045] mb-2">
+          Settings & Preferences
+        </h1>
+        <p className="font-normal text-[18px] md:text-[20px] text-[#43474e]">
+          Manage accessibility, caregiver connection, and personalized family memory album.
+        </p>
+      </div>
+
+      <div className="space-y-8 max-w-4xl">
+        {/* Profile & Caregiver Form */}
+        <div className="bg-[#f9f9ff] p-6 sm:p-8 rounded-2xl border-2 border-[#c4c6cf]">
+          <h2 className="font-extrabold text-[22px] text-[#002045] mb-4 flex items-center">
+            <span className="material-symbols-outlined mr-2 text-[26px]">person</span>
+            User & Caregiver Details
+          </h2>
+
+          <form onSubmit={handleSaveProfile} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-bold text-base text-[#121c2c] mb-1">Senior User Name</label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full p-3.5 bg-white border-2 border-[#c4c6cf] rounded-xl text-lg font-bold text-[#002045] focus:border-[#002045] focus:ring-2 focus:ring-[#002045]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-base text-[#121c2c] mb-1">Primary Family Caregiver</label>
+                <input
+                  type="text"
+                  value={caregiverName}
+                  onChange={(e) => setCaregiverName(e.target.value)}
+                  className="w-full p-3.5 bg-white border-2 border-[#c4c6cf] rounded-xl text-lg text-[#002045] focus:border-[#002045] focus:ring-2 focus:ring-[#002045]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-base text-[#121c2c] mb-1">Caregiver Phone (Emergency)</label>
+                <input
+                  type="text"
+                  value={caregiverPhone}
+                  onChange={(e) => setCaregiverPhone(e.target.value)}
+                  className="w-full p-3.5 bg-white border-2 border-[#c4c6cf] rounded-xl text-lg text-[#002045] focus:border-[#002045] focus:ring-2 focus:ring-[#002045]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-base text-[#121c2c] mb-1">Display Text Size</label>
+                <select
+                  value={fontSize}
+                  onChange={(e) => setFontSize(e.target.value as any)}
+                  className="w-full p-3.5 bg-white border-2 border-[#c4c6cf] rounded-xl text-lg text-[#002045] focus:border-[#002045]"
+                >
+                  <option value="standard">Standard (16px)</option>
+                  <option value="large">Large - Senior Friendly (18-20px)</option>
+                  <option value="extralarge">Extra Large (24px)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-4">
+              <label className="flex items-center space-x-3 p-3 bg-white rounded-xl border border-[#c4c6cf] cursor-pointer flex-1">
+                <input
+                  type="checkbox"
+                  checked={voiceGuidance}
+                  onChange={(e) => setVoiceGuidance(e.target.checked)}
+                  className="w-6 h-6 text-[#002045] rounded-md"
+                />
+                <span className="font-bold text-base text-[#121c2c]">Voice Narration & Hints</span>
+              </label>
+
+              <label className="flex items-center space-x-3 p-3 bg-white rounded-xl border border-[#c4c6cf] cursor-pointer flex-1">
+                <input
+                  type="checkbox"
+                  checked={soundEffects}
+                  onChange={(e) => setSoundEffects(e.target.checked)}
+                  className="w-6 h-6 text-[#002045] rounded-md"
+                />
+                <span className="font-bold text-base text-[#121c2c]">Acoustic Chimes & Sound FX</span>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between pt-4">
+              {isSaved && (
+                <span className="text-emerald-700 font-bold flex items-center text-base">
+                  <span className="material-symbols-outlined mr-1">check_circle</span>
+                  Preferences saved to database!
+                </span>
+              )}
+              <button
+                type="submit"
+                className="ml-auto bg-[#002045] hover:bg-[#1a365d] text-white px-8 py-3.5 rounded-xl font-bold text-[18px] min-h-[52px] cursor-pointer shadow-sm"
+              >
+                Save Preferences
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Family Memory Album Database Manager */}
+        <div className="bg-[#f9f9ff] p-6 sm:p-8 rounded-2xl border-2 border-[#c4c6cf]">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+            <div>
+              <h2 className="font-extrabold text-[22px] text-[#002045] flex items-center">
+                <span className="material-symbols-outlined mr-2 text-[26px]">family_restroom</span>
+                Family Memory Album Database
+              </h2>
+              <p className="text-sm text-[#43474e] mt-1">
+                These photos and clues power the <strong>Name That Face</strong> cognitive recall exercise.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowAddFaceModal(true)}
+              className="bg-[#002045] hover:bg-[#1a365d] text-white px-5 py-3 rounded-xl font-bold text-[16px] flex items-center cursor-pointer shadow-sm"
+            >
+              <span className="material-symbols-outlined mr-1.5 text-[20px]">add_photo_alternate</span>
+              Add Family Member
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {familyFaces.map((face) => (
+              <div
+                key={face.id}
+                className="bg-white p-4 rounded-xl border-2 border-[#d9e3f9] shadow-xs flex flex-col justify-between"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <img
+                    src={face.imageUrl}
+                    alt={face.name}
+                    className="w-16 h-16 rounded-xl object-cover border border-[#c4c6cf]"
+                  />
+                  <div>
+                    <h3 className="font-bold text-[18px] text-[#002045]">{face.name}</h3>
+                    <span className="bg-[#d9e3f9] text-[#002045] text-xs font-bold px-2 py-0.5 rounded-full">
+                      {face.relation}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-[#43474e] line-clamp-2 italic mb-3">"{face.hint}"</p>
+                <button
+                  onClick={() => onDeleteFamilyFace(face.id)}
+                  className="text-red-700 hover:bg-red-50 p-2 rounded-lg text-xs font-bold self-end flex items-center cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px] mr-1">delete</span>
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Database Demo Reset */}
+        <div className="p-6 bg-red-50 rounded-2xl border border-red-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-[18px] text-red-950">Reset Database to Default State</h3>
+            <p className="text-sm text-red-800">
+              Restores initial mind points (1,240), progress percentages, and activities.
+            </p>
+          </div>
+          <button
+            onClick={onResetDemo}
+            className="bg-red-800 hover:bg-red-900 text-white px-5 py-3 rounded-xl font-bold text-sm cursor-pointer whitespace-nowrap"
+          >
+            Reset Demo Data
+          </button>
+        </div>
+      </div>
+
+      {/* Add Face Modal */}
+      {showAddFaceModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl border-2 border-[#002045] p-6 max-w-lg w-full space-y-4 shadow-2xl">
+            <h3 className="font-extrabold text-[22px] text-[#002045]">Add Family Member to Memory Album</h3>
+            <form onSubmit={handleCreateFace} className="space-y-3">
+              <div>
+                <label className="block text-sm font-bold text-[#121c2c]">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Vikram Sharma"
+                  value={newFaceName}
+                  onChange={(e) => setNewFaceName(e.target.value)}
+                  className="w-full p-3 border border-[#c4c6cf] rounded-xl text-base"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#121c2c]">Relationship</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Grandson / Sister"
+                  value={newFaceRelation}
+                  onChange={(e) => setNewFaceRelation(e.target.value)}
+                  className="w-full p-3 border border-[#c4c6cf] rounded-xl text-base"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#121c2c]">Photo URL (or Leave Default)</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={newFaceImageUrl}
+                  onChange={(e) => setNewFaceImageUrl(e.target.value)}
+                  className="w-full p-3 border border-[#c4c6cf] rounded-xl text-base"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#121c2c]">Memory Clue / Hint</label>
+                <textarea
+                  placeholder="e.g. Loved visiting with fresh mangoes during summer vacations."
+                  value={newFaceHint}
+                  onChange={(e) => setNewFaceHint(e.target.value)}
+                  className="w-full p-3 border border-[#c4c6cf] rounded-xl text-base h-20"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddFaceModal(false)}
+                  className="px-5 py-2.5 rounded-xl border border-[#c4c6cf] font-bold text-[#43474e] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-[#002045] text-white font-bold cursor-pointer"
+                >
+                  Save to Database
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+};
