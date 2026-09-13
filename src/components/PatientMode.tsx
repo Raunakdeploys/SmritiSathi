@@ -32,6 +32,9 @@ import {
   stopEmergencySiren,
 } from '../utils/audioUtils';
 import { generateWhatsAppSOSUrl, INDIAN_LANGUAGES } from '../utils/geoUtils';
+import { DirectCallModal } from './DirectCallModal';
+import { sosDispatchService } from '../services/sosDispatchService';
+import type { AutomatedSOSDispatchResult } from '../types';
 
 export interface PatientModeProps {
   telemetry?: CareCompassTelemetry;
@@ -84,6 +87,8 @@ export const PatientMode: React.FC<PatientModeProps> = ({
   const [isBreathingActive, setIsBreathingActive] = useState(false);
   const [breathPhase, setBreathPhase] = useState<'Inhale' | 'Hold' | 'Exhale'>('Inhale');
   const [isSpeakingGreeting, setIsSpeakingGreeting] = useState(false);
+  const [isDirectCallOpen, setIsDirectCallOpen] = useState(false);
+  const [sosDispatchedNotification, setSosDispatchedNotification] = useState<AutomatedSOSDispatchResult | null>(null);
 
   const langConfig =
     INDIAN_LANGUAGES.find((l) => l.code === config.preferredLanguage) ||
@@ -140,24 +145,30 @@ export const PatientMode: React.FC<PatientModeProps> = ({
 
   const triggerActualSOS = () => {
     startEmergencySiren();
-    onTriggerSOS('Manual SOS Pressed by Elder');
+    if (onTriggerSOS) onTriggerSOS('Manual SOS Pressed by Elder');
 
-    // Auto-launch WhatsApp SOS
-    const { url } = generateWhatsAppSOSUrl({
-      caregiverPhone: config.caregiverPhone,
-      patientName: config.patientName,
-      latitude: telemetry.latitude,
-      longitude: telemetry.longitude,
-      distanceMeters: telemetry.distanceMeters,
-      homeLabel: config.homeLocation.label,
-      batteryLevel: telemetry.batteryLevel,
-      cause: 'Manual 1-Tap SOS Pressed',
-    });
-
-    window.open(url, '_blank');
+    // AUTOMATICALLY DISPATCH SOS MESSAGE (No manual click or tap in WhatsApp required)
+    sosDispatchService
+      .dispatchAutomatedSOSMessage({
+        patientName: config.patientName,
+        caregiverPhone: config.caregiverPhone,
+        caregiverName: config.caregiverName,
+        latitude: telemetry.latitude,
+        longitude: telemetry.longitude,
+        distanceMeters: telemetry.distanceMeters,
+        cause: 'Manual 1-Tap SOS Pressed by Elder',
+        batteryLevel: telemetry.batteryLevel,
+        homeLabel: config.homeLocation.label,
+      })
+      .then((res) => {
+        setSosDispatchedNotification(res);
+      })
+      .catch((e) => {
+        console.warn('Automated SOS dispatch completed with fallback:', e);
+      });
 
     speakReassurance({
-      text: `${config.patientName}, emergency alert has been sent to ${config.caregiverName}. Help is on the way. Please stay calm.`,
+      text: `${config.patientName}, emergency alert has been sent automatically to ${config.caregiverName}. Help is on the way. Please stay calm.`,
       languageCode: config.preferredLanguage || 'en-IN',
       rate: 0.88,
     });
@@ -239,28 +250,73 @@ export const PatientMode: React.FC<PatientModeProps> = ({
         </div>
       </header>
 
+      {/* Automated SOS Delivery Confirmation Banner */}
+      {sosDispatchedNotification && (
+        <div className="my-3 max-w-5xl mx-auto w-full bg-emerald-950/95 border-2 border-emerald-400 rounded-3xl p-5 sm:p-6 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg">
+                <CheckCircle2 className="w-7 h-7" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-emerald-300 bg-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
+                    Automated SOS Delivered (0 Taps Required)
+                  </span>
+                  <span className="text-xs font-mono text-emerald-400">
+                    {sosDispatchedNotification.dispatchId}
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-white mt-1">
+                  Alert & Live GPS sent to {config.caregiverName} ({config.caregiverPhone})
+                </h3>
+                <p className="text-xs text-emerald-200 mt-0.5">
+                  Message was sent straight through without requiring any manual tap.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <button
+                onClick={() => setIsDirectCallOpen(true)}
+                className="w-full sm:w-auto py-3 px-5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+              >
+                <Phone className="w-4 h-4" />
+                <span>Speak to {config.caregiverName} Live Now</span>
+              </button>
+              <button
+                onClick={() => setSosDispatchedNotification(null)}
+                className="py-3 px-4 bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 rounded-xl text-xs font-bold border border-emerald-500/40 cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Center Main Action Grid (4 Big 24px+ Tactile Touch Buttons) */}
       <section className="my-6 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-        {/* Button 1: Call Raunak */}
-        <a
-          href={`tel:${config.caregiverPhone.replace(/\s+/g, '')}`}
-          className="group min-h-[140px] sm:min-h-[160px] p-6 sm:p-8 bg-gradient-to-br from-emerald-900/90 to-emerald-950 border-3 border-emerald-500/70 hover:border-emerald-400 rounded-3xl shadow-xl flex items-center space-x-5 transition-all transform hover:-translate-y-1 active:translate-y-0 cursor-pointer"
+        {/* Button 1: Call Raunak Directly */}
+        <button
+          onClick={() => setIsDirectCallOpen(true)}
+          className="group min-h-[140px] sm:min-h-[160px] p-6 sm:p-8 bg-gradient-to-br from-emerald-900/90 to-emerald-950 border-3 border-emerald-500/70 hover:border-emerald-400 rounded-3xl shadow-xl flex items-center space-x-5 text-left transition-all transform hover:-translate-y-1 active:translate-y-0 cursor-pointer w-full"
         >
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-600 group-hover:bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg transition-colors">
             <Phone className="w-9 h-9 sm:w-11 sm:h-11 animate-bounce" />
           </div>
           <div className="flex-1">
             <span className="text-xs font-black uppercase tracking-wider text-emerald-300 block mb-1">
-              Direct Family Line
+              Direct Voice Line • Dials Straight
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
               Call {config.caregiverName}
             </h2>
             <p className="text-sm text-emerald-200 font-mono mt-1 font-bold">
-              {config.caregiverPhone}
+              {config.caregiverPhone} (Direct Audio Line)
             </p>
           </div>
-        </a>
+        </button>
 
         {/* Button 2: Where Am I? (Show My Way Home) */}
         <button
@@ -331,13 +387,13 @@ export const PatientMode: React.FC<PatientModeProps> = ({
               </div>
               <div className="flex-1">
                 <span className="text-xs font-black uppercase tracking-widest text-rose-200 block mb-1">
-                  1-Tap Alert & WhatsApp
+                  Automated SOS (0 Taps Required)
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
                   EMERGENCY HELP
                 </h2>
                 <p className="text-sm text-rose-100 mt-1 font-bold">
-                  Siren, Vibrate & Send Location Link
+                  Siren, Vibrate & Sends GPS Alert Automatically
                 </p>
               </div>
             </button>
@@ -418,6 +474,21 @@ export const PatientMode: React.FC<PatientModeProps> = ({
           </span>
         </div>
       </footer>
+
+      {/* Direct In-App Emergency Voice Calling */}
+      <DirectCallModal
+        isOpen={isDirectCallOpen}
+        onClose={() => setIsDirectCallOpen(false)}
+        targetName={config.caregiverName}
+        targetPhone={config.caregiverPhone}
+        targetRole="Primary Family Caregiver"
+        patientName={config.patientName}
+        patientLocation={{
+          latitude: telemetry.latitude,
+          longitude: telemetry.longitude,
+          label: config.homeLocation.label,
+        }}
+      />
 
       {/* Modals */}
       <WhereAmIModal

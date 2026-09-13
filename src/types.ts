@@ -209,13 +209,39 @@ export interface AlertLogEntry {
     | 'Manual SOS Pressed'
     | 'Sundowning Warning'
     | 'Routine Check-In'
-    | 'Border Warning';
+    | 'Border Warning'
+    | 'Direct Emergency Call';
   distanceMeters: number;
   latitude: number;
   longitude: number;
   notes: string;
   acknowledged?: boolean;
   whatsappDispatched?: boolean;
+  automatedSmsDispatched?: boolean;
+  directCallDialed?: boolean;
+  dispatchId?: string;
+  deliveryStatus?: 'DELIVERED' | 'TRANSMITTING' | 'CONNECTED';
+  channel?: 'AUTOMATED_SMS_GATEWAY' | 'DIRECT_PHONE_DIAL' | 'WHATSAPP_RELAY';
+}
+
+export interface AutomatedSOSDispatchResult {
+  success: boolean;
+  dispatchId: string;
+  timestamp: string;
+  deliveryStatus: 'DELIVERED' | 'TRANSMITTING' | 'CONNECTED';
+  recipientPhone: string;
+  recipientName: string;
+  messageText: string;
+  carrierAck: string;
+}
+
+export interface DirectCallSession {
+  id: string;
+  targetName: string;
+  targetPhone: string;
+  callType: 'caregiver' | 'helpline_112' | 'ambulance_108' | 'police_100';
+  startedAt: string;
+  status: 'DIALING' | 'RINGING' | 'CONNECTED' | 'ENDED';
 }
 
 export interface BreadcrumbPoint {

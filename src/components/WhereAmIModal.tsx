@@ -14,6 +14,7 @@ import {
 import type { CareCompassTelemetry, CareCompassConfig } from '../types';
 import { speakReassurance, stopVoiceSpeech } from '../utils/audioUtils';
 import { INDIAN_LANGUAGES } from '../utils/geoUtils';
+import { DirectCallModal } from './DirectCallModal';
 
 interface WhereAmIModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export const WhereAmIModal: React.FC<WhereAmIModalProps> = ({
   config,
 }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isDirectCallOpen, setIsDirectCallOpen] = useState(false);
 
   const langConfig =
     INDIAN_LANGUAGES.find((l) => l.code === config.preferredLanguage) ||
@@ -198,13 +200,13 @@ export const WhereAmIModal: React.FC<WhereAmIModalProps> = ({
 
         {/* Big Action Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-          <a
-            href={`tel:${config.caregiverPhone.replace(/\s+/g, '')}`}
+          <button
+            onClick={() => setIsDirectCallOpen(true)}
             className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-2xl font-black text-lg flex items-center justify-center space-x-3 shadow-lg transition-all cursor-pointer"
           >
             <Phone className="w-6 h-6" />
-            <span>Call {config.caregiverName} Now</span>
-          </a>
+            <span>Call {config.caregiverName} Directly</span>
+          </button>
 
           <button
             onClick={onClose}
@@ -214,6 +216,21 @@ export const WhereAmIModal: React.FC<WhereAmIModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Direct In-App Emergency Voice Call */}
+      <DirectCallModal
+        isOpen={isDirectCallOpen}
+        onClose={() => setIsDirectCallOpen(false)}
+        targetName={config.caregiverName}
+        targetPhone={config.caregiverPhone}
+        targetRole="Primary Family Caregiver"
+        patientName={config.patientName}
+        patientLocation={{
+          latitude: telemetry.latitude,
+          longitude: telemetry.longitude,
+          label: config.homeLocation.label,
+        }}
+      />
     </div>
   );
 };

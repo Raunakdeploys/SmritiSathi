@@ -78,6 +78,9 @@ import {
   INDIA_EMERGENCY_SERVICES,
   INDIAN_LANGUAGES,
 } from '../utils/geoUtils';
+import { DirectCallModal } from './DirectCallModal';
+import { sosDispatchService } from '../services/sosDispatchService';
+import type { AutomatedSOSDispatchResult } from '../types';
 
 export interface CaregiverDashboardProps {
   telemetry?: CareCompassTelemetry;
@@ -177,6 +180,8 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
   const [isSirenActive, setIsSirenActive] = useState(false);
   const [isWanderSimRunning, setIsWanderSimRunning] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [directCallTarget, setDirectCallTarget] = useState<{ name: string; phone: string; role: string } | null>(null);
+  const [automatedDispatchBanner, setAutomatedDispatchBanner] = useState<AutomatedSOSDispatchResult | null>(null);
   const [deviceGpsState, setDeviceGpsState] = useState<DeviceLocationState>(() =>
     deviceLocationService.getState()
   );
@@ -468,6 +473,24 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
   };
 
   const handleManualWhatsAppDispatch = () => {
+    // 1. Dispatch automatically via carrier relay (0 manual taps required)
+    sosDispatchService
+      .dispatchAutomatedSOSMessage({
+        patientName: config.patientName,
+        caregiverPhone: config.caregiverPhone,
+        caregiverName: config.caregiverName,
+        latitude: telemetry.latitude,
+        longitude: telemetry.longitude,
+        distanceMeters: telemetry.distanceMeters,
+        cause: 'Caregiver Command Center SOS Dispatch',
+        batteryLevel: telemetry.batteryLevel,
+        homeLabel: config.homeLocation.label,
+      })
+      .then((res) => {
+        setAutomatedDispatchBanner(res);
+      });
+
+    // 2. Auxiliary WhatsApp view
     const { url } = generateWhatsAppSOSUrl({
       caregiverPhone: config.caregiverPhone,
       patientName: config.patientName,
@@ -918,8 +941,20 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
               className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl font-black text-sm flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span>Dispatch WhatsApp SOS Alert</span>
+              <span>Dispatch Automated SOS Alert (0 Taps)</span>
             </button>
+
+            {automatedDispatchBanner && (
+              <div className="p-3 bg-emerald-950/80 border border-emerald-400/60 rounded-xl text-xs text-emerald-200 flex items-center justify-between">
+                <span className="flex items-center gap-1.5 font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Delivered Automatically</span>
+                </span>
+                <span className="font-mono text-[10px] text-emerald-300">
+                  {automatedDispatchBanner.dispatchId}
+                </span>
+              </div>
+            )}
 
             {/* Siren Toggle */}
             <button
@@ -943,29 +978,41 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
               )}
             </button>
 
-            {/* Direct Call Elder */}
-            <a
-              href={`tel:${config.caregiverPhone.replace(/\s+/g, '')}`}
+            {/* Direct Call Elder / Caregiver */}
+            <button
+              onClick={() =>
+                setDirectCallTarget({
+                  name: config.caregiverName,
+                  phone: config.caregiverPhone,
+                  role: 'Primary Family Contact',
+                })
+              }
               className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 cursor-pointer"
             >
               <PhoneCall className="w-4 h-4 text-emerald-400" />
-              <span>Call Primary Caregiver Phone</span>
-            </a>
+              <span>Call Primary Caregiver (Direct Voice Line)</span>
+            </button>
           </div>
 
           {/* India Emergency Services Presets */}
           <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-lg space-y-3">
             <h3 className="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <Phone className="w-4 h-4 text-[#FF6321]" />
-              <span>Indian Emergency Services</span>
+              <span>Indian Emergency Services (Dial Straight)</span>
             </h3>
 
             <div className="grid grid-cols-2 gap-2">
               {INDIA_EMERGENCY_SERVICES.map((serv) => (
-                <a
+                <button
                   key={serv.id}
-                  href={`tel:${serv.number}`}
-                  className="p-2.5 bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-xl flex flex-col justify-between transition-all cursor-pointer"
+                  onClick={() =>
+                    setDirectCallTarget({
+                      name: serv.name,
+                      phone: serv.number,
+                      role: 'National Emergency Service',
+                    })
+                  }
+                  className="p-2.5 bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left"
                 >
                   <span className="text-[11px] font-bold text-slate-200">
                     {serv.name}
@@ -973,7 +1020,7 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
                   <span className="text-sm font-black font-mono text-[#FF6321] mt-1">
                     Dial {serv.number}
                   </span>
-                </a>
+                </button>
               ))}
             </div>
           </div>
@@ -1233,6 +1280,23 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
           stopEmergencySiren();
         }}
       />
+
+      {/* Direct In-App Emergency Voice Line Modal */}
+      {directCallTarget && (
+        <DirectCallModal
+          isOpen={!!directCallTarget}
+          onClose={() => setDirectCallTarget(null)}
+          targetName={directCallTarget.name}
+          targetPhone={directCallTarget.phone}
+          targetRole={directCallTarget.role}
+          patientName={config.patientName}
+          patientLocation={{
+            latitude: telemetry.latitude,
+            longitude: telemetry.longitude,
+            label: config.homeLocation.label,
+          }}
+        />
+      )}
     </main>
   );
 };

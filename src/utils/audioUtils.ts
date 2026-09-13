@@ -109,6 +109,138 @@ export function isSirenPlaying(): boolean {
   return isSirenActive;
 }
 
+// Telephone Audio Synthesis Nodes
+let telephoneRingTimer: any = null;
+let telephoneRingOsc1: OscillatorNode | null = null;
+let telephoneRingOsc2: OscillatorNode | null = null;
+let telephoneRingGain: GainNode | null = null;
+let isTelephoneRinging = false;
+
+/**
+ * Synthesizes realistic outgoing telecom ringing tone (440Hz + 480Hz cadence)
+ */
+export function startTelephoneRingingTone(): void {
+  if (isTelephoneRinging) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  isTelephoneRinging = true;
+
+  const playRingBurst = () => {
+    if (!isTelephoneRinging) return;
+    try {
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(440, now);
+      osc2.frequency.setValueAtTime(480, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.05);
+      gain.gain.setValueAtTime(0.12, now + 1.2);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.35);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 1.4);
+      osc2.stop(now + 1.4);
+    } catch (_) {}
+  };
+
+  // Play immediately and cycle every 3 seconds (1.35s ring + 1.65s silence)
+  playRingBurst();
+  telephoneRingTimer = setInterval(playRingBurst, 3000);
+}
+
+/**
+ * Stops telephone ringing tone
+ */
+export function stopTelephoneRingingTone(): void {
+  isTelephoneRinging = false;
+  if (telephoneRingTimer) {
+    clearInterval(telephoneRingTimer);
+    telephoneRingTimer = null;
+  }
+}
+
+/**
+ * Plays short DTMF key chirp tone when dialing numbers
+ */
+export function playKeypadTone(digit = '1'): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const dtmfFrequencies: Record<string, [number, number]> = {
+    '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+    '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+    '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+    '0': [941, 1336], '*': [941, 1209], '#': [941, 1477],
+  };
+
+  const freqs = dtmfFrequencies[digit] || [697, 1209];
+
+  try {
+    const now = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.frequency.setValueAtTime(freqs[0], now);
+    osc2.frequency.setValueAtTime(freqs[1], now);
+
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + 0.14);
+    osc2.stop(now + 0.14);
+  } catch (_) {}
+}
+
+/**
+ * Plays telephone call connected chime
+ */
+export function playCallConnectedChime(): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const notes = [440, 880]; // A4 to A5 crisp connect tone
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + idx * 0.09;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+
+      gain.gain.setValueAtTime(0.001, t);
+      gain.gain.linearRampToValueAtTime(0.16, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.26);
+    });
+  } catch (_) {}
+}
+
 /**
  * Plays calming harmonic Solfeggio tones (432Hz or 528Hz) for elder anxiety reduction & breathing
  */
