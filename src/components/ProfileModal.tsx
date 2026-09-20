@@ -9,7 +9,7 @@ interface ProfileModalProps {
   progress: CognitiveProgress | null;
   onClose: () => void;
   onOpenSettings: () => void;
-  onShowDomainHelper?: (domain: string) => void;
+  onShowDomainHelper?: (domain: string, errorCode?: string, errorMessage?: string) => void;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
@@ -28,13 +28,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       const res = await signInWithGoogleSafe();
       if (res.success) {
         playSuccessChime();
-      } else if (res.isDomainUnauthorized) {
+      } else {
         if (onShowDomainHelper) {
-          onShowDomainHelper(res.unauthorizedDomain || window.location.hostname);
+          onShowDomainHelper(res.unauthorizedDomain || window.location.hostname, res.errorCode, res.error);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Google sign-in caught exception:', err);
+      if (onShowDomainHelper) {
+        onShowDomainHelper(window.location.hostname, err?.code, err?.message);
+      }
     } finally {
       setLoadingGoogle(false);
     }
@@ -130,6 +133,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               >
                 <LogIn className="w-4 h-4 text-[#002045]" />
                 <span>{loadingGoogle ? 'Connecting Google...' : 'Sign In with Google'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onShowDomainHelper && onShowDomainHelper(window.location.hostname)}
+                className="w-full text-center text-[11px] text-sky-700 hover:text-sky-900 font-bold hover:underline cursor-pointer pt-0.5"
+              >
+                Having trouble connecting on Vercel? Troubleshoot setup
               </button>
             </div>
           )}

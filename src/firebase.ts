@@ -109,10 +109,16 @@ export function getFirebaseProjectConsoleUrl(): string {
   return `https://console.firebase.google.com/project/${projectId}/authentication/settings`;
 }
 
+export function getGoogleCloudConsoleCredentialsUrl(): string {
+  const projectId = firebaseConfigJson.projectId || 'geometric-hill-h7k72';
+  return `https://console.cloud.google.com/apis/credentials?project=${projectId}`;
+}
+
 export interface GoogleSignInResult {
   success: boolean;
   user?: User;
   error?: string;
+  errorCode?: string;
   isDomainUnauthorized?: boolean;
   unauthorizedDomain?: string;
   isPopupBlockedOrClosed?: boolean;
@@ -143,6 +149,7 @@ export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
       return {
         success: false,
         error: 'This domain is not yet authorized in Firebase Console.',
+        errorCode,
         isDomainUnauthorized: true,
         unauthorizedDomain: currentHost,
       };
@@ -156,7 +163,8 @@ export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
     ) {
       return {
         success: false,
-        error: 'Sign-in popup was closed or blocked.',
+        error: 'Sign-in popup was closed or blocked by browser.',
+        errorCode,
         isPopupBlockedOrClosed: true,
       };
     }
@@ -165,6 +173,7 @@ export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
     return {
       success: false,
       error: errorMessage || 'Failed to sign in with Google.',
+      errorCode,
     };
   }
 }

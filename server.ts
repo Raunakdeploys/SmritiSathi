@@ -422,6 +422,11 @@ async function startServer() {
 
   app.use(express.json({ limit: '25mb' }));
 
+  // Health check endpoint for Render / monitoring
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok', service: 'smritisathi', time: new Date().toISOString() });
+  });
+
   // API Endpoints
   // 1. Get full database state
   app.get('/api/data', (_req, res) => {

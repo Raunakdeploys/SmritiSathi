@@ -11,7 +11,7 @@ interface SettingsViewProps {
   onAddFamilyFace: (face: Omit<FamilyFaceItem, 'id'>) => Promise<void>;
   onDeleteFamilyFace: (id: string) => Promise<void>;
   onResetDemo: () => Promise<void>;
-  onShowDomainHelper?: (domain: string) => void;
+  onShowDomainHelper?: (domain: string, errorCode?: string, errorMessage?: string) => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -142,32 +142,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <span>{loadingGoogle ? 'Disconnecting...' : 'Sign Out'}</span>
                 </button>
               ) : (
-                <button
-                  id="btn-settings-google-signin"
-                  disabled={loadingGoogle}
-                  onClick={async () => {
-                    playGentleClick();
-                    setLoadingGoogle(true);
-                    try {
-                      const res = await signInWithGoogleSafe();
-                      if (res.success) {
-                        playSuccessChime();
-                      } else if (res.isDomainUnauthorized) {
-                        if (onShowDomainHelper) {
-                          onShowDomainHelper(res.unauthorizedDomain || window.location.hostname);
+                <div className="flex flex-col items-end gap-1.5">
+                  <button
+                    id="btn-settings-google-signin"
+                    disabled={loadingGoogle}
+                    onClick={async () => {
+                      playGentleClick();
+                      setLoadingGoogle(true);
+                      try {
+                        const res = await signInWithGoogleSafe();
+                        if (res.success) {
+                          playSuccessChime();
+                        } else {
+                          if (onShowDomainHelper) {
+                            onShowDomainHelper(res.unauthorizedDomain || window.location.hostname, res.errorCode, res.error);
+                          }
                         }
+                      } catch (err: any) {
+                        console.warn('Google sign-in caught error:', err);
+                        if (onShowDomainHelper) {
+                          onShowDomainHelper(window.location.hostname, err?.code, err?.message);
+                        }
+                      } finally {
+                        setLoadingGoogle(false);
                       }
-                    } catch (err) {
-                      console.warn('Google sign-in caught error:', err);
-                    } finally {
-                      setLoadingGoogle(false);
-                    }
-                  }}
-                  className="px-6 py-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
-                >
-                  <LogIn className="w-4 h-4 text-[#002045]" />
-                  <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google'}</span>
-                </button>
+                    }}
+                    className="px-6 py-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                  >
+                    <LogIn className="w-4 h-4 text-[#002045]" />
+                    <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onShowDomainHelper && onShowDomainHelper(window.location.hostname)}
+                    className="text-xs text-sky-700 hover:text-sky-900 font-bold hover:underline cursor-pointer"
+                  >
+                    Vercel / Domain Setup Help
+                  </button>
+                </div>
               )}
             </div>
           </div>
