@@ -6,8 +6,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import type { AppDatabase, UserProfile, CognitiveProgress, ActivityItem, GameInfo, FamilyFaceItem, RewardItem, CameraIdentifyResult } from './src/types';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 // Lazy Gemini API Client initialization
 let geminiClient: GoogleGenAI | null = null;
@@ -419,7 +418,7 @@ function saveDatabase(db: AppDatabase): void {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json({ limit: '25mb' }));
 
@@ -1614,19 +1613,24 @@ Generate:
     res.json({ success: true, dispatches: automatedDispatches });
   });
 
-  // Vite middleware setup
-  if (process.env.NODE_ENV !== 'production') {
+  // Static assets & SPA fallback
+  const distPath = path.resolve(process.cwd(), 'dist');
+  if (process.env.NODE_ENV === 'production' || fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+    app.get('*', (_req, res, next) => {
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        next();
+      }
+    });
+  } else {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
   }
 
   app.listen(PORT, '0.0.0.0', () => {
