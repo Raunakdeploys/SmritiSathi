@@ -1,5 +1,5 @@
 import { storeService } from './storeService';
-import { sosDispatchService } from './sosDispatchService';
+import { emergencySosService } from './emergencySosService';
 import {
   calculateHaversineDistanceMeters,
   calculateBearingDegrees,
@@ -324,28 +324,23 @@ class DeviceLocationManager {
     storeService.updateCareCompassTelemetry(updatedTelemetry);
     this.notifyListeners(updatedTelemetry);
 
-    // Check if Geofence Breach occurred and notify
+    // Stateful Geofence Alert State Machine:
+    // SAFE → ALERT_TRIGGERED (Alert sent once) → OUTSIDE (Suppressed) → SAFE (Reset)
+    const isOutside = distanceMeters > config.safeRadiusMeters || geofenceStatus === 'CRITICAL_BREACH';
+
+    emergencySosService.handleGeofenceTransition({
+      isOutside,
+      latitude: lat,
+      longitude: lng,
+      accuracy: acc,
+      distanceMeters,
+      notes: `Real-time GPS geofence transition (${Math.round(distanceMeters)}m from ${config.homeLocation.label})`,
+    });
+
     if (geofenceStatus === 'CRITICAL_BREACH') {
       const now = Date.now();
-      // Throttle breach triggers to at most once every 30 seconds
-      if (now - this.lastBreachTriggerTime > 30000) {
+      if (now - this.lastBreachTriggerTime > 15000) {
         this.lastBreachTriggerTime = now;
-        // Automatically transmit SOS message immediately (0 manual taps required)
-        sosDispatchService
-          .dispatchAutomatedSOSMessage({
-            patientName: config.patientName,
-            caregiverPhone: config.caregiverPhone,
-            caregiverName: config.caregiverName,
-            latitude: lat,
-            longitude: lng,
-            distanceMeters,
-            homeLabel: config.homeLocation.label,
-            batteryLevel: updatedTelemetry.batteryLevel,
-            cause: 'Automated Real-Time GPS Geofence Breach',
-          })
-          .catch((e) => {
-            console.warn('Real-time GPS breach auto SOS error:', e);
-          });
 
         const { url: whatsAppUrl } = generateWhatsAppSOSUrl({
           caregiverPhone: config.caregiverPhone,
@@ -358,7 +353,7 @@ class DeviceLocationManager {
           cause: 'Automated Real-Time GPS Geofence Breach',
         });
 
-        // Fire breach listeners
+        // Fire breach listeners (UI modals, siren)
         this.breachListeners.forEach((listener) => {
           try {
             listener({

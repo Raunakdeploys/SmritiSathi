@@ -15,14 +15,9 @@ import {
   Locate,
 } from 'lucide-react';
 import type { CareCompassConfig } from '../types';
-import {
-  PAN_INDIA_PRESETS,
-  INDIAN_LANGUAGES,
-  LocationPreset,
-  generateWhatsAppSOSUrl,
-} from '../utils/geoUtils';
+import { PAN_INDIA_PRESETS, INDIAN_LANGUAGES, LocationPreset } from '../utils/geoUtils';
 import { deviceLocationService } from '../services/deviceLocationService';
-import { sosDispatchService } from '../services/sosDispatchService';
+import { triggerEmergencySOS } from '../services/emergencySosService';
 
 interface CareCompassSettingsModalProps {
   isOpen: boolean;
@@ -75,44 +70,24 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
   };
 
   const handleTestAutomatedSOS = () => {
-    const sosData = generateWhatsAppSOSUrl({
-      caregiverPhone: formData.caregiverPhone,
-      patientName: formData.patientName,
+    triggerEmergencySOS({
+      triggerType: 'MANUAL_SOS',
       latitude: formData.homeLocation.latitude,
       longitude: formData.homeLocation.longitude,
+      accuracy: 5,
       distanceMeters: 45,
+      patientName: formData.patientName,
+      caregiverPhone: formData.caregiverPhone,
+      caregiverName: formData.caregiverName,
       homeLabel: formData.homeLocation.label,
       batteryLevel: 92,
-      cause: 'Manual Test Trigger from Settings',
-    });
-
-    try {
-      window.open(sosData.url, '_blank');
-    } catch (e) {
-      console.warn('Auto WhatsApp window open error:', e);
-    }
-
-    try {
-      window.location.href = sosData.telUrl;
-    } catch (e) {
-      console.warn('Auto phone dialer trigger error:', e);
-    }
-
-    sosDispatchService
-      .dispatchAutomatedSOSMessage({
-        caregiverPhone: formData.caregiverPhone,
-        caregiverName: formData.caregiverName,
-        patientName: formData.patientName,
-        latitude: formData.homeLocation.latitude,
-        longitude: formData.homeLocation.longitude,
-        distanceMeters: 45,
-        homeLabel: formData.homeLocation.label,
-        batteryLevel: 92,
-        cause: 'Manual Test Trigger from Settings',
-      })
+      notes: 'Manual Test Trigger from CareCompass Settings',
+    })
       .then((res) => {
-        setTestResult(`Automated Test Dispatched to ${formData.caregiverPhone}! Ref: ${res.dispatchId}`);
-        setTimeout(() => setTestResult(null), 6000);
+        setTestResult(
+          `Test SOS Sent: WhatsApp (${res.services.whatsapp.status}) • Voice Call (${res.services.voiceCall.status}) • Ref: ${res.dispatchId}`
+        );
+        setTimeout(() => setTestResult(null), 8000);
       })
       .catch((e) => {
         console.warn('Test dispatch error:', e);

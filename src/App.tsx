@@ -9,6 +9,7 @@ import type {
   RewardItem,
 } from './types';
 import { storeService } from './services/storeService';
+import { subscribeToAuth } from './firebase';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
@@ -55,12 +56,18 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Subscribe to storeService updates
+  // Subscribe to storeService updates & Google auth state
   useEffect(() => {
-    const unsubscribe = storeService.subscribe((updatedDb) => {
+    const unsubscribeStore = storeService.subscribe((updatedDb) => {
       setDatabase({ ...updatedDb });
     });
-    return () => unsubscribe();
+    const unsubscribeAuth = subscribeToAuth((authUser) => {
+      storeService.handleAuthChange(authUser);
+    });
+    return () => {
+      unsubscribeStore();
+      unsubscribeAuth();
+    };
   }, []);
 
   // Handle Game Completion via StoreService Cognitive Bridge Engine
@@ -95,6 +102,12 @@ export default function App() {
     const newMem = Math.min(100, currentMem + 5);
     const newAtt = Math.min(100, currentAtt + 5);
     const newPlan = Math.min(100, currentPlan + 5);
+
+    storeService.updateProgress({
+      memory: newMem,
+      attention: newAtt,
+      planning: newPlan,
+    });
 
     storeService.updateUser({
       totalMindPoints: (user.totalMindPoints || 0) + bonusPoints,

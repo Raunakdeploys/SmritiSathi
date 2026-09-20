@@ -37,6 +37,7 @@ import {
   Crosshair,
   Satellite,
   Globe,
+  Database,
 } from 'lucide-react';
 import type {
   CareCompassTelemetry,
@@ -79,7 +80,7 @@ import {
   INDIAN_LANGUAGES,
 } from '../utils/geoUtils';
 import { DirectCallModal } from './DirectCallModal';
-import { sosDispatchService } from '../services/sosDispatchService';
+import { emergencySosService, triggerEmergencySOS } from '../services/emergencySosService';
 import type { AutomatedSOSDispatchResult } from '../types';
 
 export interface CaregiverDashboardProps {
@@ -309,7 +310,7 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
     };
   }, [isWanderSimRunning, telemetry.distanceMeters, telemetry.geofenceStatus]);
 
-  // Handle manual trigger of breach alert
+  // Handle trigger of geofence breach alert via Central SOS system
   const handleTriggerBreachAlert = (dist: number, lat: number, lon: number) => {
     setIsBreachModalOpen(true);
 
@@ -318,62 +319,36 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
       setIsSirenActive(true);
     }
 
-    onAddAlertLog({
-      severity: 'critical',
-      cause: 'Geofence Breach',
-      distanceMeters: dist,
+    // THE ONE CENTRAL SOS FUNCTION for Geofence Exit (Automated WhatsApp + Outbound Voice Call)
+    triggerEmergencySOS({
+      triggerType: 'GEOFENCE_EXIT',
       latitude: lat,
       longitude: lon,
-      notes: `Breached ${config.alertRadiusMeters}m perimeter limit around ${config.homeLocation.label}`,
-      whatsappDispatched: config.autoWhatsAppOnBreach,
-    });
-
-    if (config.autoWhatsAppOnBreach) {
-      const { url, telUrl } = generateWhatsAppSOSUrl({
-        caregiverPhone: config.caregiverPhone,
-        patientName: config.patientName,
-        latitude: lat,
-        longitude: lon,
-        distanceMeters: dist,
-        cause: 'Automated Geofence Breach Out of Safe Radar',
-        batteryLevel: telemetry.batteryLevel,
-        homeLabel: config.homeLocation.label,
-      });
-
-      // 1. Immediately open WhatsApp with complete coordinates & message
-      try {
-        window.open(url, '_blank');
-      } catch (e) {
-        console.warn('Auto WhatsApp window open blocked:', e);
-      }
-
-      // 2. Automatically trigger telephone call to caregiver
-      try {
-        window.location.href = telUrl;
-      } catch (e) {
-        console.warn('Auto tel call trigger error:', e);
-      }
-
-      // 3. Dispatch to background relay
-      sosDispatchService
-        .dispatchAutomatedSOSMessage({
-          patientName: config.patientName,
-          caregiverPhone: config.caregiverPhone,
-          caregiverName: config.caregiverName,
-          latitude: lat,
-          longitude: lon,
-          distanceMeters: dist,
-          cause: 'Automated Geofence Breach Out of Safe Radar',
-          batteryLevel: telemetry.batteryLevel,
-          homeLabel: config.homeLocation.label,
-        })
-        .then((res) => {
-          setAutomatedDispatchBanner(res);
-        })
-        .catch((e) => {
-          console.warn('Auto SOS dispatch error:', e);
+      accuracy: 5,
+      distanceMeters: dist,
+      patientName: config.patientName,
+      caregiverPhone: config.caregiverPhone,
+      caregiverName: config.caregiverName,
+      homeLabel: config.homeLocation.label,
+      batteryLevel: telemetry.batteryLevel,
+      notes: `Automated Geofence Breach outside ${config.alertRadiusMeters}m perimeter of ${config.homeLocation.label}`,
+    })
+      .then((res) => {
+        setAutomatedDispatchBanner({
+          success: res.success,
+          dispatchId: res.dispatchId,
+          timestamp: res.timestamp,
+          deliveryStatus: res.services.whatsapp.status === 'DELIVERED' ? 'DELIVERED' : 'TRANSMITTING',
+          recipientPhone: res.caregiverPhone,
+          recipientName: res.caregiverName,
+          messageText: res.messageText,
+          carrierAck: `WhatsApp: ${res.services.whatsapp.status} • Voice Call: ${res.services.voiceCall.status}`,
+          services: res.services,
         });
-    }
+      })
+      .catch((e) => {
+        console.warn('Central Emergency SOS dispatch error:', e);
+      });
   };
 
   // Handle map click or manual repositioning
@@ -433,6 +408,7 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
       hrStatus = 'normal';
       stopEmergencySiren();
       setIsSirenActive(false);
+      emergencySosService.resetGeofenceAlertState();
     } else if (preset === 'BORDER') {
       dist = config.safeRadiusMeters - 20;
       state = 'Walking';
@@ -502,46 +478,34 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
   };
 
   const handleManualWhatsAppDispatch = () => {
-    const { url, message, telUrl, smsUrl } = generateWhatsAppSOSUrl({
-      caregiverPhone: config.caregiverPhone,
-      patientName: config.patientName,
+    triggerEmergencySOS({
+      triggerType: 'MANUAL_SOS',
       latitude: telemetry.latitude,
       longitude: telemetry.longitude,
+      accuracy: telemetry.accuracy,
       distanceMeters: telemetry.distanceMeters,
-      cause: 'Caregiver Command Center SOS Dispatch',
-      batteryLevel: telemetry.batteryLevel,
+      patientName: config.patientName,
+      caregiverPhone: config.caregiverPhone,
+      caregiverName: config.caregiverName,
       homeLabel: config.homeLocation.label,
-    });
-
-    // 1. Immediately open WhatsApp with recipient and pre-filled emergency coordinates
-    try {
-      window.open(url, '_blank');
-    } catch (e) {
-      console.warn('WhatsApp window.open error:', e);
-    }
-
-    // 2. Automatically trigger phone call to caregiver phone
-    try {
-      window.location.href = telUrl;
-    } catch (e) {
-      console.warn('Telephone call trigger error:', e);
-    }
-
-    // 3. Dispatch background carrier relay log
-    sosDispatchService
-      .dispatchAutomatedSOSMessage({
-        patientName: config.patientName,
-        caregiverPhone: config.caregiverPhone,
-        caregiverName: config.caregiverName,
-        latitude: telemetry.latitude,
-        longitude: telemetry.longitude,
-        distanceMeters: telemetry.distanceMeters,
-        cause: 'Caregiver Command Center SOS Dispatch',
-        batteryLevel: telemetry.batteryLevel,
-        homeLabel: config.homeLocation.label,
-      })
+      batteryLevel: telemetry.batteryLevel,
+      notes: 'Caregiver Command Center SOS Dispatch',
+    })
       .then((res) => {
-        setAutomatedDispatchBanner(res);
+        setAutomatedDispatchBanner({
+          success: res.success,
+          dispatchId: res.dispatchId,
+          timestamp: res.timestamp,
+          deliveryStatus: res.services.whatsapp.status === 'DELIVERED' ? 'DELIVERED' : 'TRANSMITTING',
+          recipientPhone: res.caregiverPhone,
+          recipientName: res.caregiverName,
+          messageText: res.messageText,
+          carrierAck: `WhatsApp: ${res.services.whatsapp.status} • Voice Call: ${res.services.voiceCall.status}`,
+          services: res.services,
+        });
+      })
+      .catch((e) => {
+        console.warn('Central SOS dispatch error:', e);
       });
   };
 
@@ -612,9 +576,13 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
             <Radio className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
                 CareCompass Command Active
+              </span>
+              <span className="text-[11px] font-bold text-sky-300 bg-sky-950/70 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
+                <Database className="w-3 h-3 text-sky-400" />
+                <span>Cloud Firestore Live</span>
               </span>
               <span className="text-xs text-slate-400 font-mono">
                 Assam Base: {config.homeLocation.label}

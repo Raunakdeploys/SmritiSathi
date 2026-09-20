@@ -915,11 +915,268 @@ Generate:
   });
 
   // ==========================================
-  // AUTOMATED EMERGENCY DISPATCH & DIRECT CALL APIS
+  // CENTRAL EMERGENCY SOS BACKEND ARCHITECTURE
+  // (Twilio WhatsApp, Outbound Voice Call, Meta WhatsApp)
   // ==========================================
+
+  // E.164 phone formatting helper
+  const formatE164Phone = (rawPhone: string): string => {
+    if (!rawPhone) return '+919876543210';
+    const cleaned = rawPhone.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('+')) return cleaned;
+    // Default to Indian country code (+91) if 10 digits
+    if (cleaned.length === 10) return `+91${cleaned}`;
+    if (cleaned.length === 11 && cleaned.startsWith('0')) return `+91${cleaned.slice(1)}`;
+    return `+${cleaned}`;
+  };
+
+  const escapeXml = (str: string): string => {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  };
+
+  // WhatsApp Alert Dispatcher (Twilio / Meta Cloud API)
+  const dispatchWhatsAppEmergencyAlert = async (params: {
+    toPhone: string;
+    messageText: string;
+  }): Promise<{
+    status: 'DELIVERED' | 'QUEUED' | 'PENDING_CONFIGURATION' | 'FAILED';
+    provider: 'twilio' | 'meta' | 'simulation_fallback';
+    id?: string;
+    error?: string;
+    details: string;
+  }> => {
+    const { toPhone, messageText } = params;
+    const cleanTo = formatE164Phone(toPhone);
+
+    const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+    const twilioAuth = process.env.TWILIO_AUTH_TOKEN;
+    const twilioFrom = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
+
+    const metaPhoneId = process.env.META_WHATSAPP_PHONE_NUMBER_ID;
+    const metaToken = process.env.META_WHATSAPP_ACCESS_TOKEN;
+
+    // 1. Try Twilio WhatsApp if credentials exist
+    if (twilioSid && twilioAuth) {
+      try {
+        const formattedFrom = twilioFrom.startsWith('whatsapp:') ? twilioFrom : `whatsapp:${twilioFrom}`;
+        const formattedTo = `whatsapp:${cleanTo}`;
+
+        const bodyParams = new URLSearchParams();
+        bodyParams.append('From', formattedFrom);
+        bodyParams.append('To', formattedTo);
+        bodyParams.append('Body', messageText);
+
+        const authHeader = 'Basic ' + Buffer.from(`${twilioSid}:${twilioAuth}`).toString('base64');
+
+        const twilioRes = await fetch(
+          `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: bodyParams.toString(),
+          }
+        );
+
+        const twilioData = await twilioRes.json().catch(() => ({}));
+
+        if (twilioRes.ok && twilioData.sid) {
+          console.log(`[TWILIO WHATSAPP SUCCESS] SID: ${twilioData.sid} sent to ${cleanTo}`);
+          return {
+            status: 'DELIVERED',
+            provider: 'twilio',
+            id: twilioData.sid,
+            details: `WhatsApp delivered via Twilio (Status: ${twilioData.status || 'queued'}) to ${cleanTo}`,
+          };
+        } else {
+          const errMsg = twilioData.message || twilioData.error_message || `HTTP ${twilioRes.status}`;
+          console.warn(`[TWILIO WHATSAPP ERROR] ${errMsg}`);
+          return {
+            status: 'FAILED',
+            provider: 'twilio',
+            error: errMsg,
+            details: `Twilio WhatsApp returned: ${errMsg}`,
+          };
+        }
+      } catch (err: any) {
+        console.error('[TWILIO WHATSAPP EXCEPTION]', err);
+        return {
+          status: 'FAILED',
+          provider: 'twilio',
+          error: err?.message || 'Twilio connection failed',
+          details: 'Failed to contact Twilio WhatsApp API',
+        };
+      }
+    }
+
+    // 2. Try Meta WhatsApp Cloud API if credentials exist
+    if (metaPhoneId && metaToken) {
+      try {
+        const metaTo = cleanTo.replace(/^\+/, '');
+        const metaRes = await fetch(
+          `https://graph.facebook.com/v20.0/${metaPhoneId}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${metaToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messaging_product: 'whatsapp',
+              recipient_type: 'individual',
+              to: metaTo,
+              type: 'text',
+              text: { body: messageText },
+            }),
+          }
+        );
+
+        const metaData = await metaRes.json().catch(() => ({}));
+        if (metaRes.ok && metaData.messages?.[0]?.id) {
+          console.log(`[META WHATSAPP SUCCESS] ID: ${metaData.messages[0].id}`);
+          return {
+            status: 'DELIVERED',
+            provider: 'meta',
+            id: metaData.messages[0].id,
+            details: `WhatsApp delivered via Meta Cloud API to ${cleanTo}`,
+          };
+        } else {
+          const errMsg = metaData.error?.message || `HTTP ${metaRes.status}`;
+          console.warn(`[META WHATSAPP ERROR] ${errMsg}`);
+          return {
+            status: 'FAILED',
+            provider: 'meta',
+            error: errMsg,
+            details: `Meta WhatsApp API error: ${errMsg}`,
+          };
+        }
+      } catch (err: any) {
+        console.error('[META WHATSAPP EXCEPTION]', err);
+        return {
+          status: 'FAILED',
+          provider: 'meta',
+          error: err?.message,
+          details: 'Failed to contact Meta WhatsApp Cloud API',
+        };
+      }
+    }
+
+    // 3. Graceful fallback when external credentials are not yet configured in .env
+    console.log(
+      `[EMERGENCY SOS] WhatsApp credentials not configured in .env. Event recorded in emergency log. To enable real delivery, configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM.`
+    );
+    return {
+      status: 'PENDING_CONFIGURATION',
+      provider: 'simulation_fallback',
+      details:
+        'Twilio WhatsApp credentials not configured in backend environment variables. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_FROM in .env for live message dispatch.',
+    };
+  };
+
+  // Outbound Voice Call Dispatcher (Twilio Voice API)
+  const dispatchOutboundVoiceEmergencyCall = async (params: {
+    toPhone: string;
+    patientName: string;
+    reasonText: string;
+  }): Promise<{
+    status: 'DELIVERED' | 'QUEUED' | 'PENDING_CONFIGURATION' | 'FAILED';
+    provider: 'twilio' | 'simulation_fallback';
+    id?: string;
+    error?: string;
+    details: string;
+  }> => {
+    const { toPhone, patientName, reasonText } = params;
+    const cleanTo = formatE164Phone(toPhone);
+
+    const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+    const twilioAuth = process.env.TWILIO_AUTH_TOKEN;
+    const twilioVoiceFrom = process.env.TWILIO_VOICE_FROM;
+
+    if (twilioSid && twilioAuth && twilioVoiceFrom) {
+      try {
+        const cleanName = escapeXml(patientName || 'Asha Devi');
+        const cleanReason = escapeXml(reasonText || 'Patient Safety Alert');
+
+        // TwiML voice instruction played when caregiver answers the phone
+        const twiml =
+          `<Response>` +
+          `<Say voice="Polly.Aditi" language="en-IN">Emergency alert from Smrithi Saathi. A patient safety alert has been triggered for ${cleanName}. Reason: ${cleanReason}. Please check the WhatsApp emergency message for the patient's current location.</Say>` +
+          `<Pause length="1"/>` +
+          `<Say voice="Polly.Aditi" language="en-IN">Repeating: Emergency alert from Smrithi Saathi. Please check the WhatsApp emergency message immediately for the patient's current location.</Say>` +
+          `</Response>`;
+
+        const bodyParams = new URLSearchParams();
+        bodyParams.append('From', twilioVoiceFrom);
+        bodyParams.append('To', cleanTo);
+        bodyParams.append('Twiml', twiml);
+
+        const authHeader = 'Basic ' + Buffer.from(`${twilioSid}:${twilioAuth}`).toString('base64');
+
+        const callRes = await fetch(
+          `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Calls.json`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: bodyParams.toString(),
+          }
+        );
+
+        const callData = await callRes.json().catch(() => ({}));
+
+        if (callRes.ok && callData.sid) {
+          console.log(`[TWILIO VOICE CALL SUCCESS] Call SID: ${callData.sid} ringing ${cleanTo}`);
+          return {
+            status: 'DELIVERED',
+            provider: 'twilio',
+            id: callData.sid,
+            details: `Outbound emergency call placed via Twilio (Call SID: ${callData.sid}, Status: ${callData.status}) to ${cleanTo}`,
+          };
+        } else {
+          const errMsg = callData.message || callData.error_message || `HTTP ${callRes.status}`;
+          console.warn(`[TWILIO VOICE CALL ERROR] ${errMsg}`);
+          return {
+            status: 'FAILED',
+            provider: 'twilio',
+            error: errMsg,
+            details: `Twilio Calls API returned: ${errMsg}`,
+          };
+        }
+      } catch (err: any) {
+        console.error('[TWILIO VOICE CALL EXCEPTION]', err);
+        return {
+          status: 'FAILED',
+          provider: 'twilio',
+          error: err?.message || 'Twilio Voice connection failed',
+          details: 'Failed to contact Twilio Voice API',
+        };
+      }
+    }
+
+    // Graceful fallback when voice credentials are not yet configured in .env
+    console.log(
+      `[EMERGENCY SOS] Twilio Voice credentials not configured in .env. Event logged. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VOICE_FROM to place real telephone calls.`
+    );
+    return {
+      status: 'PENDING_CONFIGURATION',
+      provider: 'simulation_fallback',
+      details:
+        'Twilio Voice credentials not configured in backend environment variables. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_VOICE_FROM in .env for live outbound telephone calls.',
+    };
+  };
+
   const automatedDispatches: Array<{
     dispatchId: string;
-    type: 'MESSAGE' | 'CALL';
+    type: 'MESSAGE' | 'CALL' | 'EMERGENCY_SOS';
     timestamp: string;
     recipientName: string;
     recipientPhone: string;
@@ -927,11 +1184,311 @@ Generate:
     cause: string;
     latitude?: number;
     longitude?: number;
-    deliveryStatus: 'DELIVERED' | 'CONNECTED';
+    deliveryStatus: 'DELIVERED' | 'CONNECTED' | 'FAILED' | 'PENDING_CONFIGURATION';
     details: string;
   }> = [];
 
-  // 12. Automated Message SOS Dispatch (No manual tap required)
+  // ==========================================
+  // CENTRAL SOS ENDPOINT: POST /api/emergency/sos
+  // Handles BOTH:
+  // 1. Automatic geofence exit ("GEOFENCE_EXIT")
+  // 2. Manual SOS button ("MANUAL_SOS")
+  // ==========================================
+  app.post('/api/emergency/sos', async (req, res) => {
+    try {
+      const {
+        triggerType = 'MANUAL_SOS',
+        latitude,
+        longitude,
+        accuracy,
+        timestamp = new Date().toISOString(),
+        notes,
+      } = req.body;
+
+      // Validate trigger type
+      const validTriggerType =
+        triggerType === 'GEOFENCE_EXIT' ? 'GEOFENCE_EXIT' : 'MANUAL_SOS';
+
+      // Security: resolve authoritative caregiver details from server database
+      const db = ensureDatabase();
+      const storedCaregiverPhone =
+        db.careCompass?.config?.caregiverPhone ||
+        db.user?.caregiverPhone ||
+        process.env.CAREGIVER_EMERGENCY_PHONE ||
+        '+91 98765 43210';
+
+      const caregiverName =
+        db.careCompass?.config?.caregiverName ||
+        db.user?.caregiverName ||
+        'Rohan Sharma (Caregiver)';
+
+      const patientName =
+        db.careCompass?.config?.patientName ||
+        db.user?.name ||
+        'Asha Devi';
+
+      // Ensure caregiver phone is E.164 formatted
+      const authoritativePhone = formatE164Phone(storedCaregiverPhone);
+
+      // Validate coordinates with fallback
+      let validLat = typeof latitude === 'number' && !isNaN(latitude) ? latitude : null;
+      let validLng = typeof longitude === 'number' && !isNaN(longitude) ? longitude : null;
+      let hasAccurateGPS = true;
+
+      if (validLat == null || validLng == null) {
+        if (db.careCompass?.config?.homeLocation?.latitude && db.careCompass?.config?.homeLocation?.longitude) {
+          validLat = db.careCompass.config.homeLocation.latitude;
+          validLng = db.careCompass.config.homeLocation.longitude;
+          hasAccurateGPS = false;
+        } else {
+          validLat = 28.6139;
+          validLng = 77.2090;
+          hasAccurateGPS = false;
+        }
+      }
+
+      const formattedAccuracy = typeof accuracy === 'number' ? Math.round(accuracy) : 5;
+      const mapsUrl = `https://www.google.com/maps?q=${validLat.toFixed(6)},${validLng.toFixed(6)}`;
+
+      const formattedDate = new Date(timestamp).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+        timeZone: 'Asia/Kolkata',
+      });
+
+      const reasonLabel =
+        validTriggerType === 'GEOFENCE_EXIT'
+          ? 'Geofence Exit (Patient outside safe perimeter)'
+          : 'Manual 1-Tap SOS Pressed by Patient';
+
+      // Structured Emergency Text Message
+      const messageText =
+        `🚨 SMRITHI SAATHI — EMERGENCY ALERT\n\n` +
+        `A patient safety alert has been triggered.\n\n` +
+        `Patient: ${patientName}\n` +
+        `Reason: ${reasonLabel}\n\n` +
+        `Current Location:\n` +
+        `Latitude: ${validLat.toFixed(6)}\n` +
+        `Longitude: ${validLng.toFixed(6)}\n` +
+        `Accuracy: ±${formattedAccuracy}m\n\n` +
+        `Google Maps:\n${mapsUrl}\n\n` +
+        `Time: ${formattedDate} IST\n\n` +
+        `Please check on the patient immediately.`;
+
+      const dispatchId = `SOS-EMG-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+
+      console.log(
+        `[CENTRAL EMERGENCY SOS TRIGGERED] ID: ${dispatchId} | Type: ${validTriggerType} | Patient: ${patientName} | Caregiver: ${authoritativePhone}`
+      );
+
+      // Execute WhatsApp message and outbound phone call in parallel with Promise.allSettled
+      // One service failing will NOT prevent or abort the other!
+      const [whatsAppResult, voiceCallResult] = await Promise.allSettled([
+        dispatchWhatsAppEmergencyAlert({
+          toPhone: authoritativePhone,
+          messageText,
+        }),
+        dispatchOutboundVoiceEmergencyCall({
+          toPhone: authoritativePhone,
+          patientName,
+          reasonText: reasonLabel,
+        }),
+      ]);
+
+      const whatsappStatus =
+        whatsAppResult.status === 'fulfilled'
+          ? whatsAppResult.value
+          : {
+              status: 'FAILED' as const,
+              provider: 'simulation_fallback' as const,
+              error: (whatsAppResult as any).reason?.message || 'WhatsApp promise rejected',
+              details: 'Unexpected error executing WhatsApp dispatch',
+            };
+
+      const voiceStatus =
+        voiceCallResult.status === 'fulfilled'
+          ? voiceCallResult.value
+          : {
+              status: 'FAILED' as const,
+              provider: 'simulation_fallback' as const,
+              error: (voiceCallResult as any).reason?.message || 'Voice call promise rejected',
+              details: 'Unexpected error executing Outbound Voice Call dispatch',
+            };
+
+      // Record in emergency event history
+      const logRecord = {
+        dispatchId,
+        type: 'EMERGENCY_SOS' as const,
+        timestamp,
+        recipientName: caregiverName,
+        recipientPhone: authoritativePhone,
+        patientName,
+        cause: reasonLabel,
+        latitude: validLat,
+        longitude: validLng,
+        deliveryStatus:
+          whatsappStatus.status === 'DELIVERED' || voiceStatus.status === 'DELIVERED'
+            ? ('DELIVERED' as const)
+            : ('PENDING_CONFIGURATION' as const),
+        details: `WhatsApp: [${whatsappStatus.status} - ${whatsappStatus.details}] | Voice Call: [${voiceStatus.status} - ${voiceStatus.details}]`,
+      };
+
+      automatedDispatches.unshift(logRecord);
+      if (automatedDispatches.length > 50) automatedDispatches.pop();
+
+      // Persist in db.careCompass alert logs
+      if (!db.careCompass) {
+        db.careCompass = {
+          config: {
+            patientName,
+            patientHonorific: 'Shri',
+            patientAge: 76,
+            caregiverName,
+            caregiverPhone: authoritativePhone,
+            preferredLanguage: 'en-IN',
+            homeLocation: {
+              label: 'Home Base',
+              city: 'Live Location',
+              area: 'Perimeter Base',
+              latitude: validLat,
+              longitude: validLng,
+            },
+            safeRadiusMeters: 300,
+            alertRadiusMeters: 600,
+            autoSirenOnBreach: true,
+            autoWhatsAppOnBreach: true,
+          },
+          telemetry: {
+            latitude: validLat,
+            longitude: validLng,
+            accuracy: formattedAccuracy,
+            distanceMeters: 0,
+            bearingDegrees: 0,
+            bearingText: 'North',
+            geofenceStatus: validTriggerType === 'GEOFENCE_EXIT' ? 'CRITICAL_BREACH' : 'SAFE_ZONE',
+            batteryLevel: 88,
+            isCharging: false,
+            movementState: 'Stationary',
+            speedKmh: 0,
+            heartRateBpm: 75,
+            heartRateStatus: 'normal',
+            isRealtimeGps: true,
+            isSundowningHours: false,
+            sundowningRisk: 'low',
+            lastUpdated: formattedDate,
+            breadcrumbs: [],
+          },
+          alertLogs: [],
+          memories: [],
+        };
+      }
+
+      if (!db.careCompass.alertLogs) {
+        db.careCompass.alertLogs = [];
+      }
+
+      db.careCompass.alertLogs.unshift({
+        id: `alert-${Date.now()}`,
+        timestamp: formattedDate,
+        severity: 'critical',
+        cause: validTriggerType === 'GEOFENCE_EXIT' ? 'Geofence Breach' : 'Manual SOS Pressed',
+        distanceMeters: 0,
+        latitude: validLat,
+        longitude: validLng,
+        notes: `Emergency SOS (${validTriggerType}): WhatsApp [${whatsappStatus.status}] & Voice [${voiceStatus.status}] to ${authoritativePhone}`,
+        whatsappDispatched: whatsappStatus.status === 'DELIVERED',
+        directCallDialed: voiceStatus.status === 'DELIVERED',
+        dispatchId,
+        deliveryStatus: logRecord.deliveryStatus === 'DELIVERED' ? 'DELIVERED' : 'TRANSMITTING',
+        channel: 'AUTOMATED_SMS_GATEWAY',
+      });
+
+      if (db.careCompass.alertLogs.length > 30) {
+        db.careCompass.alertLogs = db.careCompass.alertLogs.slice(0, 30);
+      }
+
+      saveDatabase(db);
+
+      const responsePayload = {
+        success: true,
+        dispatchId,
+        timestamp,
+        triggerType: validTriggerType,
+        patientName,
+        caregiverPhone: authoritativePhone,
+        caregiverName,
+        location: {
+          latitude: validLat,
+          longitude: validLng,
+          accuracy: formattedAccuracy,
+          mapsUrl,
+          hasAccurateGPS,
+        },
+        services: {
+          whatsapp: whatsappStatus,
+          voiceCall: voiceStatus,
+        },
+        messageText,
+        notes: notes || undefined,
+      };
+
+      return res.json(responsePayload);
+    } catch (err: any) {
+      console.error('[EMERGENCY SOS ENDPOINT ERROR]', err);
+      return res.status(500).json({
+        success: false,
+        error: err?.message || 'Emergency SOS processing failed',
+      });
+    }
+  });
+
+  // Emergency Service Diagnostic & Configuration Status
+  app.get('/api/emergency/status', (_req, res) => {
+    const db = ensureDatabase();
+    const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+    const twilioAuth = process.env.TWILIO_AUTH_TOKEN;
+    const twilioWhatsAppFrom = process.env.TWILIO_WHATSAPP_FROM;
+    const twilioVoiceFrom = process.env.TWILIO_VOICE_FROM;
+    const metaPhoneId = process.env.META_WHATSAPP_PHONE_NUMBER_ID;
+    const metaToken = process.env.META_WHATSAPP_ACCESS_TOKEN;
+
+    const registeredCaregiverPhone =
+      db.careCompass?.config?.caregiverPhone ||
+      db.user?.caregiverPhone ||
+      process.env.CAREGIVER_EMERGENCY_PHONE ||
+      '+91 98765 43210';
+
+    const maskPhone = (ph: string) => {
+      if (!ph || ph.length < 6) return '***';
+      return ph.slice(0, 4) + '***' + ph.slice(-3);
+    };
+
+    res.json({
+      success: true,
+      services: {
+        twilioWhatsApp: {
+          configured: Boolean(twilioSid && twilioAuth && twilioWhatsAppFrom),
+          fromNumber: twilioWhatsAppFrom || 'whatsapp:+14155238886 (sandbox default)',
+        },
+        twilioVoice: {
+          configured: Boolean(twilioSid && twilioAuth && twilioVoiceFrom),
+          fromNumber: twilioVoiceFrom || 'Not set in TWILIO_VOICE_FROM',
+        },
+        metaWhatsApp: {
+          configured: Boolean(metaPhoneId && metaToken),
+        },
+      },
+      registeredCaregiver: {
+        name: db.careCompass?.config?.caregiverName || db.user?.caregiverName || 'Rohan Sharma',
+        phoneMasked: maskPhone(registeredCaregiverPhone),
+        phoneFull: registeredCaregiverPhone,
+      },
+      dispatchesRecorded: automatedDispatches.length,
+      recentDispatches: automatedDispatches.slice(0, 5),
+    });
+  });
+
+  // Legacy compatibility: Automated Message SOS Dispatch
   app.post('/api/sos/dispatch-message', async (req, res) => {
     try {
       const {
@@ -959,7 +1516,13 @@ Generate:
         `Live Coordinates: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}\n` +
         `Live GPS Map: ${mapsUrl}\n` +
         `Battery: ${batteryLevel}%\n` +
-        `Dispatched Automatically by SmritiSaathi CareCompass Engine. No manual user tap required.`;
+        `Dispatched Automatically by SmritiSaathi CareCompass Engine.`;
+
+      // Dispatch to WhatsApp handler
+      const whatsAppStatus = await dispatchWhatsAppEmergencyAlert({
+        toPhone: caregiverPhone,
+        messageText,
+      });
 
       const dispatchRecord = {
         dispatchId,
@@ -971,35 +1534,25 @@ Generate:
         cause,
         latitude,
         longitude,
-        deliveryStatus: 'DELIVERED' as const,
-        details: messageText,
+        deliveryStatus: whatsAppStatus.status === 'DELIVERED' ? ('DELIVERED' as const) : ('PENDING_CONFIGURATION' as const),
+        details: whatsAppStatus.details,
       };
 
       automatedDispatches.unshift(dispatchRecord);
       if (automatedDispatches.length > 50) automatedDispatches.pop();
 
-      // If user configured a custom webhook URL in environment variables, trigger it asynchronously
-      if (process.env.SOS_WEBHOOK_URL) {
-        try {
-          fetch(process.env.SOS_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dispatchRecord),
-          }).catch((e) => console.warn('SOS Webhook forward warning:', e));
-        } catch (_) {}
-      }
-
-      console.log(`[AUTOMATED SOS DISPATCH] Successfully delivered message ${dispatchId} to ${caregiverPhone} for ${patientName}`);
-
       return res.json({
         success: true,
         dispatchId,
         timestamp,
-        deliveryStatus: 'DELIVERED',
+        deliveryStatus: dispatchRecord.deliveryStatus,
         recipientPhone: caregiverPhone,
         recipientName: caregiverName,
         messageText,
-        carrierAck: 'CELLULAR_SIGNALING_DELIVERED_NO_TAP_REQUIRED',
+        carrierAck: whatsAppStatus.details,
+        services: {
+          whatsapp: whatsAppStatus,
+        },
       });
     } catch (err: any) {
       console.error('Error in /api/sos/dispatch-message:', err);
@@ -1007,7 +1560,7 @@ Generate:
     }
   });
 
-  // 13. Automated Direct Call Initiation
+  // Legacy compatibility: Automated Direct Call Initiation
   app.post('/api/sos/direct-call', async (req, res) => {
     try {
       const {
@@ -1020,6 +1573,12 @@ Generate:
       const callId = `CALL-VOICE-${Date.now().toString(36).toUpperCase()}`;
       const timestamp = new Date().toISOString();
 
+      const voiceStatus = await dispatchOutboundVoiceEmergencyCall({
+        toPhone: targetPhone,
+        patientName,
+        reasonText: `Emergency Call (${callType})`,
+      });
+
       const callRecord = {
         dispatchId: callId,
         type: 'CALL' as const,
@@ -1028,22 +1587,21 @@ Generate:
         recipientPhone: targetPhone,
         patientName,
         cause: `Direct Emergency Call (${callType})`,
-        deliveryStatus: 'CONNECTED' as const,
-        details: `Two-way emergency voice channel connected straight to ${targetName} (${targetPhone}).`,
+        deliveryStatus: voiceStatus.status === 'DELIVERED' ? ('CONNECTED' as const) : ('PENDING_CONFIGURATION' as const),
+        details: voiceStatus.details,
       };
 
       automatedDispatches.unshift(callRecord);
       if (automatedDispatches.length > 50) automatedDispatches.pop();
 
-      console.log(`[AUTOMATED DIRECT CALL] Connected live call session ${callId} straight to ${targetPhone}`);
-
       return res.json({
         success: true,
         callId,
         timestamp,
-        status: 'DIALED_CONNECTED',
+        status: voiceStatus.status === 'DELIVERED' ? 'DIALED_CONNECTED' : 'CALL_REQUEST_RECEIVED',
         targetPhone,
         targetName,
+        details: voiceStatus.details,
       });
     } catch (err: any) {
       console.error('Error in /api/sos/direct-call:', err);

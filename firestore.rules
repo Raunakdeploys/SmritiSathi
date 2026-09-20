@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation Blueprint for UserProfile
+    function isValidUserProfile(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.age is number && data.age >= 0 && data.age <= 130 &&
+             data.caregiverName is string && data.caregiverName.size() > 0 && data.caregiverName.size() <= 100 &&
+             data.caregiverPhone is string && data.caregiverPhone.size() > 0 && data.caregiverPhone.size() <= 40;
+    }
+
+    // Validation Blueprint for CognitiveProgress
+    function isValidCognitiveProgress(data) {
+      return data.memory is number && data.memory >= 0 && data.memory <= 100 &&
+             data.attention is number && data.attention >= 0 && data.attention <= 100 &&
+             data.planning is number && data.planning >= 0 && data.planning <= 100;
+    }
+
+    // Validation Blueprint for ActivityItem
+    function isValidActivityItem(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 120 &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 60 &&
+             data.points is number && data.points >= 0 && data.points <= 10000 &&
+             data.timestamp is string && data.timestamp.size() > 0 && data.timestamp.size() <= 60;
+    }
+
+    // Validation Blueprint for CareCompassData
+    function isValidCareCompassData(data) {
+      return data.config is map && data.telemetry is map;
+    }
+
+    // Validation Blueprint for AlertLogEntry
+    function isValidAlertLogEntry(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.timestamp is string && data.timestamp.size() > 0 && data.timestamp.size() <= 60 &&
+             data.severity is string && data.severity.size() > 0 && data.severity.size() <= 30 &&
+             data.cause is string && data.cause.size() > 0 && data.cause.size() <= 150;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // PII protection: Blanket listing forbidden
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Cognitive Progress Sub-document
+      match /progress/cognitive {
+        allow get: if isOwner(userId) && isValidId(userId);
+        allow create, update: if isOwner(userId) && isValidId(userId) && isValidCognitiveProgress(incoming());
+        allow delete: if isOwner(userId) && isValidId(userId);
+      }
+
+      // Activities Sub-collection
+      match /activities/{activityId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(activityId);
+        allow list: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(activityId) && isValidActivityItem(incoming());
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(activityId) && isValidActivityItem(incoming());
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(activityId);
+      }
+
+      // CareCompass Live Telemetry Sub-document
+      match /careCompass/live {
+        allow get: if isOwner(userId) && isValidId(userId);
+        allow create, update: if isOwner(userId) && isValidId(userId) && isValidCareCompassData(incoming());
+        allow delete: if isOwner(userId) && isValidId(userId);
+      }
+
+      // Emergency Alerts Sub-collection
+      match /alerts/{alertId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(alertId);
+        allow list: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(alertId) && isValidAlertLogEntry(incoming());
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(alertId) && isValidAlertLogEntry(incoming());
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(alertId);
+      }
+    }
+  }
+}

@@ -15,6 +15,7 @@ import type {
   AlertLogEntry,
 } from '../types';
 import { INITIAL_FAMILY_MEMORIES } from '../data/memoriesData';
+import { auth, firestoreSyncService } from '../firebase';
 
 // Helper to determine initial home location without hardcoding Guwahati
 const getInitialHomeLocation = () => {
@@ -430,9 +431,73 @@ type Listener = (db: AppDatabase) => void;
 class StoreService {
   private database: AppDatabase;
   private listeners: Set<Listener> = new Set();
+  private cloudSyncTimer: any = null;
 
   constructor() {
     this.database = this.loadDatabase();
+    this.initCloudSync();
+  }
+
+  private async initCloudSync() {
+    try {
+      if (!auth.currentUser) {
+        return;
+      }
+      const cloudData = await firestoreSyncService.loadInitialData();
+      let updated = false;
+
+      if (cloudData.profile && Object.keys(cloudData.profile).length > 0) {
+        this.database.user = {
+          ...this.database.user,
+          ...cloudData.profile,
+          preferences: {
+            ...this.database.user.preferences,
+            ...(cloudData.profile.preferences || {}),
+          },
+        };
+        updated = true;
+      }
+
+      if (cloudData.progress) {
+        this.database.progress = {
+          ...this.database.progress,
+          ...cloudData.progress,
+        };
+        updated = true;
+      }
+
+      if (cloudData.careCompass?.config) {
+        if (!this.database.careCompass) {
+          this.database.careCompass = {
+            config: INITIAL_CARE_COMPASS_CONFIG,
+            telemetry: INITIAL_CARE_COMPASS_TELEMETRY,
+            alertLogs: INITIAL_ALERT_LOGS,
+            memories: INITIAL_FAMILY_MEMORIES,
+          };
+        }
+        this.database.careCompass.config = {
+          ...this.database.careCompass.config,
+          ...cloudData.careCompass.config,
+        };
+        updated = true;
+      }
+
+      if (cloudData.activities && cloudData.activities.length > 0) {
+        const existingIds = new Set(this.database.activities.map((a) => a.id));
+        const newActivities = cloudData.activities.filter((a) => !existingIds.has(a.id));
+        if (newActivities.length > 0) {
+          this.database.activities = [...newActivities, ...this.database.activities].slice(0, 40);
+          updated = true;
+        }
+      }
+
+      if (updated) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.database));
+        this.notifyListeners();
+      }
+    } catch (err) {
+      console.warn('Initial cloud sync notice:', err);
+    }
   }
 
   private loadDatabase(): AppDatabase {
@@ -827,6 +892,9 @@ class StoreService {
     if (this.database.careCompass.alertLogs.length > 50) {
       this.database.careCompass.alertLogs.pop();
     }
+    if (auth.currentUser) {
+      firestoreSyncService.logAlert(newLog);
+    }
     this.saveDatabase();
     return newLog;
   }
@@ -849,6 +917,27 @@ class StoreService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.database));
       this.notifyListeners();
+
+      // Debounced Cloud Sync to Firestore (active when authenticated)
+      if (this.cloudSyncTimer) {
+        clearTimeout(this.cloudSyncTimer);
+      }
+      if (auth.currentUser) {
+        this.cloudSyncTimer = setTimeout(() => {
+          try {
+            firestoreSyncService.saveUserProfile(this.database.user);
+            firestoreSyncService.saveCognitiveProgress(this.database.progress);
+            if (this.database.careCompass) {
+              firestoreSyncService.syncCareCompassData(
+                this.database.careCompass.config,
+                this.database.careCompass.telemetry
+              );
+            }
+          } catch (syncErr) {
+            console.warn('Background Firestore sync caught:', syncErr);
+          }
+        }, 1200);
+      }
     } catch (e) {
       console.error('Failed to save to localStorage', e);
     }
@@ -895,6 +984,38 @@ class StoreService {
     };
     this.saveDatabase();
     return this.database.user;
+  }
+
+  public updateProgress(updates: Partial<CognitiveProgress>): CognitiveProgress {
+    this.database.progress = {
+      ...this.database.progress,
+      ...updates,
+      lastUpdated: new Date().toISOString(),
+    };
+    this.saveDatabase();
+    return this.database.progress;
+  }
+
+  public async handleAuthChange(authUser: any) {
+    if (authUser && !authUser.isAnonymous) {
+      // User is authenticated with Google
+      const current = this.database.user;
+      this.database.user = {
+        ...current,
+        name: authUser.displayName || current.name || 'Google User',
+        email: authUser.email || current.email,
+        avatarUrl: authUser.photoURL || current.avatarUrl,
+        isGoogleLinked: true,
+      };
+      await this.initCloudSync();
+      firestoreSyncService.saveUserProfile(this.database.user);
+      this.saveDatabase();
+    } else {
+      if (this.database.user.isGoogleLinked) {
+        this.database.user.isGoogleLinked = false;
+        this.saveDatabase();
+      }
+    }
   }
 
   public toggleLargeText(): boolean {
@@ -1081,6 +1202,7 @@ class StoreService {
     if (this.database.activities.length > 40) {
       this.database.activities.pop();
     }
+    firestoreSyncService.recordActivity(newActivity);
 
     // Update Game card info if matching
     const gameCard = this.database.games.find((g) => g.id === gameId);

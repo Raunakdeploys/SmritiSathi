@@ -33,7 +33,7 @@ import {
 } from '../utils/audioUtils';
 import { INDIAN_LANGUAGES, generateWhatsAppSOSUrl } from '../utils/geoUtils';
 import { DirectCallModal } from './DirectCallModal';
-import { sosDispatchService } from '../services/sosDispatchService';
+import { triggerEmergencySOS } from '../services/emergencySosService';
 import type { AutomatedSOSDispatchResult } from '../types';
 
 export interface PatientModeProps {
@@ -147,53 +147,36 @@ export const PatientMode: React.FC<PatientModeProps> = ({
     startEmergencySiren();
     if (onTriggerSOS) onTriggerSOS('Manual SOS Pressed by Elder');
 
-    const sosData = generateWhatsAppSOSUrl({
-      caregiverPhone: config.caregiverPhone,
-      patientName: config.patientName,
+    // 1. THE ONE CENTRAL SOS FUNCTION (Automated WhatsApp message + Outbound Voice Call via backend)
+    triggerEmergencySOS({
+      triggerType: 'MANUAL_SOS',
       latitude: telemetry.latitude,
       longitude: telemetry.longitude,
+      accuracy: telemetry.accuracy,
       distanceMeters: telemetry.distanceMeters,
+      patientName: config.patientName,
+      caregiverPhone: config.caregiverPhone,
+      caregiverName: config.caregiverName,
       homeLabel: config.homeLocation.label,
       batteryLevel: telemetry.batteryLevel,
-      cause: 'Manual 1-Tap SOS Pressed by Elder',
-    });
-
-    // Auto-launch WhatsApp message
-    try {
-      window.open(sosData.url, '_blank');
-    } catch (e) {
-      console.warn('Auto WhatsApp trigger error:', e);
-    }
-
-    // Auto-trigger native phone dialer to ring phone
-    try {
-      window.location.href = sosData.telUrl;
-    } catch (e) {
-      console.warn('Native phone trigger error:', e);
-    }
-
-    // AUTOMATICALLY DISPATCH SOS MESSAGE (Cellular Relay)
-    sosDispatchService
-      .dispatchAutomatedSOSMessage({
-        patientName: config.patientName,
-        caregiverPhone: config.caregiverPhone,
-        caregiverName: config.caregiverName,
-        latitude: telemetry.latitude,
-        longitude: telemetry.longitude,
-        distanceMeters: telemetry.distanceMeters,
-        cause: 'Manual 1-Tap SOS Pressed by Elder',
-        batteryLevel: telemetry.batteryLevel,
-        homeLabel: config.homeLocation.label,
-      })
+      notes: 'Manual 1-Tap SOS Pressed by Elder',
+    })
       .then((res) => {
-        setSosDispatchedNotification(res);
+        setSosDispatchedNotification({
+          success: res.success,
+          dispatchId: res.dispatchId,
+          timestamp: res.timestamp,
+          deliveryStatus: res.services.whatsapp.status === 'DELIVERED' ? 'DELIVERED' : 'TRANSMITTING',
+          recipientPhone: res.caregiverPhone,
+          recipientName: res.caregiverName,
+          messageText: res.messageText,
+          carrierAck: `WhatsApp: ${res.services.whatsapp.status} • Voice Call: ${res.services.voiceCall.status}`,
+          services: res.services,
+        });
       })
       .catch((e) => {
-        console.warn('Automated SOS dispatch completed with fallback:', e);
+        console.warn('Central Emergency SOS dispatch error:', e);
       });
-
-    // Open Direct Call dialog
-    setIsDirectCallOpen(true);
   };
 
   const handlePlayGreeting = () => {

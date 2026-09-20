@@ -57,7 +57,7 @@ import {
   deviceLocationService,
   DeviceLocationState,
 } from '../services/deviceLocationService';
-import { sosDispatchService } from '../services/sosDispatchService';
+import { triggerEmergencySOS } from '../services/emergencySosService';
 
 interface MapModuleProps {
   telemetry?: CareCompassTelemetry;
@@ -238,49 +238,27 @@ export const MapModule: React.FC<MapModuleProps> = ({
   };
 
   const handleDispatchAutomatedSOS = () => {
-    const sosData = generateWhatsAppSOSUrl({
-      caregiverPhone: config.caregiverPhone,
-      patientName: config.patientName,
+    triggerEmergencySOS({
+      triggerType: 'MANUAL_SOS',
       latitude: telemetry.latitude,
       longitude: telemetry.longitude,
+      accuracy: telemetry.accuracy,
       distanceMeters: telemetry.distanceMeters,
+      patientName: config.patientName,
+      caregiverPhone: config.caregiverPhone,
+      caregiverName: config.caregiverName,
       homeLabel: config.homeLocation.label,
       batteryLevel: telemetry.batteryLevel,
-      cause: 'Tactical Map Module Automated SOS Dispatched',
-    });
-
-    // Auto-open WhatsApp with pre-composed coordinates and alert details
-    try {
-      window.open(sosData.url, '_blank');
-    } catch (e) {
-      console.warn('WhatsApp auto open error:', e);
-    }
-
-    // Auto-trigger native phone dialer
-    try {
-      window.location.href = sosData.telUrl;
-    } catch (e) {
-      console.warn('Phone dialer trigger error:', e);
-    }
-
-    sosDispatchService
-      .dispatchAutomatedSOSMessage({
-        patientName: config.patientName,
-        caregiverPhone: config.caregiverPhone,
-        caregiverName: config.caregiverName,
-        latitude: telemetry.latitude,
-        longitude: telemetry.longitude,
-        distanceMeters: telemetry.distanceMeters,
-        homeLabel: config.homeLocation.label,
-        batteryLevel: telemetry.batteryLevel,
-        cause: 'Tactical Map Module Automated SOS Dispatched',
-      })
+      notes: 'Tactical Map Module Automated SOS Dispatched',
+    })
       .then((res) => {
-        setSosSuccessBanner(`Automated SOS Triggered: WhatsApp & Call to ${config.caregiverName} (${config.caregiverPhone}) • Ref: ${res.dispatchId}`);
-        setTimeout(() => setSosSuccessBanner(null), 6000);
+        setSosSuccessBanner(
+          `Automated SOS Sent: WhatsApp (${res.services.whatsapp.status}) • Voice Call (${res.services.voiceCall.status}) • Ref: ${res.dispatchId}`
+        );
+        setTimeout(() => setSosSuccessBanner(null), 7000);
       })
       .catch((e) => {
-        console.warn('Map SOS dispatch handled:', e);
+        console.warn('Map SOS dispatch error:', e);
       });
   };
 

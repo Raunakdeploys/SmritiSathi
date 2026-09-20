@@ -25,8 +25,8 @@ import {
   stopVoiceSpeech,
 } from '../utils/audioUtils';
 import { INDIA_EMERGENCY_SERVICES, INDIAN_LANGUAGES, generateWhatsAppSOSUrl } from '../utils/geoUtils';
-import type { CareCompassConfig, CareCompassTelemetry, AutomatedSOSDispatchResult } from '../types';
-import { sosDispatchService } from '../services/sosDispatchService';
+import type { CareCompassConfig, CareCompassTelemetry, AutomatedSOSDispatchResult, EmergencySOSResponse } from '../types';
+import { emergencySosService } from '../services/emergencySosService';
 import { DirectCallModal } from './DirectCallModal';
 
 interface EmergencyBreachModalProps {
@@ -63,7 +63,7 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
     cause: 'Critical Geofence Breach Outside Safe Perimeter',
   });
 
-  // Automated Siren and IMMEDIATE Automated Message Dispatch
+  // Automated Siren and Central Emergency Dispatch Status Listener
   useEffect(() => {
     if (!isOpen) {
       stopEmergencySiren();
@@ -76,46 +76,44 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
       setSirenOn(true);
     }
 
-    // AUTOMATICALLY REDIRECT TO WHATSAPP & RING PHONE IF CONFIGURED
-    if (config.autoWhatsAppOnBreach) {
-      try {
-        window.open(sosData.url, '_blank');
-      } catch (e) {
-        console.warn('Auto WhatsApp trigger blocked:', e);
-      }
-
-      try {
-        window.location.href = sosData.telUrl;
-      } catch (e) {
-        console.warn('Auto phone ring error:', e);
-      }
+    // Check if a recent central SOS response already exists
+    const recent = emergencySosService.getRecentResponses();
+    if (recent.length > 0) {
+      const latest = recent[0];
+      setDispatchResult({
+        success: latest.success,
+        dispatchId: latest.dispatchId,
+        timestamp: latest.timestamp,
+        deliveryStatus: latest.services.whatsapp.status === 'DELIVERED' ? 'DELIVERED' : 'TRANSMITTING',
+        recipientPhone: latest.caregiverPhone,
+        recipientName: latest.caregiverName,
+        messageText: latest.messageText,
+        carrierAck: `WhatsApp: ${latest.services.whatsapp.status} • Voice Call: ${latest.services.voiceCall.status}`,
+        services: latest.services,
+      });
+      setAutoDispatched(true);
     }
 
-    // AUTOMATICALLY TRANSMIT SOS MESSAGE TO CARRIER RELAY
-    sosDispatchService
-      .dispatchAutomatedSOSMessage({
-        patientName: config.patientName,
-        caregiverPhone: config.caregiverPhone,
-        caregiverName: config.caregiverName,
-        latitude: telemetry.latitude,
-        longitude: telemetry.longitude,
-        distanceMeters: telemetry.distanceMeters,
-        cause: 'Critical Geofence Breach Outside Safe Perimeter',
-        batteryLevel: telemetry.batteryLevel,
-        homeLabel: config.homeLocation.label,
-      })
-      .then((res) => {
-        setDispatchResult(res);
-        setAutoDispatched(true);
-      })
-      .catch((e) => {
-        console.warn('Auto SOS dispatch handled:', e);
-        setAutoDispatched(true);
+    // Subscribe to any new emergency SOS updates in real time
+    const unsubscribe = emergencySosService.subscribe((res) => {
+      setDispatchResult({
+        success: res.success,
+        dispatchId: res.dispatchId,
+        timestamp: res.timestamp,
+        deliveryStatus: res.services.whatsapp.status === 'DELIVERED' ? 'DELIVERED' : 'TRANSMITTING',
+        recipientPhone: res.caregiverPhone,
+        recipientName: res.caregiverName,
+        messageText: res.messageText,
+        carrierAck: `WhatsApp: ${res.services.whatsapp.status} • Voice Call: ${res.services.voiceCall.status}`,
+        services: res.services,
       });
+      setAutoDispatched(true);
+    });
 
     return () => {
       stopEmergencySiren();
       stopVoiceSpeech();
+      unsubscribe();
     };
   }, [isOpen, telemetry.latitude, telemetry.longitude, config.caregiverPhone]);
 

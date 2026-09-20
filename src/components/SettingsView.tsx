@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { UserProfile, FamilyFaceItem } from '../types';
 import { playSuccessChime, playGentleClick } from '../utils/audio';
+import { signInWithGoogle, signOutUser } from '../firebase';
+import { LogIn, LogOut, Cloud, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface SettingsViewProps {
   user: UserProfile | null;
@@ -27,6 +29,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [soundEffects, setSoundEffects] = useState(user?.preferences?.soundEffects ?? true);
 
   const [isSaved, setIsSaved] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [showAddFaceModal, setShowAddFaceModal] = useState(false);
   const [newFaceName, setNewFaceName] = useState('');
   const [newFaceRelation, setNewFaceRelation] = useState('');
@@ -84,6 +87,84 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       <div className="space-y-8 max-w-4xl">
+        {/* Google Cloud Account & Cloud Sync Section */}
+        <div className="bg-[#f0f5ff] p-6 sm:p-8 rounded-2xl border-2 border-[#adc7f7] shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center space-x-3.5">
+              <div className="p-3 bg-white rounded-xl border border-[#adc7f7] shadow-xs text-sky-600">
+                <Cloud className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-extrabold text-[20px] sm:text-[22px] text-[#002045]">
+                    Google Cloud Account
+                  </h2>
+                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
+                    user?.isGoogleLinked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {user?.isGoogleLinked ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        Connected & Synced
+                      </>
+                    ) : (
+                      'Local Guest Profile'
+                    )}
+                  </span>
+                </div>
+                <p className="text-sm text-[#43474e] mt-0.5">
+                  {user?.isGoogleLinked
+                    ? `Authenticated as ${user.email}. Data is secured and synced to Firestore Cloud database.`
+                    : 'Sign in with Google to backup cognitive training scores, family faces, and CareCompass alerts across all devices.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              {user?.isGoogleLinked ? (
+                <button
+                  id="btn-settings-google-signout"
+                  disabled={loadingGoogle}
+                  onClick={async () => {
+                    playGentleClick();
+                    setLoadingGoogle(true);
+                    try {
+                      await signOutUser();
+                    } finally {
+                      setLoadingGoogle(false);
+                    }
+                  }}
+                  className="px-5 py-3 rounded-xl border-2 border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-sm flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{loadingGoogle ? 'Disconnecting...' : 'Sign Out'}</span>
+                </button>
+              ) : (
+                <button
+                  id="btn-settings-google-signin"
+                  disabled={loadingGoogle}
+                  onClick={async () => {
+                    playGentleClick();
+                    setLoadingGoogle(true);
+                    try {
+                      await signInWithGoogle();
+                      playSuccessChime();
+                    } catch (err) {
+                      console.warn('Google sign-in closed:', err);
+                    } finally {
+                      setLoadingGoogle(false);
+                    }
+                  }}
+                  className="px-6 py-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                >
+                  <LogIn className="w-4 h-4 text-[#002045]" />
+                  <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google'}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Profile & Caregiver Form */}
         <div className="bg-[#f9f9ff] p-6 sm:p-8 rounded-2xl border-2 border-[#c4c6cf]">
           <h2 className="font-extrabold text-[22px] text-[#002045] mb-4 flex items-center">

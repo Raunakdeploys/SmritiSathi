@@ -1,6 +1,7 @@
 import React from 'react';
 import type { UserProfile, CognitiveProgress, ActivityItem } from '../types';
 import { playGentleClick } from '../utils/audio';
+import { InteractiveDailyTrainingProgress } from './InteractiveDailyTrainingProgress';
 
 interface DashboardViewProps {
   user: UserProfile | null;
@@ -55,118 +56,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (Wider on Desktop) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Daily Training Progress Chart */}
-          <div
-            id="card-daily-progress"
-            className="bg-[#f9f9ff] p-6 sm:p-7 rounded-xl border border-[#c4c6cf] shadow-xs card-focus transition-all"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-bold text-[22px] md:text-[24px] text-[#002045] flex items-center">
-                <span className="material-symbols-outlined mr-3 text-[28px] text-[#002045]">monitoring</span>
-                Daily Training Progress
-              </h2>
-              <button
-                id="btn-quick-train-all"
-                onClick={() => {
-                  playGentleClick();
-                  onStartDailyTraining();
-                }}
-                className="text-[16px] font-bold text-[#002045] hover:text-[#1a365d] underline underline-offset-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#002045] rounded-md px-2 py-1"
-              >
-                Boost Scores →
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {/* Memory & Reminiscence Progress */}
-              <div
-                id="progress-row-memory"
-                className="group cursor-pointer p-2 rounded-lg hover:bg-[#e7eeff] transition-colors"
-                onClick={() => onPlayGame('facebond')}
-                title="Click to train FaceBond & Kinship Memory"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-[18px] text-[#121c2c] flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#FF6321] mr-2"></span>
-                    Memory & Kinship (FaceBond / LifeThread)
-                  </span>
-                  <span className="font-bold text-[18px] text-[#002045]">{memoryPct}%</span>
-                </div>
-                <div className="w-full bg-[#d5e2e9] h-4 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#FF6321] h-4 rounded-full transition-all duration-700 ease-out"
-                    style={{ width: `${memoryPct}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Spatial Navigation & GPS Progress */}
-              <div
-                id="progress-row-spatial"
-                className="group cursor-pointer p-2 rounded-lg hover:bg-[#e7eeff] transition-colors"
-                onClick={() => onPlayGame('wayback')}
-                title="Click to train WayBack Spatial Navigation"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-[18px] text-[#121c2c] flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#0F172A] mr-2"></span>
-                    Spatial Orientation & GPS (WayBack)
-                  </span>
-                  <span className="font-bold text-[18px] text-[#002045]">{progress?.spatial ?? 82}%</span>
-                </div>
-                <div className="w-full bg-[#d5e2e9] h-4 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#0F172A] h-4 rounded-full transition-all duration-700 ease-out"
-                    style={{ width: `${progress?.spatial ?? 82}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Executive Routine & Planning Progress */}
-              <div
-                id="progress-row-executive"
-                className="group cursor-pointer p-2 rounded-lg hover:bg-[#e7eeff] transition-colors"
-                onClick={() => onPlayGame('dailyroutine')}
-                title="Click to train DailyRoutine & TimeSense"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-[18px] text-[#121c2c] flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#0284C7] mr-2"></span>
-                    Executive Routine & Time (DailyRoutine / TimeSense)
-                  </span>
-                  <span className="font-bold text-[18px] text-[#002045]">{planningPct}%</span>
-                </div>
-                <div className="w-full bg-[#d5e2e9] h-4 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#0284C7] h-4 rounded-full transition-all duration-700 ease-out"
-                    style={{ width: `${planningPct}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Attention & Visual Discrimination Progress */}
-              <div
-                id="progress-row-attention"
-                className="group cursor-pointer p-2 rounded-lg hover:bg-[#e7eeff] transition-colors"
-                onClick={() => onPlayGame('shape-sorter')}
-                title="Click to play Shape Sorter & Attention Studio"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-[18px] text-[#121c2c] flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] mr-2"></span>
-                    Attention & Visual Focus (Shape Sorter)
-                  </span>
-                  <span className="font-bold text-[18px] text-[#002045]">{attentionPct}%</span>
-                </div>
-                <div className="w-full bg-[#d5e2e9] h-4 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#10B981] h-4 rounded-full transition-all duration-700 ease-out"
-                    style={{ width: `${attentionPct}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Interactive Daily Training Progress Center */}
+          <InteractiveDailyTrainingProgress
+            user={user}
+            progress={progress}
+            onPlayGame={onPlayGame}
+            onStartDailyTraining={onStartDailyTraining}
+          />
 
           {/* Quick Game Cards Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

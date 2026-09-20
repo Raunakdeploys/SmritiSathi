@@ -46,6 +46,8 @@ export interface UserProfile {
   totalSessions?: number;
   longestStreak?: number;
   dailyGoalCompleted?: boolean;
+  email?: string;
+  isGoogleLinked?: boolean;
 }
 
 export interface FamilyFaceItem {
@@ -228,11 +230,67 @@ export interface AutomatedSOSDispatchResult {
   success: boolean;
   dispatchId: string;
   timestamp: string;
-  deliveryStatus: 'DELIVERED' | 'TRANSMITTING' | 'CONNECTED';
+  deliveryStatus: 'DELIVERED' | 'TRANSMITTING' | 'CONNECTED' | 'FAILED' | 'PENDING_CONFIGURATION';
   recipientPhone: string;
   recipientName: string;
   messageText: string;
   carrierAck: string;
+  services?: {
+    whatsapp?: EmergencyServiceStatus;
+    voiceCall?: EmergencyServiceStatus;
+  };
+}
+
+export type EmergencyTriggerType = 'MANUAL_SOS' | 'GEOFENCE_EXIT';
+
+export type EmergencyDeliveryStatus = 'DELIVERED' | 'QUEUED' | 'PENDING_CONFIGURATION' | 'FAILED';
+
+export interface EmergencyServiceStatus {
+  service: 'whatsapp' | 'voice_call';
+  status: EmergencyDeliveryStatus;
+  provider: 'twilio' | 'meta' | 'simulation_fallback';
+  id?: string;
+  error?: string;
+  details?: string;
+}
+
+export interface EmergencySOSRequest {
+  latitude?: number | null;
+  longitude?: number | null;
+  accuracy?: number | null;
+  triggerType: EmergencyTriggerType;
+  timestamp?: string;
+  patientName?: string;
+  caregiverPhone?: string;
+  caregiverName?: string;
+  distanceMeters?: number;
+  batteryLevel?: number;
+  homeLabel?: string;
+  notes?: string;
+}
+
+export interface EmergencySOSResponse {
+  success: boolean;
+  dispatchId: string;
+  timestamp: string;
+  triggerType: EmergencyTriggerType;
+  patientName: string;
+  caregiverPhone: string;
+  caregiverName: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    mapsUrl: string;
+    hasAccurateGPS: boolean;
+  };
+  services: {
+    whatsapp: EmergencyServiceStatus;
+    voiceCall: EmergencyServiceStatus;
+  };
+  messageText: string;
+  voicePromptText?: string;
+  warning?: string;
 }
 
 export interface DirectCallSession {

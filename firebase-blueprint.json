@@ -1,0 +1,210 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with elder details, points, streak, and preferences",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Patient or user name"
+        },
+        "age": {
+          "type": "number",
+          "description": "Age of elder"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Avatar image URL"
+        },
+        "mindPoints": {
+          "type": "number",
+          "description": "Cognitive points accumulated"
+        },
+        "currentStreak": {
+          "type": "number",
+          "description": "Current daily activity streak in days"
+        },
+        "longestStreak": {
+          "type": "number",
+          "description": "Longest daily streak achieved"
+        },
+        "totalSessions": {
+          "type": "number",
+          "description": "Total training sessions completed"
+        },
+        "dailyGoalCompleted": {
+          "type": "boolean",
+          "description": "Whether today's daily exercise goal is completed"
+        },
+        "caregiverName": {
+          "type": "string",
+          "description": "Primary caregiver contact name"
+        },
+        "caregiverPhone": {
+          "type": "string",
+          "description": "Primary caregiver phone number"
+        },
+        "preferences": {
+          "type": "object",
+          "description": "User preferences for audio, text size, and contrast"
+        }
+      },
+      "required": ["name", "age", "caregiverName", "caregiverPhone"]
+    },
+    "CognitiveProgress": {
+      "title": "CognitiveProgress",
+      "description": "Cognitive domain evaluation scores across memory, attention, and planning",
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "number",
+          "description": "Memory recall score percentage"
+        },
+        "attention": {
+          "type": "number",
+          "description": "Attention and visual processing score percentage"
+        },
+        "planning": {
+          "type": "number",
+          "description": "Planning and executive function score percentage"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "ISO timestamp of last progress update"
+        }
+      },
+      "required": ["memory", "attention", "planning"]
+    },
+    "ActivityItem": {
+      "title": "ActivityItem",
+      "description": "Historical log entry of completed cognitive game or orientation quest",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique activity identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the activity"
+        },
+        "category": {
+          "type": "string",
+          "description": "Cognitive domain category"
+        },
+        "points": {
+          "type": "number",
+          "description": "Points earned in activity"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Display timestamp or ISO date"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon identifier"
+        },
+        "durationMinutes": {
+          "type": "number",
+          "description": "Time spent in minutes"
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "Accuracy percentage"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Clinical or supportive observations"
+        }
+      },
+      "required": ["id", "title", "category", "points", "timestamp"]
+    },
+    "CareCompassData": {
+      "title": "CareCompassData",
+      "description": "CareCompass GPS tracking, safe geofence radius, and telemetry",
+      "type": "object",
+      "properties": {
+        "config": {
+          "type": "object",
+          "description": "Geofencing limits and emergency contacts"
+        },
+        "telemetry": {
+          "type": "object",
+          "description": "Live GPS coordinates, distance, heart rate, and movement"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "ISO timestamp of last telemetry ping"
+        }
+      },
+      "required": ["config", "telemetry"]
+    },
+    "AlertLogEntry": {
+      "title": "AlertLogEntry",
+      "description": "Emergency breach, wander warning, or manual SOS event log",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique alert identifier"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Display timestamp or ISO date"
+        },
+        "severity": {
+          "type": "string",
+          "description": "Alert severity level (warning, critical, info)"
+        },
+        "cause": {
+          "type": "string",
+          "description": "Reason for trigger"
+        },
+        "distanceMeters": {
+          "type": "number",
+          "description": "Distance from safe zone center in meters"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "GPS latitude"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "GPS longitude"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Contextual notes or address"
+        },
+        "whatsappDispatched": {
+          "type": "boolean",
+          "description": "Whether WhatsApp SOS notification was sent"
+        }
+      },
+      "required": ["id", "timestamp", "severity", "cause"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Elder user profile, contact details, streak, and preferences"
+    },
+    "/users/{userId}/progress/cognitive": {
+      "schema": "CognitiveProgress",
+      "description": "Cognitive domain scores"
+    },
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "ActivityItem",
+      "description": "Historical cognitive activities"
+    },
+    "/users/{userId}/careCompass/live": {
+      "schema": "CareCompassData",
+      "description": "CareCompass live telemetry and geofence state"
+    },
+    "/users/{userId}/alerts/{alertId}": {
+      "schema": "AlertLogEntry",
+      "description": "Emergency alert logs and SOS notifications"
+    }
+  }
+}
