@@ -427,6 +427,47 @@ async function startServer() {
     res.json({ status: 'ok', service: 'smritisathi', time: new Date().toISOString() });
   });
 
+  // Authentication & Session Sync API for Firebase and Render
+  app.post('/api/auth/sync', (req, res) => {
+    try {
+      const { uid, email, displayName, photoURL, profile } = req.body || {};
+      const db = ensureDatabase();
+      if (email || displayName || uid) {
+        db.user = {
+          ...db.user,
+          name: displayName || db.user.name || 'Google User',
+          email: email || db.user.email || '',
+          avatarUrl: photoURL || db.user.avatarUrl,
+          isGoogleLinked: true,
+          ...(profile || {}),
+        };
+        saveDatabase(db);
+      }
+      res.json({ success: true, user: db.user });
+    } catch (err: any) {
+      console.error('Error syncing auth with backend:', err);
+      res.status(500).json({ success: false, error: err?.message || 'Failed to sync auth' });
+    }
+  });
+
+  app.get('/api/auth/session', (_req, res) => {
+    const db = ensureDatabase();
+    res.json({
+      success: true,
+      isAuthenticated: !!(db.user as any)?.isGoogleLinked,
+      user: db.user,
+    });
+  });
+
+  app.post('/api/auth/logout', (_req, res) => {
+    const db = ensureDatabase();
+    if (db.user) {
+      (db.user as any).isGoogleLinked = false;
+      saveDatabase(db);
+    }
+    res.json({ success: true });
+  });
+
   // API Endpoints
   // 1. Get full database state
   app.get('/api/data', (_req, res) => {

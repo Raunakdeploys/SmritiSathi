@@ -2,6 +2,8 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -89,15 +91,53 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Get current or pending authenticated user safely without unauthorized anonymous sign-in
+// Synchronize authenticated user with backend Express database
+export async function syncUserWithBackend(user: User | null): Promise<void> {
+  if (!user) return;
+  try {
+    await fetch('/api/auth/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      }),
+    });
+  } catch (err) {
+    console.warn('Backend auth sync notice (safe):', err);
+  }
+}
+
+// Get current or pending authenticated user safely with redirect resolution
 export async function initializeFirebaseAuth(): Promise<User | null> {
+  // 1. Check for incoming redirect authentication from Google (e.g. on mobile browsers or Render)
+  try {
+    const redirectResult = await getRedirectResult(auth);
+    if (redirectResult && redirectResult.user) {
+      currentAuthUser = redirectResult.user;
+      await syncUserWithBackend(redirectResult.user);
+      return redirectResult.user;
+    }
+  } catch (err: any) {
+    console.warn('Redirect auth result check:', err?.message || err);
+  }
+
+  // 2. Check currently active user
   if (auth.currentUser) {
     currentAuthUser = auth.currentUser;
+    await syncUserWithBackend(auth.currentUser);
     return auth.currentUser;
   }
+
+  // 3. Listen for auth state change
   return new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       currentAuthUser = user;
+      if (user) {
+        await syncUserWithBackend(user);
+      }
       unsubscribe();
       resolve(user);
     });
@@ -122,13 +162,37 @@ export interface GoogleSignInResult {
   isDomainUnauthorized?: boolean;
   unauthorizedDomain?: string;
   isPopupBlockedOrClosed?: boolean;
+  isRedirectInitiated?: boolean;
 }
 
-// Sign in with Google with robust safety checks for Vercel/custom domains
-export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
+// Sign in with Google with robust safety checks for Render, Vercel, and mobile browsers
+export async function signInWithGoogleSafe(mode: 'popup' | 'redirect' = 'popup'): Promise<GoogleSignInResult> {
+  const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+
+  if (mode === 'redirect') {
+    try {
+      await signInWithRedirect(auth, googleAuthProvider);
+      return {
+        success: true,
+        isRedirectInitiated: true,
+      };
+    } catch (error: any) {
+      const errorCode = error?.code || '';
+      const errorMessage = error?.message || String(error);
+      return {
+        success: false,
+        error: errorMessage,
+        errorCode,
+        isDomainUnauthorized: errorCode.includes('unauthorized-domain') || errorMessage.includes('unauthorized-domain'),
+        unauthorizedDomain: currentHost,
+      };
+    }
+  }
+
   try {
     const result = await signInWithPopup(auth, googleAuthProvider);
     currentAuthUser = result.user;
+    await syncUserWithBackend(result.user);
     return {
       success: true,
       user: result.user,
@@ -136,11 +200,10 @@ export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
   } catch (error: any) {
     const errorCode = error?.code || '';
     const errorMessage = error?.message || String(error);
-    const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
 
     console.warn('Google Sign-In response status:', { errorCode, errorMessage, currentHost });
 
-    // Unauthorized domain on Vercel / Netlify / custom domains
+    // Unauthorized domain on Render / Vercel / custom domains
     if (
       errorCode === 'auth/unauthorized-domain' ||
       errorMessage.includes('unauthorized-domain') ||
@@ -163,7 +226,7 @@ export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
     ) {
       return {
         success: false,
-        error: 'Sign-in popup was closed or blocked by browser.',
+        error: 'Sign-in popup was closed or blocked by browser. Try full-screen redirect.',
         errorCode,
         isPopupBlockedOrClosed: true,
       };
@@ -178,9 +241,14 @@ export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
   }
 }
 
+// Direct redirect method (recommended for Mobile devices and Render)
+export async function signInWithGoogleRedirect(): Promise<GoogleSignInResult> {
+  return signInWithGoogleSafe('redirect');
+}
+
 // Sign in with Google (standard signature for backward compatibility)
 export async function signInWithGoogle(): Promise<User> {
-  const res = await signInWithGoogleSafe();
+  const res = await signInWithGoogleSafe('popup');
   if (res.success && res.user) {
     return res.user;
   }
@@ -193,11 +261,16 @@ export async function signInWithGoogle(): Promise<User> {
   throw new Error(res.error || 'Google sign-in was not completed.');
 }
 
-// Sign out from Google session
+// Sign out from Google session & sync with backend
 export async function signOutUser(): Promise<void> {
   try {
     await signOut(auth);
     currentAuthUser = null;
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // safe fallback
+    }
   } catch (error: any) {
     console.error('Sign out failed:', error);
     throw error;
@@ -206,8 +279,11 @@ export async function signOutUser(): Promise<void> {
 
 // Subscribe to auth state updates
 export function subscribeToAuth(callback: (user: User | null) => void): () => void {
-  return onAuthStateChanged(auth, (user) => {
+  return onAuthStateChanged(auth, async (user) => {
     currentAuthUser = user;
+    if (user) {
+      await syncUserWithBackend(user);
+    }
     callback(user);
   });
 }

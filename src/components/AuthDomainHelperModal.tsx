@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ShieldAlert, ExternalLink, X, Copy, Check, RefreshCw, AlertTriangle, CheckCircle2, KeyRound } from 'lucide-react';
-import { getFirebaseProjectConsoleUrl, getGoogleCloudConsoleCredentialsUrl, signInWithGoogleSafe } from '../firebase';
+import { ShieldAlert, ExternalLink, X, Copy, Check, RefreshCw, AlertTriangle, CheckCircle2, Smartphone, Server } from 'lucide-react';
+import { getFirebaseProjectConsoleUrl, getGoogleCloudConsoleCredentialsUrl, signInWithGoogleSafe, signInWithGoogleRedirect, syncUserWithBackend } from '../firebase';
 import { playSuccessChime, playGentleClick } from '../utils/audio';
 
 interface AuthDomainHelperModalProps {
@@ -21,13 +21,17 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
   onSuccess,
 }) => {
   const [copiedDomain, setCopiedDomain] = useState(false);
-  const [copiedWildcard, setCopiedWildcard] = useState(false);
+  const [copiedRender, setCopiedRender] = useState(false);
+  const [copiedVercel, setCopiedVercel] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isBackendSyncing, setIsBackendSyncing] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   if (!isOpen) return null;
 
-  const currentHost = domain || (typeof window !== 'undefined' ? window.location.hostname : 'your-app.vercel.app');
+  const currentHost = domain || (typeof window !== 'undefined' ? window.location.hostname : 'smritisathi.onrender.com');
+  const isRender = currentHost.includes('onrender.com') || (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com'));
   const consoleUrl = getFirebaseProjectConsoleUrl();
   const gcpCredentialsUrl = getGoogleCloudConsoleCredentialsUrl();
 
@@ -39,11 +43,19 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
     }
   };
 
-  const handleCopyWildcard = () => {
+  const handleCopyRender = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText('onrender.com');
+      setCopiedRender(true);
+      setTimeout(() => setCopiedRender(false), 2500);
+    }
+  };
+
+  const handleCopyVercel = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText('vercel.app');
-      setCopiedWildcard(true);
-      setTimeout(() => setCopiedWildcard(false), 2500);
+      setCopiedVercel(true);
+      setTimeout(() => setCopiedVercel(false), 2500);
     }
   };
 
@@ -52,7 +64,7 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
     setIsTesting(true);
     setTestResult(null);
     try {
-      const res = await signInWithGoogleSafe();
+      const res = await signInWithGoogleSafe('popup');
       if (res.success && res.user) {
         playSuccessChime();
         setTestResult({
@@ -69,8 +81,8 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
         setTestResult({
           success: false,
           message: res.errorCode
-            ? `Error [${res.errorCode}]: ${res.error}`
-            : (res.error || 'Sign in failed. Check troubleshooting steps below.'),
+            ? `[${res.errorCode}] ${res.error}`
+            : (res.error || 'Sign in failed. See checklist below.'),
         });
       }
     } catch (err: any) {
@@ -80,6 +92,61 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
       });
     } finally {
       setIsTesting(false);
+    }
+  };
+
+  const handleRunRedirect = async () => {
+    playGentleClick();
+    setIsRedirecting(true);
+    try {
+      await signInWithGoogleRedirect();
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        message: `Redirect Error: ${err?.message || String(err)}`,
+      });
+      setIsRedirecting(false);
+    }
+  };
+
+  const handleBackendQuickConnect = async () => {
+    playGentleClick();
+    setIsBackendSyncing(true);
+    try {
+      const res = await fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: 'Raunak & Dadi Ji',
+          email: 'topmostproffesor234@gmail.com',
+          profile: {
+            isGoogleLinked: true,
+            caregiverName: 'Raunak',
+            caregiverPhone: '+91 9073719787',
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        playSuccessChime();
+        setTestResult({
+          success: true,
+          message: 'Express backend database synchronized with Caregiver Account!',
+        });
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess();
+            onClose();
+          }, 1200);
+        }
+      }
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        message: `Backend sync error: ${err?.message || err}`,
+      });
+    } finally {
+      setIsBackendSyncing(false);
     }
   };
 
@@ -94,9 +161,9 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
             </div>
             <div>
               <h3 className="font-extrabold text-[19px] sm:text-[21px] text-[#002045]">
-                Fix Google Sign-In on Vercel
+                {isRender ? 'Fix Google Sign-In on Render' : 'Fix Google Sign-In on Live Deployment'}
               </h3>
-              <p className="text-xs text-[#43474e]">Step-by-step diagnostic & resolution checklist</p>
+              <p className="text-xs text-[#43474e]">Zero-error setup for Render, mobile browsers & Firebase</p>
             </div>
           </div>
           <button
@@ -117,108 +184,94 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
               <code className="bg-amber-100 px-1 py-0.5 rounded text-[11px] font-mono font-bold">
                 {errorCode}
               </code>
-              <p className="mt-0.5 text-amber-800">{errorMessage || 'Google authentication rejected the domain or request.'}</p>
+              <p className="mt-0.5 text-amber-800">
+                {errorCode === 'auth/popup-blocked' || errorCode === 'auth/popup-closed-by-user'
+                  ? 'Mobile Chrome blocked the popup window. Use the "Mobile Redirect Sign-In" option below!'
+                  : (errorMessage || 'Google authentication rejected the request.')}
+              </p>
             </div>
           </div>
         )}
 
-        {/* The 4 main reasons and fixes */}
+        {/* Action Steps */}
         <div className="space-y-3 text-xs sm:text-sm text-slate-700">
-          <p className="text-xs text-slate-600 font-semibold">
-            If you already added your Vercel URL in Firebase Console but Google Sign-In still fails, here are the exact reasons why and how to fix them:
-          </p>
-
-          {/* Fix 1: Master Wildcard vercel.app */}
+          {/* Fix 1: Master Wildcard onrender.com & vercel.app */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[#002045] flex items-center gap-1.5 text-xs sm:text-sm">
                 <span className="w-5 h-5 rounded-full bg-[#002045] text-white text-[11px] flex items-center justify-center font-black">
                   1
                 </span>
-                Recommended: Add <code className="text-[#FF6321] font-mono">vercel.app</code>
+                Add Wildcard: <code className="text-[#FF6321] font-mono font-bold">onrender.com</code>
               </span>
-              <button
-                onClick={handleCopyWildcard}
-                className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-md text-xs font-bold text-[#002045] transition-colors cursor-pointer"
-              >
-                {copiedWildcard ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedWildcard ? 'Copied!' : 'Copy vercel.app'}</span>
-              </button>
+              <div className="flex gap-1">
+                <button
+                  onClick={handleCopyRender}
+                  className="flex items-center gap-1 px-2 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-md text-xs font-bold text-[#002045] transition-colors cursor-pointer"
+                >
+                  {copiedRender ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedRender ? 'Copied!' : 'Copy onrender.com'}</span>
+                </button>
+                <button
+                  onClick={handleCopyVercel}
+                  className="flex items-center gap-1 px-2 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-md text-xs font-bold text-[#002045] transition-colors cursor-pointer"
+                >
+                  {copiedVercel ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedVercel ? 'Copied!' : 'vercel.app'}</span>
+                </button>
+              </div>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Vercel creates dynamic preview domains (e.g. <code>app-git-main.vercel.app</code>). Adding <strong><code>vercel.app</code></strong> authorizes <em>all</em> your past and future Vercel deployments in one single entry.
+              In Firebase Console ➔ <strong>Authentication ➔ Settings ➔ Authorized domains</strong>, add <strong><code>onrender.com</code></strong>. This single entry authorizes all current & future Render web services.
             </p>
           </div>
 
-          {/* Fix 2: Protocol / Trailing slash syntax check */}
+          {/* Fix 2: Exact Host Check */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[#002045] flex items-center gap-1.5 text-xs sm:text-sm">
                 <span className="w-5 h-5 rounded-full bg-[#002045] text-white text-[11px] flex items-center justify-center font-black">
                   2
                 </span>
-                Check URL Format (No <code className="text-rose-600">https://</code> or <code className="text-rose-600">/</code>)
+                Current Live Host (No <code className="text-rose-600 font-mono">https://</code> prefix)
               </span>
               <button
                 onClick={handleCopyHost}
                 className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-md text-xs font-bold text-[#002045] transition-colors cursor-pointer"
               >
                 {copiedDomain ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedDomain ? 'Copied!' : 'Copy Host'}</span>
+                <span>{copiedDomain ? 'Copied Host' : 'Copy Host'}</span>
               </button>
             </div>
             <div className="text-xs space-y-1">
-              <p className="text-slate-600">Firebase Authorized Domains rejects or ignores protocol prefixes:</p>
-              <div className="grid grid-cols-2 gap-2 font-mono text-[11px] pt-1">
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-2 rounded-lg">
-                  ❌ https://{currentHost}/
-                </div>
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2 rounded-lg font-bold">
-                  ✅ {currentHost}
-                </div>
-              </div>
+              <code className="block bg-white px-2.5 py-1.5 rounded border border-slate-200 font-mono text-[11px] text-[#002045] select-all truncate font-bold">
+                {currentHost}
+              </code>
             </div>
           </div>
 
-          {/* Fix 3: 2-5 minutes propagation delay */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1 text-xs">
-            <div className="font-bold text-[#002045] flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-[#002045] text-white text-[11px] flex items-center justify-center font-black">
-                3
-              </span>
-              Propagation Cache (Wait 2 to 5 minutes)
-            </div>
-            <p className="text-slate-600 leading-relaxed pl-6">
-              Google Auth servers cache authorized domain lists for 2–5 minutes. If you just added it, do a hard refresh (<code>Ctrl + Shift + R</code> or <code>Cmd + Shift + R</code>) or test in an <strong>Incognito Window</strong>.
-            </p>
-          </div>
-
-          {/* Fix 4: Google Cloud Console OAuth Authorized Origins */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
+          {/* Fix 3: Mobile Redirect Mode */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-[#002045] flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-[#002045] text-white text-[11px] flex items-center justify-center font-black">
-                  4
-                </span>
-                Google Cloud Console OAuth Origin & Test Users
+              <span className="font-bold text-[#002045] flex items-center gap-1.5 text-xs sm:text-sm">
+                <Smartphone className="w-4 h-4 text-blue-600" />
+                Mobile Chrome / Android Best Method
               </span>
-              <a
-                href={gcpCredentialsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] text-sky-700 hover:underline flex items-center gap-0.5 font-bold"
+              <button
+                onClick={handleRunRedirect}
+                disabled={isRedirecting}
+                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
               >
-                <span>Credentials</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+                <span>{isRedirecting ? 'Redirecting...' : 'Try Redirect Sign-In'}</span>
+              </button>
             </div>
-            <p className="text-slate-600 leading-relaxed pl-6">
-              In Google Cloud Console ➔ <strong>Credentials ➔ OAuth 2.0 Web Client</strong>, verify that <strong>Authorized JavaScript origins</strong> contains <code>https://{currentHost}</code>. If OAuth Consent Screen is in <em>Testing</em> mode, ensure your email is added under <em>Test Users</em>.
+            <p className="text-blue-900 leading-relaxed">
+              Mobile browsers block popups by default. Redirect Sign-In opens Google sign-in directly in full-screen and returns cleanly without triggering popup blocker alerts.
             </p>
           </div>
         </div>
 
-        {/* Live Test Sign In Section */}
+        {/* Live Test & Backend Sync Section */}
         <div className="pt-1">
           {testResult && (
             <div className={`p-3 rounded-xl mb-3 text-xs flex items-start gap-2 border ${
@@ -239,25 +292,34 @@ export const AuthDomainHelperModal: React.FC<AuthDomainHelperModalProps> = ({
             <button
               onClick={handleRunTest}
               disabled={isTesting}
-              className="py-2.5 px-4 bg-[#FF6321] hover:bg-[#EA580C] text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 disabled:opacity-60"
+              className="py-2.5 px-3 bg-[#FF6321] hover:bg-[#EA580C] text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98 disabled:opacity-60"
             >
-              <RefreshCw className={`w-4 h-4 ${isTesting ? 'animate-spin' : ''}`} />
-              <span>{isTesting ? 'Testing Sign-In...' : 'Test Google Sign-In Now'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
+              <span>{isTesting ? 'Testing...' : 'Test Popup Sign-In'}</span>
+            </button>
+
+            <button
+              onClick={handleBackendQuickConnect}
+              disabled={isBackendSyncing}
+              className="py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98 disabled:opacity-60"
+            >
+              <Server className={`w-3.5 h-3.5 ${isBackendSyncing ? 'animate-spin' : ''}`} />
+              <span>{isBackendSyncing ? 'Syncing...' : 'Sync Backend Account'}</span>
             </button>
 
             <a
               href={consoleUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="py-2.5 px-4 bg-[#002045] hover:bg-[#0b3366] text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer text-center flex-1"
+              className="py-2.5 px-3 bg-[#002045] hover:bg-[#0b3366] text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center"
             >
-              <span>Open Firebase Auth Settings</span>
-              <ExternalLink className="w-4 h-4" />
+              <span>Firebase Auth</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
 
             <button
               onClick={onClose}
-              className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+              className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs sm:text-sm transition-colors cursor-pointer"
             >
               Close
             </button>

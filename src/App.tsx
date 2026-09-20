@@ -9,7 +9,7 @@ import type {
   RewardItem,
 } from './types';
 import { storeService } from './services/storeService';
-import { subscribeToAuth } from './firebase';
+import { subscribeToAuth, initializeFirebaseAuth } from './firebase';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
@@ -77,6 +77,11 @@ export default function App() {
 
   // Subscribe to storeService updates & Google auth state
   useEffect(() => {
+    // Check for redirect result on startup (crucial for mobile browsers & Render)
+    initializeFirebaseAuth().catch((err) => {
+      console.warn('Firebase initial auth check:', err);
+    });
+
     const unsubscribeStore = storeService.subscribe((updatedDb) => {
       setDatabase({ ...updatedDb });
     });
