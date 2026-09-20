@@ -104,16 +104,84 @@ export async function initializeFirebaseAuth(): Promise<User | null> {
   });
 }
 
-// Sign in with Google
-export async function signInWithGoogle(): Promise<User> {
+export function getFirebaseProjectConsoleUrl(): string {
+  const projectId = firebaseConfigJson.projectId || 'geometric-hill-h7k72';
+  return `https://console.firebase.google.com/project/${projectId}/authentication/settings`;
+}
+
+export interface GoogleSignInResult {
+  success: boolean;
+  user?: User;
+  error?: string;
+  isDomainUnauthorized?: boolean;
+  unauthorizedDomain?: string;
+  isPopupBlockedOrClosed?: boolean;
+}
+
+// Sign in with Google with robust safety checks for Vercel/custom domains
+export async function signInWithGoogleSafe(): Promise<GoogleSignInResult> {
   try {
     const result = await signInWithPopup(auth, googleAuthProvider);
     currentAuthUser = result.user;
-    return result.user;
+    return {
+      success: true,
+      user: result.user,
+    };
   } catch (error: any) {
-    console.error('Google Sign-In failed:', error);
-    throw error;
+    const errorCode = error?.code || '';
+    const errorMessage = error?.message || String(error);
+    const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+
+    console.warn('Google Sign-In response status:', { errorCode, errorMessage, currentHost });
+
+    // Unauthorized domain on Vercel / Netlify / custom domains
+    if (
+      errorCode === 'auth/unauthorized-domain' ||
+      errorMessage.includes('unauthorized-domain') ||
+      errorMessage.includes('auth/unauthorized-domain')
+    ) {
+      return {
+        success: false,
+        error: 'This domain is not yet authorized in Firebase Console.',
+        isDomainUnauthorized: true,
+        unauthorizedDomain: currentHost,
+      };
+    }
+
+    // Popup closed by user or blocked by browser popup blocker
+    if (
+      errorCode === 'auth/popup-closed-by-user' ||
+      errorCode === 'auth/cancelled-popup-request' ||
+      errorCode === 'auth/popup-blocked'
+    ) {
+      return {
+        success: false,
+        error: 'Sign-in popup was closed or blocked.',
+        isPopupBlockedOrClosed: true,
+      };
+    }
+
+    // Other errors
+    return {
+      success: false,
+      error: errorMessage || 'Failed to sign in with Google.',
+    };
   }
+}
+
+// Sign in with Google (standard signature for backward compatibility)
+export async function signInWithGoogle(): Promise<User> {
+  const res = await signInWithGoogleSafe();
+  if (res.success && res.user) {
+    return res.user;
+  }
+  if (res.isDomainUnauthorized) {
+    const err = new Error(`Domain ${res.unauthorizedDomain} is not authorized in Firebase Console.`);
+    (err as any).code = 'auth/unauthorized-domain';
+    (err as any).unauthorizedDomain = res.unauthorizedDomain;
+    throw err;
+  }
+  throw new Error(res.error || 'Google sign-in was not completed.');
 }
 
 // Sign out from Google session

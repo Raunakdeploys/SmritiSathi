@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { UserProfile } from '../types';
 import { speakText, playGentleClick, playSuccessChime } from '../utils/audio';
-import { signInWithGoogle, signOutUser } from '../firebase';
+import { signInWithGoogleSafe, signOutUser } from '../firebase';
 import { LogIn, LogOut, CheckCircle2 } from 'lucide-react';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
   onOpenProfile: () => void;
   onOpenMobileMenu: () => void;
   onOpenRewards: () => void;
+  onShowDomainHelper?: (domain: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenMobileMenu,
   onOpenRewards,
+  onShowDomainHelper,
 }) => {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const mindPointsFormatted = user?.mindPoints?.toLocaleString() || '1,240';
@@ -31,10 +33,16 @@ export const Header: React.FC<HeaderProps> = ({
     playGentleClick();
     setIsSigningIn(true);
     try {
-      await signInWithGoogle();
-      playSuccessChime();
+      const res = await signInWithGoogleSafe();
+      if (res.success) {
+        playSuccessChime();
+      } else if (res.isDomainUnauthorized) {
+        if (onShowDomainHelper) {
+          onShowDomainHelper(res.unauthorizedDomain || window.location.hostname);
+        }
+      }
     } catch (err) {
-      console.warn('Google sign-in closed or aborted:', err);
+      console.warn('Google sign-in caught exception:', err);
     } finally {
       setIsSigningIn(false);
     }

@@ -24,6 +24,7 @@ import { RewardsModal } from './components/RewardsModal';
 import { ProfileModal } from './components/ProfileModal';
 import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { PatientMode } from './components/PatientMode';
+import { AuthDomainHelperModal } from './components/AuthDomainHelperModal';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
 import { WayBackGame } from './components/games/WayBackGame';
@@ -55,6 +56,7 @@ export default function App() {
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
 
   // Subscribe to storeService updates & Google auth state
   useEffect(() => {
@@ -281,6 +283,7 @@ export default function App() {
           onOpenProfile={() => setIsProfileModalOpen(true)}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           onOpenRewards={() => setIsRewardsModalOpen(true)}
+          onShowDomainHelper={(domain) => setUnauthorizedDomain(domain)}
         />
 
         {/* View Switcher Container */}
@@ -392,6 +395,7 @@ export default function App() {
               }
               onDeleteFamilyFace={handleDeleteFamilyMember}
               onResetDemo={handleResetDemo}
+              onShowDomainHelper={(domain) => setUnauthorizedDomain(domain)}
             />
           )}
 
@@ -574,8 +578,16 @@ export default function App() {
             setIsProfileModalOpen(false);
             setCurrentTab('settings');
           }}
+          onShowDomainHelper={(domain) => setUnauthorizedDomain(domain)}
         />
       )}
+
+      {/* Domain Authorization Helper Modal for Vercel / Custom Hosting */}
+      <AuthDomainHelperModal
+        isOpen={Boolean(unauthorizedDomain)}
+        domain={unauthorizedDomain || ''}
+        onClose={() => setUnauthorizedDomain(null)}
+      />
     </div>
   );
 }

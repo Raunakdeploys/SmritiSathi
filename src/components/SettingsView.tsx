@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { UserProfile, FamilyFaceItem } from '../types';
 import { playSuccessChime, playGentleClick } from '../utils/audio';
-import { signInWithGoogle, signOutUser } from '../firebase';
+import { signInWithGoogleSafe, signOutUser } from '../firebase';
 import { LogIn, LogOut, Cloud, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -11,6 +11,7 @@ interface SettingsViewProps {
   onAddFamilyFace: (face: Omit<FamilyFaceItem, 'id'>) => Promise<void>;
   onDeleteFamilyFace: (id: string) => Promise<void>;
   onResetDemo: () => Promise<void>;
+  onShowDomainHelper?: (domain: string) => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -20,6 +21,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onAddFamilyFace,
   onDeleteFamilyFace,
   onResetDemo,
+  onShowDomainHelper,
 }) => {
   const [userName, setUserName] = useState(user?.name || 'Asha Devi');
   const [caregiverName, setCaregiverName] = useState(user?.caregiverName || 'Rohan Sharma (Son)');
@@ -147,10 +149,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     playGentleClick();
                     setLoadingGoogle(true);
                     try {
-                      await signInWithGoogle();
-                      playSuccessChime();
+                      const res = await signInWithGoogleSafe();
+                      if (res.success) {
+                        playSuccessChime();
+                      } else if (res.isDomainUnauthorized) {
+                        if (onShowDomainHelper) {
+                          onShowDomainHelper(res.unauthorizedDomain || window.location.hostname);
+                        }
+                      }
                     } catch (err) {
-                      console.warn('Google sign-in closed:', err);
+                      console.warn('Google sign-in caught error:', err);
                     } finally {
                       setLoadingGoogle(false);
                     }

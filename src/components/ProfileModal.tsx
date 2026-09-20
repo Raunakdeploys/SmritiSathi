@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { UserProfile, CognitiveProgress } from '../types';
-import { signInWithGoogle, signOutUser } from '../firebase';
+import { signInWithGoogleSafe, signOutUser } from '../firebase';
 import { playGentleClick, playSuccessChime } from '../utils/audio';
 import { LogIn, LogOut, CheckCircle2, Cloud, Database } from 'lucide-react';
 
@@ -9,6 +9,7 @@ interface ProfileModalProps {
   progress: CognitiveProgress | null;
   onClose: () => void;
   onOpenSettings: () => void;
+  onShowDomainHelper?: (domain: string) => void;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
@@ -16,6 +17,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   progress,
   onClose,
   onOpenSettings,
+  onShowDomainHelper,
 }) => {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
@@ -23,10 +25,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     playGentleClick();
     setLoadingGoogle(true);
     try {
-      await signInWithGoogle();
-      playSuccessChime();
+      const res = await signInWithGoogleSafe();
+      if (res.success) {
+        playSuccessChime();
+      } else if (res.isDomainUnauthorized) {
+        if (onShowDomainHelper) {
+          onShowDomainHelper(res.unauthorizedDomain || window.location.hostname);
+        }
+      }
     } catch (err) {
-      console.warn('Google sign-in closed or aborted:', err);
+      console.warn('Google sign-in caught exception:', err);
     } finally {
       setLoadingGoogle(false);
     }
