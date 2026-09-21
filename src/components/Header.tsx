@@ -10,7 +10,6 @@ interface HeaderProps {
   onOpenProfile: () => void;
   onOpenMobileMenu: () => void;
   onOpenRewards: () => void;
-  onShowDomainHelper?: (domain: string, errorCode?: string, errorMessage?: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,7 +18,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenMobileMenu,
   onOpenRewards,
-  onShowDomainHelper,
 }) => {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const mindPointsFormatted = user?.mindPoints?.toLocaleString() || '1,240';
@@ -36,16 +34,9 @@ export const Header: React.FC<HeaderProps> = ({
       const res = await signInWithGoogleSafe();
       if (res.success) {
         playSuccessChime();
-      } else {
-        if (onShowDomainHelper) {
-          onShowDomainHelper(res.unauthorizedDomain || window.location.hostname, res.errorCode, res.error);
-        }
       }
     } catch (err: any) {
       console.warn('Google sign-in caught exception:', err);
-      if (onShowDomainHelper) {
-        onShowDomainHelper(window.location.hostname, err?.code, err?.message);
-      }
     } finally {
       setIsSigningIn(false);
     }

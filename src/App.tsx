@@ -24,7 +24,6 @@ import { RewardsModal } from './components/RewardsModal';
 import { ProfileModal } from './components/ProfileModal';
 import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { PatientMode } from './components/PatientMode';
-import { AuthDomainHelperModal } from './components/AuthDomainHelperModal';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
 import { WayBackGame } from './components/games/WayBackGame';
@@ -56,24 +55,6 @@ export default function App() {
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [authHelperState, setAuthHelperState] = useState<{
-    isOpen: boolean;
-    domain: string;
-    errorCode?: string;
-    errorMessage?: string;
-  }>({
-    isOpen: false,
-    domain: '',
-  });
-
-  const handleShowAuthTroubleshooter = (domain?: string, errorCode?: string, errorMessage?: string) => {
-    setAuthHelperState({
-      isOpen: true,
-      domain: domain || (typeof window !== 'undefined' ? window.location.hostname : ''),
-      errorCode,
-      errorMessage,
-    });
-  };
 
   // Subscribe to storeService updates & Google auth state
   useEffect(() => {
@@ -305,7 +286,6 @@ export default function App() {
           onOpenProfile={() => setIsProfileModalOpen(true)}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           onOpenRewards={() => setIsRewardsModalOpen(true)}
-          onShowDomainHelper={(domain, code, msg) => handleShowAuthTroubleshooter(domain, code, msg)}
         />
 
         {/* View Switcher Container */}
@@ -417,7 +397,6 @@ export default function App() {
               }
               onDeleteFamilyFace={handleDeleteFamilyMember}
               onResetDemo={handleResetDemo}
-              onShowDomainHelper={(domain, code, msg) => handleShowAuthTroubleshooter(domain, code, msg)}
             />
           )}
 
@@ -600,18 +579,8 @@ export default function App() {
             setIsProfileModalOpen(false);
             setCurrentTab('settings');
           }}
-          onShowDomainHelper={(domain, code, msg) => handleShowAuthTroubleshooter(domain, code, msg)}
         />
       )}
-
-      {/* Domain Authorization Helper Modal for Vercel / Custom Hosting */}
-      <AuthDomainHelperModal
-        isOpen={authHelperState.isOpen}
-        domain={authHelperState.domain}
-        errorCode={authHelperState.errorCode}
-        errorMessage={authHelperState.errorMessage}
-        onClose={() => setAuthHelperState((prev) => ({ ...prev, isOpen: false }))}
-      />
     </div>
   );
 }
