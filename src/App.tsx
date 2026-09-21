@@ -9,7 +9,7 @@ import type {
   RewardItem,
 } from './types';
 import { storeService } from './services/storeService';
-import { subscribeToAuth, initializeFirebaseAuth } from './firebase';
+import { subscribeToAuth } from './firebase';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
@@ -40,6 +40,7 @@ import { WordPairGame } from './components/games/WordPairGame';
 
 export default function App() {
   const [loading, setLoading] = useState(false);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
 
   // Reactive state synced with storeService
@@ -62,17 +63,19 @@ export default function App() {
 
   // Subscribe to storeService updates & Google auth state
   useEffect(() => {
-    // Check for redirect result on startup (crucial for mobile browsers & Render)
-    initializeFirebaseAuth().catch((err) => {
-      console.warn('Firebase initial auth check:', err);
-    });
-
     const unsubscribeStore = storeService.subscribe((updatedDb) => {
       setDatabase({ ...updatedDb });
     });
-    const unsubscribeAuth = subscribeToAuth((authUser) => {
-      storeService.handleAuthChange(authUser);
+
+    // onAuthStateChanged is the single source of truth for session persistence
+    const unsubscribeAuth = subscribeToAuth(async (authUser) => {
+      try {
+        await storeService.handleAuthChange(authUser);
+      } finally {
+        setLoadingAuth(false);
+      }
     });
+
     return () => {
       unsubscribeStore();
       unsubscribeAuth();
@@ -188,6 +191,18 @@ export default function App() {
   // Large text mode class
   const isLargeText = user?.preferences?.largeText || user?.preferences?.fontSize === 'extralarge';
   const fontSizeClass = isLargeText ? 'text-[20px] large-text-mode' : 'text-[17px]';
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#002045] flex items-center justify-center shadow-lg mb-4 animate-pulse">
+          <span className="material-symbols-outlined text-white text-[36px]">psychology</span>
+        </div>
+        <h1 className="font-extrabold text-[24px] text-[#002045] tracking-tight mb-2">SmritiSaathi</h1>
+        <p className="text-sm font-semibold text-[#43474e]">Restoring your secure cognitive session...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex bg-[#F8F9FA] text-[#0F172A] ${fontSizeClass}`}>

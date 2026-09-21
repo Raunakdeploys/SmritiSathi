@@ -1,10 +1,110 @@
 import express from 'express';
+import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
+import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
+import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 import type { AppDatabase, UserProfile, CognitiveProgress, ActivityItem, GameInfo, FamilyFaceItem, RewardItem, CameraIdentifyResult } from './src/types';
+
+// ==============================================================================
+// 1. FIREBASE ADMIN SDK INITIALIZATION (Production Server-Side)
+// ==============================================================================
+function initializeFirebaseAdmin(): App {
+  const existingApps = getApps();
+  if (existingApps.length > 0) {
+    return existingApps[0]!;
+  }
+
+  const projectId =
+    process.env.FIREBASE_PROJECT_ID ||
+    process.env.GCLOUD_PROJECT ||
+    'geometric-hill-h7k72';
+
+  // Priority 1: Full service account JSON provided in environment variable
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      const parsedServiceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      console.log(`[Firebase Admin] Initializing with FIREBASE_SERVICE_ACCOUNT credentials for project: ${parsedServiceAccount.project_id || projectId}`);
+      return initializeApp({
+        credential: cert(parsedServiceAccount),
+        projectId: parsedServiceAccount.project_id || projectId,
+      });
+    } catch (err) {
+      console.error('[Firebase Admin] Error parsing FIREBASE_SERVICE_ACCOUNT JSON:', err);
+    }
+  }
+
+  // Priority 2: Discrete environment variables (Render / Cloud Run)
+  if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    try {
+      const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+      console.log(`[Firebase Admin] Initializing with discrete service account credentials: ${process.env.FIREBASE_CLIENT_EMAIL}`);
+      return initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey,
+        }),
+        projectId,
+      });
+    } catch (err) {
+      console.error('[Firebase Admin] Error initializing with FIREBASE_PRIVATE_KEY:', err);
+    }
+  }
+
+  // Priority 3: Project ID fallback (token signature verification against Google public keys)
+  console.log(`[Firebase Admin] Initialized with projectId: ${projectId} (Public Key Token Verification Mode)`);
+  return initializeApp({
+    projectId,
+  });
+}
+
+const firebaseAdminApp = initializeFirebaseAdmin();
+const adminAuth = getAuth(firebaseAdminApp);
+
+// Authenticated Express request interface
+interface AuthenticatedRequest extends express.Request {
+  user?: DecodedIdToken;
+}
+
+// Authentication middleware verifying Bearer <firebase-id-token>
+async function requireAuth(
+  req: AuthenticatedRequest,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      authenticated: false,
+      error: 'Unauthorized: Missing or malformed Authorization header. Expected Bearer <firebase-id-token>',
+    });
+  }
+
+  const idToken = authHeader.split('Bearer ')[1]?.trim();
+  if (!idToken) {
+    return res.status(401).json({
+      authenticated: false,
+      error: 'Unauthorized: Empty token string provided',
+    });
+  }
+
+  try {
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    req.user = decodedToken;
+    next();
+  } catch (err: any) {
+    console.error('[Firebase Admin] Token verification failed:', err?.code || err?.message || err);
+    return res.status(401).json({
+      authenticated: false,
+      error: 'Unauthorized: Invalid, expired, or revoked Firebase token',
+      code: err?.code || 'auth/invalid-token',
+    });
+  }
+}
 
 const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
@@ -420,52 +520,151 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
+  // ============================================================================
+  // 2. CORS CONFIGURATION (Vercel Frontend + Render Backend + AI Studio Sandboxes)
+  // ============================================================================
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173',
+    process.env.FRONTEND_URL,
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()) : []),
+  ].filter(Boolean) as string[];
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Allow mobile apps, curl, server-to-server requests without Origin header
+        if (!origin) return callback(null, true);
+
+        // Allow explicitly listed origins
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+
+        // Allow any Vercel deployment (*.vercel.app)
+        if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return callback(null, true);
+
+        // Allow any Render deployment (*.onrender.com)
+        if (/^https:\/\/.*\.onrender\.com$/.test(origin)) return callback(null, true);
+
+        // Allow Google Cloud Run / AI Studio preview containers (*.run.app)
+        if (/^https:\/\/.*\.run\.app$/.test(origin)) return callback(null, true);
+
+        // In development mode, allow any local or testing origin
+        if (process.env.NODE_ENV !== 'production') {
+          return callback(null, true);
+        }
+
+        console.warn(`[CORS Blocked] Origin: ${origin}`);
+        return callback(new Error(`CORS policy blocked access from origin: ${origin}`));
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    })
+  );
+
   app.use(express.json({ limit: '25mb' }));
 
   // Health check endpoint for Render / monitoring
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'smritisathi', time: new Date().toISOString() });
+    res.json({
+      status: 'ok',
+      service: 'smritisathi',
+      firebaseAdmin: getApps().length > 0 ? 'initialized' : 'uninitialized',
+      time: new Date().toISOString(),
+    });
   });
 
-  // Authentication & Session Sync API for Firebase and Render
-  app.post('/api/auth/sync', (req, res) => {
+  // ============================================================================
+  // 3. AUTHENTICATION ENDPOINTS (Verified via Firebase Admin SDK)
+  // ============================================================================
+
+  // Conclusive verification endpoint (Step 14): Verifies Bearer ID token with Firebase Admin
+  app.get('/api/auth/me', requireAuth, (req: AuthenticatedRequest, res) => {
+    const verifiedUser = req.user!;
+    res.json({
+      authenticated: true,
+      uid: verifiedUser.uid,
+      email: verifiedUser.email || '',
+      name: verifiedUser.name || verifiedUser.displayName || '',
+      picture: verifiedUser.picture || '',
+    });
+  });
+
+  // POST verification endpoint
+  app.post('/api/auth/verify', requireAuth, (req: AuthenticatedRequest, res) => {
+    const verifiedUser = req.user!;
+    res.json({
+      authenticated: true,
+      uid: verifiedUser.uid,
+      email: verifiedUser.email || '',
+      name: verifiedUser.name || '',
+    });
+  });
+
+  // Authentication & Session Sync API: Requires valid Firebase ID token before persisting
+  app.post('/api/auth/sync', requireAuth, (req: AuthenticatedRequest, res) => {
     try {
-      const { uid, email, displayName, photoURL, profile } = req.body || {};
+      const verifiedUser = req.user!;
+      const { profile } = req.body || {};
       const db = ensureDatabase();
-      if (email || displayName || uid) {
-        db.user = {
-          ...db.user,
-          name: displayName || db.user.name || 'Google User',
-          email: email || db.user.email || '',
-          avatarUrl: photoURL || db.user.avatarUrl,
-          isGoogleLinked: true,
-          ...(profile || {}),
-        };
-        saveDatabase(db);
-      }
-      res.json({ success: true, user: db.user });
+
+      db.user = {
+        ...db.user,
+        name: verifiedUser.name || req.body?.displayName || db.user.name || 'Google User',
+        email: verifiedUser.email || req.body?.email || db.user.email || '',
+        avatarUrl: verifiedUser.picture || req.body?.photoURL || db.user.avatarUrl,
+        isGoogleLinked: true,
+        ...(profile || {}),
+      };
+      saveDatabase(db);
+
+      res.json({
+        success: true,
+        authenticated: true,
+        verifiedUid: verifiedUser.uid,
+        user: db.user,
+      });
     } catch (err: any) {
-      console.error('Error syncing auth with backend:', err);
+      console.error('[Auth Sync] Error syncing authenticated profile:', err);
       res.status(500).json({ success: false, error: err?.message || 'Failed to sync auth' });
     }
   });
 
-  app.get('/api/auth/session', (_req, res) => {
+  // Current session information endpoint
+  app.get('/api/auth/session', async (req, res) => {
     const db = ensureDatabase();
+    const authHeader = req.headers.authorization;
+    let verifiedUser: DecodedIdToken | null = null;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1]?.trim();
+      if (token) {
+        try {
+          verifiedUser = await adminAuth.verifyIdToken(token);
+        } catch {
+          // Token expired or invalid
+        }
+      }
+    }
+
     res.json({
       success: true,
-      isAuthenticated: !!(db.user as any)?.isGoogleLinked,
+      isAuthenticated: !!verifiedUser || !!(db.user as any)?.isGoogleLinked,
       user: db.user,
+      verifiedUid: verifiedUser?.uid || null,
     });
   });
 
+  // Logout endpoint
   app.post('/api/auth/logout', (_req, res) => {
     const db = ensureDatabase();
     if (db.user) {
       (db.user as any).isGoogleLinked = false;
       saveDatabase(db);
     }
-    res.json({ success: true });
+    res.json({ success: true, message: 'Logged out successfully' });
   });
 
   // API Endpoints

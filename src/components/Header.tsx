@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import type { UserProfile } from '../types';
 import { speakText, playGentleClick, playSuccessChime } from '../utils/audio';
-import { signInWithGoogleSafe, signOutUser } from '../firebase';
-import { LogIn, LogOut, CheckCircle2 } from 'lucide-react';
+import { signInWithGoogle, signOutUser } from '../firebase';
+import { LogIn, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface HeaderProps {
   user: UserProfile | null;
@@ -20,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenRewards,
 }) => {
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const mindPointsFormatted = user?.mindPoints?.toLocaleString() || '1,240';
 
   const handleReadAloud = () => {
@@ -29,14 +30,18 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleGoogleSignIn = async () => {
     playGentleClick();
+    setAuthError(null);
     setIsSigningIn(true);
     try {
-      const res = await signInWithGoogleSafe();
+      const res = await signInWithGoogle();
       if (res.success) {
         playSuccessChime();
+      } else if (res.error) {
+        setAuthError(res.error);
       }
     } catch (err: any) {
       console.warn('Google sign-in caught exception:', err);
+      setAuthError(err?.message || 'Unable to sign in with Google');
     } finally {
       setIsSigningIn(false);
     }
@@ -45,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
   const handleGoogleSignOut = async (e: React.MouseEvent) => {
     e.stopPropagation();
     playGentleClick();
+    setAuthError(null);
     try {
       await signOutUser();
     } catch (err) {
@@ -162,6 +168,27 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
       </div>
+
+      {/* Floating Auth Error Notification Banner */}
+      {authError && (
+        <div
+          role="alert"
+          className="absolute top-[76px] right-4 sm:right-6 md:right-12 max-w-md bg-amber-50 border-2 border-amber-400 text-amber-950 p-3.5 rounded-xl shadow-xl flex items-start space-x-2.5 z-50 animate-fadeIn"
+        >
+          <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="flex-1 text-xs sm:text-sm">
+            <p className="font-bold text-amber-900">Sign-In Notice</p>
+            <p className="mt-0.5 leading-relaxed">{authError}</p>
+          </div>
+          <button
+            onClick={() => setAuthError(null)}
+            className="text-amber-700 hover:text-amber-950 font-bold text-xs p-1"
+            aria-label="Dismiss message"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </header>
   );
 };

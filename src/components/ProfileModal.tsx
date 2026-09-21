@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import type { UserProfile, CognitiveProgress } from '../types';
-import { signInWithGoogleSafe, signOutUser } from '../firebase';
+import { signInWithGoogle, signOutUser } from '../firebase';
 import { playGentleClick, playSuccessChime } from '../utils/audio';
-import { LogIn, LogOut, CheckCircle2, Cloud, Database } from 'lucide-react';
+import { LogIn, LogOut, CheckCircle2, Cloud, AlertCircle } from 'lucide-react';
 
 interface ProfileModalProps {
   user: UserProfile | null;
@@ -18,17 +18,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onOpenSettings,
 }) => {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
     playGentleClick();
+    setAuthError(null);
     setLoadingGoogle(true);
     try {
-      const res = await signInWithGoogleSafe();
+      const res = await signInWithGoogle();
       if (res.success) {
         playSuccessChime();
+      } else if (res.error) {
+        setAuthError(res.error);
       }
     } catch (err: any) {
       console.warn('Google sign-in caught exception:', err);
+      setAuthError(err?.message || 'Failed to connect Google account');
     } finally {
       setLoadingGoogle(false);
     }
@@ -36,6 +41,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
   const handleGoogleSignOut = async () => {
     playGentleClick();
+    setAuthError(null);
     setLoadingGoogle(true);
     try {
       await signOutUser();
@@ -125,6 +131,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 <LogIn className="w-4 h-4 text-[#002045]" />
                 <span>{loadingGoogle ? 'Connecting Google...' : 'Sign In with Google'}</span>
               </button>
+
+              {authError && (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex items-start space-x-2 animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <div className="flex-1 leading-relaxed">
+                    <p className="font-bold text-amber-900">Sign-in Notice</p>
+                    <p>{authError}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

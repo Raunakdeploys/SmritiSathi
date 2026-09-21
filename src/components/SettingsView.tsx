@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import type { UserProfile, FamilyFaceItem } from '../types';
 import { playSuccessChime, playGentleClick } from '../utils/audio';
-import { signInWithGoogleSafe, signOutUser } from '../firebase';
-import { LogIn, LogOut, Cloud, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { signInWithGoogle, signOutUser } from '../firebase';
+import { LogIn, LogOut, Cloud, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
 
 interface SettingsViewProps {
   user: UserProfile | null;
@@ -30,6 +30,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const [isSaved, setIsSaved] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [showAddFaceModal, setShowAddFaceModal] = useState(false);
   const [newFaceName, setNewFaceName] = useState('');
   const [newFaceRelation, setNewFaceRelation] = useState('');
@@ -140,20 +141,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <span>{loadingGoogle ? 'Disconnecting...' : 'Sign Out'}</span>
                 </button>
               ) : (
-                <div className="flex flex-col items-end gap-1.5">
+                <div className="flex flex-col items-end gap-2">
                   <button
                     id="btn-settings-google-signin"
                     disabled={loadingGoogle}
                     onClick={async () => {
                       playGentleClick();
+                      setAuthError(null);
                       setLoadingGoogle(true);
                       try {
-                        const res = await signInWithGoogleSafe();
+                        const res = await signInWithGoogle();
                         if (res.success) {
                           playSuccessChime();
+                        } else if (res.error) {
+                          setAuthError(res.error);
                         }
                       } catch (err: any) {
                         console.warn('Google sign-in caught error:', err);
+                        setAuthError(err?.message || 'Failed to sign in with Google');
                       } finally {
                         setLoadingGoogle(false);
                       }
@@ -167,6 +172,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               )}
             </div>
           </div>
+
+          {authError && (
+            <div className="mt-4 p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-xs sm:text-sm text-amber-950 flex items-start space-x-2.5 animate-fadeIn">
+              <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+              <div className="flex-1 leading-relaxed">
+                <p className="font-bold text-amber-900">Sign-in Notice</p>
+                <p>{authError}</p>
+              </div>
+              <button
+                onClick={() => setAuthError(null)}
+                className="text-amber-700 hover:text-amber-900 font-bold p-1 text-xs"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Profile & Caregiver Form */}
