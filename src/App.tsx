@@ -22,6 +22,8 @@ import { HelpView } from './components/HelpView';
 import { DailyTrainingModal } from './components/DailyTrainingModal';
 import { RewardsModal } from './components/RewardsModal';
 import { ProfileModal } from './components/ProfileModal';
+import { WhereAmIModal } from './components/WhereAmIModal';
+import { DirectCallModal } from './components/DirectCallModal';
 import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { PatientMode } from './components/PatientMode';
 
@@ -54,6 +56,8 @@ export default function App() {
   const [isDailyTrainingOpen, setIsDailyTrainingOpen] = useState(false);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isWhereAmIOpen, setIsWhereAmIOpen] = useState(false);
+  const [isDirectCallOpen, setIsDirectCallOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Subscribe to storeService updates & Google auth state
@@ -334,10 +338,16 @@ export default function App() {
               user={user}
               progress={progress}
               activities={activities}
+              familyMembers={familyMembers}
+              telemetry={database.careCompass?.telemetry}
+              config={database.careCompass?.config}
               onPlayGame={(gameId) => setActiveGameId(gameId)}
               onStartDailyTraining={() => setIsDailyTrainingOpen(true)}
               onOpenRewards={() => setIsRewardsModalOpen(true)}
               onViewHistory={() => setCurrentTab('history')}
+              onOpenWhereAmI={() => setIsWhereAmIOpen(true)}
+              onOpenDirectCall={() => setIsDirectCallOpen(true)}
+              onOpenCareCompass={() => setCurrentTab('carecompass')}
             />
           )}
 
@@ -579,6 +589,48 @@ export default function App() {
             setIsProfileModalOpen(false);
             setCurrentTab('settings');
           }}
+        />
+      )}
+
+      {/* Senior Reality Grounding WhereAmI Modal */}
+      {isWhereAmIOpen && (
+        <WhereAmIModal
+          isOpen={isWhereAmIOpen}
+          onClose={() => setIsWhereAmIOpen(false)}
+          telemetry={
+            database.careCompass?.telemetry || {
+              distanceMeters: 12,
+              latitude: 28.5244,
+              longitude: 77.2167,
+              batteryLevel: 88,
+              status: 'INSIDE_SAFE_ZONE',
+              lastSeenSecondsAgo: 4,
+              heartRateBpm: 72,
+              bearingDegrees: 45,
+            }
+          }
+          config={
+            database.careCompass?.config || {
+              patientName: user?.name || 'Asha Devi',
+              anchorName: 'Home Sweet Home',
+              anchorRadiusMeters: 100,
+              emergencyPhone: '+91 98765 43210',
+              caregiverName: 'Rohan Sharma',
+              preferredLanguage: 'hi-IN',
+            }
+          }
+        />
+      )}
+
+      {/* Immediate Caregiver Direct Telephone/Radio Call Modal */}
+      {isDirectCallOpen && (
+        <DirectCallModal
+          isOpen={isDirectCallOpen}
+          onClose={() => setIsDirectCallOpen(false)}
+          targetName={database.careCompass?.config?.caregiverName || 'Rohan Sharma'}
+          targetPhone={database.careCompass?.config?.emergencyPhone || '+91 98765 43210'}
+          targetRole="Son & Primary Caregiver"
+          patientName={user?.name || 'Asha Devi'}
         />
       )}
     </div>
