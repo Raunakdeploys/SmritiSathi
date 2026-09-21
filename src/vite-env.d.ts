@@ -8,10 +8,26 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_MESSAGING_SENDER_ID?: string;
   readonly VITE_FIREBASE_APP_ID?: string;
   readonly VITE_FIREBASE_FIRESTORE_DATABASE_ID?: string;
+  readonly VITE_GOOGLE_CLIENT_ID?: string;
   readonly VITE_API_URL?: string;
   readonly VITE_GOOGLE_MAPS_API_KEY?: string;
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+interface Window {
+  google?: {
+    accounts: {
+      id: {
+        initialize: (config: any) => void;
+        prompt: (momentListener?: (notification: any) => void) => void;
+        renderButton: (parent: HTMLElement, options: any) => void;
+        disableAutoSelect: () => void;
+        revoke: (hint: string, callback?: (done: any) => void) => void;
+      };
+      oauth2?: any;
+    };
+  };
 }

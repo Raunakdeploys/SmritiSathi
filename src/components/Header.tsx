@@ -177,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="flex-1 text-xs sm:text-sm">
-            <p className="font-bold text-amber-900">Sign-In Notice</p>
+            <p className="font-bold text-amber-900">Sign-In Information</p>
             <p className="mt-0.5 leading-relaxed">{authError}</p>
           </div>
           <button

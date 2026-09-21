@@ -177,7 +177,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="mt-4 p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-xs sm:text-sm text-amber-950 flex items-start space-x-2.5 animate-fadeIn">
               <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
               <div className="flex-1 leading-relaxed">
-                <p className="font-bold text-amber-900">Sign-in Notice</p>
+                <p className="font-bold text-amber-900">Sign-in Information</p>
                 <p>{authError}</p>
               </div>
               <button

@@ -3,7 +3,7 @@ import {
   getAuth,
   setPersistence,
   browserLocalPersistence,
-  signInWithPopup,
+  signInWithCredential,
   signOut,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -65,11 +65,39 @@ setPersistence(auth, browserLocalPersistence).catch((err) => {
   console.warn('[Firebase Auth] Failed to configure browserLocalPersistence:', err);
 });
 
-// Single Google Auth Provider instance configured with account selector prompt
+// Google OAuth Web Client ID for Google Identity Services (GIS / GSI)
+export const GOOGLE_CLIENT_ID: string =
+  (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) ||
+  firebaseConfigJson.oAuthClientId ||
+  '953012480996-7bail744gcn4vmrpjtreaf64vlnd60iq.apps.googleusercontent.com';
+
+// Ensure Google Identity Services script is loaded in window
+export function loadGoogleIdentityServicesScript(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (window.google?.accounts?.id) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const existingScript = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve());
+      existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Identity Services')));
+      // If already loaded
+      if (window.google?.accounts?.id) resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Google Identity Services library'));
+    document.head.appendChild(script);
+  });
+}
+
+// Single Google Auth Provider instance
 export const googleAuthProvider = new GoogleAuthProvider();
-googleAuthProvider.setCustomParameters({
-  prompt: 'select_account',
-});
 
 // Use named database if specified in config, otherwise default
 export const db = firebaseConfigJson.firestoreDatabaseId
@@ -162,36 +190,17 @@ export interface GoogleSignInResult {
   idToken?: string;
   error?: string;
   errorCode?: string;
-  unauthorizedDomain?: string;
 }
 
 /**
- * Maps Firebase Auth error codes to helpful, user-friendly actionable messages
+ * Maps Auth error codes to helpful, user-friendly messages
  */
-function getHumanReadableAuthError(code: string, rawMessage?: string): { message: string; unauthorizedDomain?: string } {
-  const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'current domain';
-
+function getHumanReadableAuthError(code: string, rawMessage?: string): { message: string } {
   switch (code) {
-    case 'auth/popup-closed-by-user':
+    case 'auth/invalid-credential':
+    case 'auth/user-token-expired':
       return {
-        message: 'The Google Sign-In popup was closed before completing authentication. Please click sign-in again.',
-      };
-    case 'auth/cancelled-popup-request':
-      return {
-        message: 'A previous sign-in popup was already active. Please try again.',
-      };
-    case 'auth/popup-blocked':
-      return {
-        message: 'The Google Sign-In popup was blocked by your browser. Please allow popups for this site in your browser address bar and try again.',
-      };
-    case 'auth/unauthorized-domain':
-      return {
-        message: `This domain (${currentHost}) is not authorized in Firebase Console. Please add '${currentHost}' under Firebase Console → Authentication → Settings → Authorized domains.`,
-        unauthorizedDomain: currentHost,
-      };
-    case 'auth/operation-not-allowed':
-      return {
-        message: 'Google Sign-In is not enabled in your Firebase Console. Please go to Firebase Console → Authentication → Sign-in method → enable Google.',
+        message: 'The Google authentication session was expired or invalid. Please try signing in again.',
       };
     case 'auth/network-request-failed':
       return {
@@ -199,39 +208,52 @@ function getHumanReadableAuthError(code: string, rawMessage?: string): { message
       };
     case 'auth/internal-error':
       return {
-        message: 'Firebase Authentication encountered an internal error. Please check your Firebase project configuration.',
+        message: 'Authentication service encountered an internal error. Please try again.',
       };
-    case 'auth/invalid-api-key':
+    case 'auth/popup-closed-by-user':
+    case 'user_cancelled':
       return {
-        message: 'Invalid Firebase API Key. Please verify VITE_FIREBASE_API_KEY in your environment configuration.',
+        message: 'Google Sign-In prompt was closed. Please click sign-in when ready.',
       };
     default:
       return {
-        message: rawMessage || `Sign-in failed with error code: ${code}`,
+        message: rawMessage || `Sign-in could not be completed (${code})`,
       };
   }
 }
 
 /**
- * PRIMARY PRODUCTION GOOGLE SIGN-IN METHOD
- *
- * Requirements:
- * 1. Called directly from user click/tap gesture (no async operations before popup)
- * 2. Uses signInWithPopup(auth, googleAuthProvider)
- * 3. Extracts verified user and ID token
- * 4. Syncs with backend via Authorization: Bearer <idToken>
- * 5. Handles explicit error codes
+ * Complete Google Sign-In using a Google ID token from Google Identity Services
+ * Flow:
+ * Google ID token
+ * ↓
+ * GoogleAuthProvider.credential(googleIdToken)
+ * ↓
+ * Firebase signInWithCredential(auth, credential)
+ * ↓
+ * Firebase authenticated user
+ * ↓
+ * Firebase user.getIdToken()
+ * ↓
+ * syncUserWithBackend
  */
-export async function signInWithGoogle(): Promise<GoogleSignInResult> {
+export async function signInWithGoogleIdToken(googleIdToken: string): Promise<GoogleSignInResult> {
   try {
-    // Popup call MUST happen immediately from user click - NO async network calls before this line!
-    const result = await signInWithPopup(auth, googleAuthProvider);
-    const user = result.user;
+    if (!googleIdToken) {
+      throw new Error('No Google ID token received from Google Identity Services.');
+    }
 
-    // Obtain verified Firebase ID token
+    // Convert the Google ID token into a Firebase Auth credential
+    const credential = GoogleAuthProvider.credential(googleIdToken);
+
+    // Sign in to Firebase with the credential
+    const userCredential = await signInWithCredential(auth, credential);
+    const user = userCredential.user;
+
+    // Obtain verified Firebase ID token for backend authentication
     const idToken = await user.getIdToken();
 
-    // Send token to backend via Authorization: Bearer header
+    // Synchronize user profile with backend
     await syncUserWithBackend(user, idToken);
 
     return {
@@ -240,21 +262,106 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
       idToken,
     };
   } catch (error: any) {
-    const errorCode = error?.code || 'auth/unknown-error';
+    const errorCode = error?.code || 'auth/credential-error';
     const parsed = getHumanReadableAuthError(errorCode, error?.message);
 
-    console.error(`[Firebase Auth Error] Code: ${errorCode}`, {
+    console.error('[Firebase Auth GSI Error]:', {
       code: errorCode,
       message: parsed.message,
-      origin: typeof window !== 'undefined' ? window.location.origin : '',
-      authDomain: firebaseConfig.authDomain,
     });
 
     return {
       success: false,
       error: parsed.message,
       errorCode,
-      unauthorizedDomain: parsed.unauthorizedDomain,
+    };
+  }
+}
+
+/**
+ * PRIMARY PRODUCTION GOOGLE SIGN-IN ENTRY POINT
+ *
+ * Uses Google Identity Services (GSI) to display the Google Account chooser / One Tap.
+ * Once the user selects their account and Google returns the ID token (JWT),
+ * it calls signInWithGoogleIdToken() to sign in via Firebase signInWithCredential.
+ *
+ * This completely eliminates Firebase OAuth popup / redirect domain restrictions!
+ */
+export async function signInWithGoogle(): Promise<GoogleSignInResult> {
+  try {
+    await loadGoogleIdentityServicesScript();
+
+    if (typeof window === 'undefined' || !window.google?.accounts?.id) {
+      throw new Error('Google Identity Services script is not available in browser window.');
+    }
+
+    return new Promise((resolve) => {
+      let isResolved = false;
+
+      const finish = (res: GoogleSignInResult) => {
+        if (!isResolved) {
+          isResolved = true;
+          resolve(res);
+        }
+      };
+
+      try {
+        window.google!.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (response: { credential?: string; select_by?: string }) => {
+            if (response && response.credential) {
+              const res = await signInWithGoogleIdToken(response.credential);
+              finish(res);
+            } else {
+              finish({
+                success: false,
+                error: 'No credential returned from Google account selection.',
+                errorCode: 'auth/no-credential',
+              });
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        // Prompt Google Account selection (One Tap / Account chooser)
+        window.google!.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed()) {
+            console.warn('[GSI] Prompt was not displayed:', notification.getNotDisplayedReason());
+            // If One Tap was suppressed (e.g. dismissed recently or unsupported in private window),
+            // provide user actionable feedback or fallback
+            finish({
+              success: false,
+              error: 'Google Sign-In prompt could not be displayed automatically. If you closed it recently, please wait a moment or click the Google button.',
+              errorCode: 'auth/prompt-not-displayed',
+            });
+          } else if (notification.isSkippedMoment()) {
+            console.log('[GSI] Prompt skipped:', notification.getSkippedReason());
+          } else if (notification.isDismissedMoment()) {
+            console.log('[GSI] Prompt dismissed:', notification.getDismissedReason());
+            finish({
+              success: false,
+              error: 'Google Sign-In prompt was dismissed.',
+              errorCode: 'user_cancelled',
+            });
+          }
+        });
+      } catch (err: any) {
+        finish({
+          success: false,
+          error: err?.message || 'Error launching Google Sign-In prompt',
+          errorCode: 'auth/gsi-launch-error',
+        });
+      }
+    });
+  } catch (error: any) {
+    const errorCode = error?.code || 'auth/gsi-error';
+    const parsed = getHumanReadableAuthError(errorCode, error?.message);
+
+    return {
+      success: false,
+      error: parsed.message,
+      errorCode,
     };
   }
 }
