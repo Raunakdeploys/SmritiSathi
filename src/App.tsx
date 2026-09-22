@@ -9,7 +9,7 @@ import type {
   RewardItem,
 } from './types';
 import { storeService } from './services/storeService';
-import { subscribeToAuth } from './firebase';
+import { subscribeToAuth, printAuthDiagnostics } from './firebase';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
@@ -63,6 +63,8 @@ export default function App() {
 
   // Subscribe to storeService updates & Google auth state
   useEffect(() => {
+    printAuthDiagnostics();
+
     const unsubscribeStore = storeService.subscribe((updatedDb) => {
       setDatabase({ ...updatedDb });
     });

@@ -65,11 +65,47 @@ setPersistence(auth, browserLocalPersistence).catch((err) => {
   console.warn('[Firebase Auth] Failed to configure browserLocalPersistence:', err);
 });
 
-// Google OAuth Web Client ID for Google Identity Services (GIS / GSI)
-export const GOOGLE_CLIENT_ID: string =
-  (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) ||
-  firebaseConfigJson.oAuthClientId ||
-  '953012480996-7bail744gcn4vmrpjtreaf64vlnd60iq.apps.googleusercontent.com';
+// Authoritative Google OAuth Web Client ID for Google Identity Services (GIS / GSI)
+// Strictly resolve from VITE_GOOGLE_CLIENT_ID or firebaseConfigJson.oAuthClientId (single authoritative source)
+const rawGoogleClientId =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID
+    ? String(import.meta.env.VITE_GOOGLE_CLIENT_ID).trim().replace(/^["']|["']$/g, '')
+    : '') ||
+  (firebaseConfigJson.oAuthClientId ? String(firebaseConfigJson.oAuthClientId).trim() : '');
+
+if (!rawGoogleClientId) {
+  console.error('[AUTH ERROR] Missing Google OAuth Web Client ID. Please set VITE_GOOGLE_CLIENT_ID in your environment.');
+}
+
+export const GOOGLE_CLIENT_ID: string = rawGoogleClientId;
+
+/**
+ * Diagnostic utility for SmritiSaathi Authentication
+ */
+export function printAuthDiagnostics(): void {
+  if (typeof window === 'undefined') return;
+  const currentOrigin = window.location.origin;
+  const gsiLoaded = Boolean(window.google?.accounts?.id);
+
+  console.log('[AUTH DEBUG] Current origin:', currentOrigin);
+  console.log('[AUTH DEBUG] Google Client ID:', GOOGLE_CLIENT_ID);
+  console.log(
+    `========================================\n` +
+    `SMRITISATHI AUTH DIAGNOSTIC\n\n` +
+    `Browser Origin:\n${currentOrigin}\n\n` +
+    `Google OAuth Client:\n${GOOGLE_CLIENT_ID}\n\n` +
+    `Firebase Project:\n${firebaseConfig.projectId}\n\n` +
+    `Firebase Auth Domain:\n${firebaseConfig.authDomain}\n\n` +
+    `Google SDK:\n${gsiLoaded ? 'Loaded' : 'Loading or Pending'}\n\n` +
+    `Authentication method:\nGoogle Identity Services + Firebase credential\n` +
+    `========================================`
+  );
+}
+
+// Print diagnostics immediately on module evaluation in browser
+if (typeof window !== 'undefined') {
+  printAuthDiagnostics();
+}
 
 // Ensure Google Identity Services script is loaded in window
 export function loadGoogleIdentityServicesScript(): Promise<void> {
