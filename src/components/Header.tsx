@@ -146,13 +146,12 @@ export const Header: React.FC<HeaderProps> = ({
         ) : (
           <button
             id="btn-header-google-signin"
-            onClick={handleGoogleSignIn}
-            disabled={isSigningIn}
-            title="Sign in with Google to backup your progress"
+            onClick={onOpenProfile}
+            title="Sign in to backup your progress across devices"
             className="flex items-center space-x-1.5 bg-white hover:bg-[#f0f3ff] text-[#002045] font-bold text-xs sm:text-sm px-3.5 py-2 rounded-full border-2 border-[#adc7f7] shadow-xs hover:border-[#002045] transition-all cursor-pointer min-h-[44px]"
           >
             <LogIn className="w-4 h-4 text-[#002045]" />
-            <span>{isSigningIn ? 'Signing In...' : 'Google Sign In'}</span>
+            <span>Sign In</span>
           </button>
         )}
 

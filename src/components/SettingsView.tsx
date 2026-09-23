@@ -1,8 +1,28 @@
 import React, { useState } from 'react';
 import type { UserProfile, FamilyFaceItem } from '../types';
 import { playSuccessChime, playGentleClick } from '../utils/audio';
-import { signInWithGoogle, signOutUser } from '../firebase';
-import { LogIn, LogOut, Cloud, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import {
+  signInWithGoogle,
+  signInWithEmailPassword,
+  registerWithEmailPassword,
+  signInAsCaregiverDemo,
+  signOutUser,
+  GOOGLE_CLIENT_ID,
+} from '../firebase';
+import {
+  LogIn,
+  LogOut,
+  Cloud,
+  CheckCircle2,
+  ShieldCheck,
+  AlertCircle,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Mail,
+  KeyRound,
+} from 'lucide-react';
 
 interface SettingsViewProps {
   user: UserProfile | null;
@@ -31,11 +51,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [isSaved, setIsSaved] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showOAuthHelp, setShowOAuthHelp] = useState(false);
+  const [copiedOrigin, setCopiedOrigin] = useState(false);
+  const [copiedClientId, setCopiedClientId] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [showAddFaceModal, setShowAddFaceModal] = useState(false);
   const [newFaceName, setNewFaceName] = useState('');
   const [newFaceRelation, setNewFaceRelation] = useState('');
   const [newFaceImageUrl, setNewFaceImageUrl] = useState('');
   const [newFaceHint, setNewFaceHint] = useState('');
+
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://smritisathi-3.onrender.com';
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +170,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <span>{loadingGoogle ? 'Disconnecting...' : 'Sign Out'}</span>
                 </button>
               ) : (
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     id="btn-settings-google-signin"
                     disabled={loadingGoogle}
@@ -155,22 +184,196 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           playSuccessChime();
                         } else if (res.error) {
                           setAuthError(res.error);
+                          setShowOAuthHelp(true);
                         }
                       } catch (err: any) {
                         console.warn('Google sign-in caught error:', err);
                         setAuthError(err?.message || 'Failed to sign in with Google');
+                        setShowOAuthHelp(true);
                       } finally {
                         setLoadingGoogle(false);
                       }
                     }}
-                    className="px-6 py-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                    className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
                   >
                     <LogIn className="w-4 h-4 text-[#002045]" />
                     <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google'}</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playGentleClick();
+                      setShowEmailForm(!showEmailForm);
+                      setAuthError(null);
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-[#002045] text-white hover:bg-[#1a365d] font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Email Login</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={loadingGoogle}
+                    onClick={async () => {
+                      playGentleClick();
+                      setAuthError(null);
+                      setLoadingGoogle(true);
+                      try {
+                        const res = await signInAsCaregiverDemo('Verified Caregiver');
+                        if (res.success) {
+                          playSuccessChime();
+                        } else if (res.error) {
+                          setAuthError(res.error);
+                        }
+                      } finally {
+                        setLoadingGoogle(false);
+                      }
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-200" />
+                    <span>1-Click Demo</span>
+                  </button>
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Email Sign-In / Register Inline Form */}
+          {showEmailForm && !user?.isGoogleLinked && (
+            <div className="mt-4 p-4 bg-white border border-[#adc7f7] rounded-xl space-y-3 animate-fadeIn">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-[#002045]">
+                  {isRegistering ? 'Register New Caregiver Account' : 'Caregiver Email Sign In'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsRegistering(!isRegistering)}
+                  className="text-xs font-bold text-sky-700 hover:underline cursor-pointer"
+                >
+                  {isRegistering ? 'Switch to Sign In' : 'Need an account? Register'}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="caregiver@example.com"
+                  className="px-3 py-2 border border-slate-300 rounded-lg text-xs"
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password (min 6 chars)"
+                  className="px-3 py-2 border border-slate-300 rounded-lg text-xs"
+                />
+              </div>
+
+              <button
+                type="button"
+                disabled={loadingGoogle || !email || !password}
+                onClick={async () => {
+                  playGentleClick();
+                  setLoadingGoogle(true);
+                  setAuthError(null);
+                  try {
+                    const res = isRegistering
+                      ? await registerWithEmailPassword(email, password, 'Caregiver')
+                      : await signInWithEmailPassword(email, password);
+
+                    if (res.success) {
+                      playSuccessChime();
+                      setShowEmailForm(false);
+                    } else if (res.error) {
+                      setAuthError(res.error);
+                    }
+                  } finally {
+                    setLoadingGoogle(false);
+                  }
+                }}
+                className="w-full py-2 bg-[#002045] hover:bg-[#1a365d] text-white rounded-lg text-xs font-bold cursor-pointer transition-colors"
+              >
+                {loadingGoogle ? 'Processing...' : isRegistering ? 'Register & Sign In' : 'Sign In Now'}
+              </button>
+            </div>
+          )}
+
+          {/* Collapsible Google Cloud Console Fix Diagnostic */}
+          <div className="mt-3 border border-[#c6d7ee] bg-white rounded-xl overflow-hidden text-xs">
+            <button
+              type="button"
+              onClick={() => setShowOAuthHelp(!showOAuthHelp)}
+              className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 flex items-center justify-between font-bold text-[#002045] text-left cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                Google OAuth Setup & "Error 400: origin_mismatch" Diagnostics
+              </span>
+              {showOAuthHelp ? <ChevronUp className="w-4 h-4 text-[#66768a]" /> : <ChevronDown className="w-4 h-4 text-[#66768a]" />}
+            </button>
+
+            {showOAuthHelp && (
+              <div className="p-3.5 space-y-2.5 border-t border-[#c6d7ee] bg-[#fbfcfe]">
+                <p className="text-xs text-[#4a5568] leading-relaxed">
+                  If Google displays <strong>"Error 400: origin_mismatch"</strong>, copy and paste this exact origin into your Google Cloud Console OAuth 2.0 Web Client:
+                </p>
+
+                <div className="p-2.5 bg-slate-100 rounded-lg flex items-center justify-between gap-2 border border-slate-200">
+                  <div className="truncate">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">App Origin to Add:</span>
+                    <code className="text-xs font-mono font-bold text-[#002045]">{currentOrigin}</code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playGentleClick();
+                      navigator.clipboard.writeText(currentOrigin);
+                      setCopiedOrigin(true);
+                      setTimeout(() => setCopiedOrigin(false), 2500);
+                    }}
+                    className="px-2.5 py-1 bg-white border border-slate-300 rounded font-bold text-xs text-[#002045] hover:bg-slate-50 flex items-center gap-1 shrink-0 cursor-pointer"
+                  >
+                    {copiedOrigin ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedOrigin ? 'Copied' : 'Copy Origin'}</span>
+                  </button>
+                </div>
+
+                <div className="p-2.5 bg-slate-100 rounded-lg flex items-center justify-between gap-2 border border-slate-200">
+                  <div className="truncate">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Client ID:</span>
+                    <code className="text-xs font-mono font-bold text-[#002045] truncate block max-w-[280px]">
+                      {GOOGLE_CLIENT_ID}
+                    </code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playGentleClick();
+                      navigator.clipboard.writeText(GOOGLE_CLIENT_ID);
+                      setCopiedClientId(true);
+                      setTimeout(() => setCopiedClientId(false), 2500);
+                    }}
+                    className="px-2.5 py-1 bg-white border border-slate-300 rounded font-bold text-xs text-[#002045] hover:bg-slate-50 flex items-center gap-1 shrink-0 cursor-pointer"
+                  >
+                    {copiedClientId ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedClientId ? 'Copied' : 'Copy Client ID'}</span>
+                  </button>
+                </div>
+
+                <ol className="text-xs text-[#4a5568] list-decimal pl-4 space-y-1">
+                  <li>In Google Cloud Console, confirm selected project is <strong>geometric-hill-h7k72</strong> (Project ID)</li>
+                  <li>Navigate to <strong>APIs & Services → Credentials</strong></li>
+                  <li>Open the OAuth 2.0 Web Client ending in <strong>...60iq</strong></li>
+                  <li>Under <strong>Authorized JavaScript origins</strong>, ensure <strong>{currentOrigin}</strong> is listed (without any trailing slash)</li>
+                  <li>Click <strong>Save</strong>. Google takes 5 minutes to propagate to all edge servers.</li>
+                </ol>
+              </div>
+            )}
           </div>
 
           {authError && (

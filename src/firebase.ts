@@ -5,6 +5,10 @@ import {
   browserLocalPersistence,
   signInWithCredential,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInAnonymously,
+  updateProfile,
   signOut,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -237,7 +241,28 @@ function getHumanReadableAuthError(code: string, rawMessage?: string): { message
     case 'auth/invalid-credential':
     case 'auth/user-token-expired':
       return {
-        message: 'The Google authentication session was expired or invalid. Please try signing in again.',
+        message: 'The authentication session was expired or invalid. Please try signing in again.',
+      };
+    case 'auth/user-not-found':
+      return {
+        message: 'No account found with this email. Click "Register New Account" to create your caregiver account.',
+      };
+    case 'auth/wrong-password':
+    case 'auth/invalid-login-credentials':
+      return {
+        message: 'Incorrect password or email. Please verify your credentials and try again.',
+      };
+    case 'auth/email-already-in-use':
+      return {
+        message: 'An account with this email already exists. Please sign in with your password.',
+      };
+    case 'auth/weak-password':
+      return {
+        message: 'Password should be at least 6 characters.',
+      };
+    case 'auth/invalid-email':
+      return {
+        message: 'Please provide a valid email address.',
       };
     case 'auth/network-request-failed':
       return {
@@ -250,12 +275,101 @@ function getHumanReadableAuthError(code: string, rawMessage?: string): { message
     case 'auth/popup-closed-by-user':
     case 'user_cancelled':
       return {
-        message: 'Google Sign-In prompt was closed. Please click sign-in when ready.',
+        message: 'Sign-in prompt was closed. Please click sign-in when ready.',
+      };
+    case 'auth/unauthorized-domain':
+      return {
+        message: 'This domain is not yet authorized in Firebase Console -> Authentication -> Settings -> Authorized domains.',
       };
     default:
       return {
         message: rawMessage || `Sign-in could not be completed (${code})`,
       };
+  }
+}
+
+/**
+ * Sign in with Email and Password (direct Firebase Auth)
+ */
+export async function signInWithEmailPassword(email: string, pass: string): Promise<GoogleSignInResult> {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email.trim(), pass);
+    const user = userCredential.user;
+    const idToken = await user.getIdToken();
+    await syncUserWithBackend(user, idToken);
+    return {
+      success: true,
+      user,
+      idToken,
+    };
+  } catch (error: any) {
+    const errorCode = error?.code || 'auth/email-error';
+    const parsed = getHumanReadableAuthError(errorCode, error?.message);
+    return {
+      success: false,
+      error: parsed.message,
+      errorCode,
+    };
+  }
+}
+
+/**
+ * Register with Email and Password (direct Firebase Auth)
+ */
+export async function registerWithEmailPassword(
+  email: string,
+  pass: string,
+  displayName?: string
+): Promise<GoogleSignInResult> {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+    const user = userCredential.user;
+    if (displayName) {
+      await updateProfile(user, { displayName: displayName.trim() });
+    }
+    const idToken = await user.getIdToken();
+    await syncUserWithBackend(user, idToken);
+    return {
+      success: true,
+      user,
+      idToken,
+    };
+  } catch (error: any) {
+    const errorCode = error?.code || 'auth/email-register-error';
+    const parsed = getHumanReadableAuthError(errorCode, error?.message);
+    return {
+      success: false,
+      error: parsed.message,
+      errorCode,
+    };
+  }
+}
+
+/**
+ * Instant Demo / Caregiver Sign In (Anonymous Auth)
+ */
+export async function signInAsCaregiverDemo(
+  displayName = 'Primary Caregiver'
+): Promise<GoogleSignInResult> {
+  try {
+    const userCredential = await signInAnonymously(auth);
+    const user = userCredential.user;
+    await updateProfile(user, { displayName });
+    const idToken = await user.getIdToken();
+    await syncUserWithBackend(user, idToken);
+    return {
+      success: true,
+      user,
+      idToken,
+    };
+  } catch (error: any) {
+    const errorCode = error?.code || 'auth/anon-error';
+    const parsed = getHumanReadableAuthError(errorCode, error?.message);
+    return {
+      success: false,
+      error: parsed.message,
+      errorCode,
+    };
   }
 }
 
