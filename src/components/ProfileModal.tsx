@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { UserProfile, CognitiveProgress } from '../types';
 import {
   signInWithGoogle,
@@ -7,6 +7,7 @@ import {
   signInAsCaregiverDemo,
   signOutUser,
   clearGsiCooldownCookie,
+  renderGoogleSignInButton,
 } from '../firebase';
 import { playGentleClick, playSuccessChime } from '../utils/audio';
 import {
@@ -40,6 +41,34 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const googleBtnContainerRef = useRef<HTMLDivElement>(null);
+
+  // Render official Google Sign-In button whenever Google tab is active
+  useEffect(() => {
+    if (authMode !== 'google') return;
+    let isCancelled = false;
+
+    // Short delay to ensure container DOM element is mounted
+    const timeout = setTimeout(() => {
+      if (isCancelled || !googleBtnContainerRef.current) return;
+      renderGoogleSignInButton(
+        googleBtnContainerRef.current,
+        () => {
+          playSuccessChime();
+          setAuthError(null);
+        },
+        (err) => setAuthError(err),
+        () => setLoadingGoogle(true)
+      ).finally(() => {
+        if (!isCancelled) setLoadingGoogle(false);
+      });
+    }, 50);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [authMode]);
 
   const handleGoogleSignIn = async () => {
     playGentleClick();
@@ -307,18 +336,28 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
               {/* Tab 3: Google Account */}
               {authMode === 'google' && (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   <p className="text-xs text-[#43474e]">
                     One-tap sign-in with your Google account. Automatically activates cloud synchronization.
                   </p>
+
+                  {/* Official Google Sign-In Button Container */}
+                  <div
+                    ref={googleBtnContainerRef}
+                    className="flex justify-center min-h-[44px] w-full"
+                    id="official-google-button-container"
+                  />
+
+                  {/* Manual / Direct Fallback Button */}
                   <button
                     id="btn-google-signin-modal"
+                    type="button"
                     disabled={loadingGoogle}
                     onClick={handleGoogleSignIn}
                     className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
                   >
                     <LogIn className="w-4 h-4 text-[#002045]" />
-                    <span>{loadingGoogle ? 'Connecting Google...' : 'Sign In with Google'}</span>
+                    <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google (Direct)'}</span>
                   </button>
                 </div>
               )}

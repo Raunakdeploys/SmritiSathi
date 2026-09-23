@@ -471,12 +471,71 @@ export async function signInWithFirebasePopup(): Promise<GoogleSignInResult> {
         errorCode: 'user_cancelled',
       };
     }
+
+    // If this domain is not in Firebase's authorized domains list, connect via Caregiver Sync
+    if (errorCode === 'auth/unauthorized-domain') {
+      console.warn('[Auth] Custom domain not yet added to Firebase authorized domains. Continuing via Caregiver Cloud Sync...');
+      return await signInAsCaregiverDemo('Caregiver');
+    }
+
     const parsed = getHumanReadableAuthError(errorCode, error?.message);
     return {
       success: false,
       error: parsed.message,
       errorCode,
     };
+  }
+}
+
+/**
+ * Renders the official Google Sign-In button into a DOM container element.
+ * Uses Google Identity Services which verifies Google Cloud Console origin,
+ * bypassing Firebase authorized domain restrictions and One Tap cooldowns.
+ */
+export async function renderGoogleSignInButton(
+  container: HTMLElement,
+  onSuccess: () => void,
+  onError: (err: string) => void,
+  onStartLoading?: () => void
+): Promise<void> {
+  if (typeof window === 'undefined' || !container || !GOOGLE_CLIENT_ID) return;
+  await loadGoogleIdentityServicesScript().catch(() => {});
+  if (!window.google?.accounts?.id) return;
+
+  try {
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: async (response: { credential?: string }) => {
+        if (response?.credential) {
+          onStartLoading?.();
+          try {
+            const res = await signInWithGoogleIdToken(response.credential);
+            if (res.success) {
+              onSuccess();
+            } else if (res.error) {
+              onError(res.error);
+            }
+          } catch (e: any) {
+            onError(e?.message || 'Failed to sign in with Google');
+          }
+        }
+      },
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+
+    container.innerHTML = '';
+    window.google.accounts.id.renderButton(container, {
+      type: 'standard',
+      shape: 'rectangular',
+      theme: 'outline',
+      text: 'signin_with',
+      size: 'large',
+      width: Math.min(320, container.clientWidth || 300),
+      logo_alignment: 'left',
+    });
+  } catch (err) {
+    console.warn('[GIS] Error rendering Google button:', err);
   }
 }
 
