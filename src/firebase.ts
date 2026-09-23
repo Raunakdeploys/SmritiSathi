@@ -4,6 +4,7 @@ import {
   setPersistence,
   browserLocalPersistence,
   signInWithCredential,
+  signInWithPopup,
   signOut,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -315,81 +316,127 @@ export async function signInWithGoogleIdToken(googleIdToken: string): Promise<Go
 }
 
 /**
+ * Direct Firebase signInWithPopup fallback
+ * Used when GIS One Tap encounters origin mismatch or prompt errors
+ */
+export async function signInWithFirebasePopup(): Promise<GoogleSignInResult> {
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const userCredential = await signInWithPopup(auth, provider);
+    const user = userCredential.user;
+    const idToken = await user.getIdToken();
+    await syncUserWithBackend(user, idToken);
+    return {
+      success: true,
+      user,
+      idToken,
+    };
+  } catch (error: any) {
+    const errorCode = error?.code || 'auth/popup-error';
+    const parsed = getHumanReadableAuthError(errorCode, error?.message);
+    return {
+      success: false,
+      error: parsed.message,
+      errorCode,
+    };
+  }
+}
+
+/**
  * PRIMARY PRODUCTION GOOGLE SIGN-IN ENTRY POINT
  *
- * Uses Google Identity Services (GSI) to display the Google Account chooser / One Tap.
- * Once the user selects their account and Google returns the ID token (JWT),
- * it calls signInWithGoogleIdToken() to sign in via Firebase signInWithCredential.
- *
- * This completely eliminates Firebase OAuth popup / redirect domain restrictions!
+ * Tries Google Identity Services first, and if not displayed or fails,
+ * cleanly falls back to Firebase popup authentication.
  */
 export async function signInWithGoogle(): Promise<GoogleSignInResult> {
   try {
     await loadGoogleIdentityServicesScript();
 
-    if (typeof window === 'undefined' || !window.google?.accounts?.id) {
-      throw new Error('Google Identity Services script is not available in browser window.');
-    }
+    if (typeof window !== 'undefined' && window.google?.accounts?.id && GOOGLE_CLIENT_ID) {
+      const gsiResult = await new Promise<GoogleSignInResult>((resolve) => {
+        let isResolved = false;
 
-    return new Promise((resolve) => {
-      let isResolved = false;
+        const finish = (res: GoogleSignInResult) => {
+          if (!isResolved) {
+            isResolved = true;
+            resolve(res);
+          }
+        };
 
-      const finish = (res: GoogleSignInResult) => {
-        if (!isResolved) {
-          isResolved = true;
-          resolve(res);
-        }
-      };
-
-      try {
-        window.google!.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: async (response: { credential?: string; select_by?: string }) => {
-            if (response && response.credential) {
-              const res = await signInWithGoogleIdToken(response.credential);
-              finish(res);
-            } else {
-              finish({
-                success: false,
-                error: 'No credential returned from Google account selection.',
-                errorCode: 'auth/no-credential',
-              });
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
-
-        // Prompt Google Account selection (One Tap / Account chooser)
-        window.google!.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed()) {
-            console.warn('[GSI] Prompt was not displayed:', notification.getNotDisplayedReason());
-            // If One Tap was suppressed (e.g. dismissed recently or unsupported in private window),
-            // provide user actionable feedback or fallback
+        // Safety timeout of 10 seconds for user action or rejection
+        const timer = setTimeout(() => {
+          if (!isResolved) {
             finish({
               success: false,
-              error: 'Google Sign-In prompt could not be displayed automatically. If you closed it recently, please wait a moment or click the Google button.',
-              errorCode: 'auth/prompt-not-displayed',
-            });
-          } else if (notification.isSkippedMoment()) {
-            console.log('[GSI] Prompt skipped:', notification.getSkippedReason());
-          } else if (notification.isDismissedMoment()) {
-            console.log('[GSI] Prompt dismissed:', notification.getDismissedReason());
-            finish({
-              success: false,
-              error: 'Google Sign-In prompt was dismissed.',
-              errorCode: 'user_cancelled',
+              error: 'Prompt timed out',
+              errorCode: 'auth/timeout',
             });
           }
-        });
-      } catch (err: any) {
-        finish({
-          success: false,
-          error: err?.message || 'Error launching Google Sign-In prompt',
-          errorCode: 'auth/gsi-launch-error',
-        });
+        }, 15000);
+
+        try {
+          window.google!.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: async (response: { credential?: string; select_by?: string }) => {
+              clearTimeout(timer);
+              if (response && response.credential) {
+                const res = await signInWithGoogleIdToken(response.credential);
+                finish(res);
+              } else {
+                finish({
+                  success: false,
+                  error: 'No credential returned from Google account selection.',
+                  errorCode: 'auth/no-credential',
+                });
+              }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+
+          // Prompt Google Account selection (One Tap / Account chooser)
+          window.google!.accounts.id.prompt((notification: any) => {
+            if (notification.isNotDisplayed()) {
+              clearTimeout(timer);
+              console.warn('[GSI] Prompt was not displayed:', notification.getNotDisplayedReason());
+              finish({
+                success: false,
+                error: 'Prompt not displayed',
+                errorCode: 'auth/prompt-not-displayed',
+              });
+            } else if (notification.isDismissedMoment()) {
+              clearTimeout(timer);
+              finish({
+                success: false,
+                error: 'Google Sign-In prompt was dismissed.',
+                errorCode: 'user_cancelled',
+              });
+            }
+          });
+        } catch (err: any) {
+          clearTimeout(timer);
+          finish({
+            success: false,
+            error: err?.message || 'Error launching Google Sign-In prompt',
+            errorCode: 'auth/gsi-launch-error',
+          });
+        }
+      });
+
+      if (gsiResult.success) {
+        return gsiResult;
       }
-    });
+
+      // If user deliberately cancelled, don't force popup
+      if (gsiResult.errorCode === 'user_cancelled') {
+        return gsiResult;
+      }
+    }
+
+    // Fallback: Use standard Firebase signInWithPopup
+    console.log('[Auth] Attempting signInWithFirebasePopup fallback...');
+    return await signInWithFirebasePopup();
   } catch (error: any) {
     const errorCode = error?.code || 'auth/gsi-error';
     const parsed = getHumanReadableAuthError(errorCode, error?.message);
