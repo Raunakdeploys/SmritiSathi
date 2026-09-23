@@ -26,6 +26,7 @@ interface Window {
         renderButton: (parent: HTMLElement, options: any) => void;
         disableAutoSelect: () => void;
         revoke: (hint: string, callback?: (done: any) => void) => void;
+        cancel?: () => void;
       };
       oauth2?: any;
     };

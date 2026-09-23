@@ -114,6 +114,33 @@ export function loadGoogleIdentityServicesScript(): Promise<void> {
   });
 }
 
+/**
+ * Clears the Google Identity Services One Tap cooldown cookie (g_state).
+ * When a user taps the cross/close button on Google One Tap, Google sets an exponential
+ * cooldown in the `g_state` cookie that suppresses future prompts.
+ * Clearing this cookie ensures that when the user taps "Sign In with Google" again,
+ * Google Identity Services immediately prompts them rather than suppressing the prompt.
+ */
+export function clearGsiCooldownCookie(): void {
+  if (typeof document === 'undefined') return;
+  try {
+    const expiredSuffix = 'expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0; path=/; SameSite=Lax';
+    document.cookie = `g_state=; ${expiredSuffix}`;
+
+    const host = window.location.hostname;
+    document.cookie = `g_state=; domain=${host}; ${expiredSuffix}`;
+    document.cookie = `g_state=; domain=.${host}; ${expiredSuffix}`;
+
+    const parts = host.split('.');
+    if (parts.length > 2) {
+      const parentDomain = parts.slice(-2).join('.');
+      document.cookie = `g_state=; domain=.${parentDomain}; ${expiredSuffix}`;
+    }
+  } catch {
+    // Ignore cookie clearing errors
+  }
+}
+
 // Single Google Auth Provider instance
 export const googleAuthProvider = new GoogleAuthProvider();
 
@@ -341,6 +368,13 @@ export async function signInAsCaregiverDemo(
     };
   } catch (error: any) {
     const errorCode = error?.code || 'auth/anon-error';
+    if (errorCode === 'auth/admin-restricted-operation' || errorCode === 'auth/operation-not-allowed') {
+      return {
+        success: false,
+        error: '1-Click guest access is not enabled on this Firebase project. Please use Email or Google Sign-In.',
+        errorCode,
+      };
+    }
     const parsed = getHumanReadableAuthError(errorCode, error?.message);
     return {
       success: false,
@@ -425,6 +459,18 @@ export async function signInWithFirebasePopup(): Promise<GoogleSignInResult> {
     };
   } catch (error: any) {
     const errorCode = error?.code || 'auth/popup-error';
+    // If the user closed the popup/sheet, return cleanly as user_cancelled with no error message
+    if (
+      errorCode === 'auth/popup-closed-by-user' ||
+      errorCode === 'auth/cancelled-popup-request' ||
+      errorCode === 'auth/user-cancelled'
+    ) {
+      return {
+        success: false,
+        error: null,
+        errorCode: 'user_cancelled',
+      };
+    }
     const parsed = getHumanReadableAuthError(errorCode, error?.message);
     return {
       success: false,
@@ -439,13 +485,25 @@ export async function signInWithFirebasePopup(): Promise<GoogleSignInResult> {
  *
  * Tries Google Identity Services first, and if not displayed or fails,
  * cleanly falls back to Firebase popup authentication.
+ * If user closes/cancels with the cross button (X), it clears the suppression
+ * cookie and cleanly resets so tapping the button again re-triggers the prompt.
  */
 export async function signInWithGoogle(): Promise<GoogleSignInResult> {
+  // Clear any existing Google One Tap cooldown cookie so prompt can trigger repeatedly
+  clearGsiCooldownCookie();
+
   try {
     if (typeof window !== 'undefined' && GOOGLE_CLIENT_ID) {
       await loadGoogleIdentityServicesScript().catch(() => {});
 
       if (window.google?.accounts?.id) {
+        // Cancel any existing prompt state in GIS
+        try {
+          window.google.accounts.id.cancel?.();
+        } catch {
+          // ignore
+        }
+
         const gsiResult = await new Promise<GoogleSignInResult>((resolve) => {
           let isResolved = false;
 
@@ -460,7 +518,7 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
             if (!isResolved) {
               finish({
                 success: false,
-                error: 'Prompt timed out',
+                error: null,
                 errorCode: 'auth/timeout',
               });
             }
@@ -477,8 +535,8 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
                 } else {
                   finish({
                     success: false,
-                    error: 'No credential returned from Google account selection.',
-                    errorCode: 'auth/no-credential',
+                    error: null,
+                    errorCode: 'user_cancelled',
                   });
                 }
               },
@@ -487,11 +545,33 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
             });
 
             window.google!.accounts.id.prompt((notification: any) => {
-              if (notification.isNotDisplayed() || notification.isDismissedMoment()) {
+              // User deliberately tapped the cross button (X) or tapped outside
+              if (notification.isDismissedMoment()) {
                 clearTimeout(timer);
+                clearGsiCooldownCookie();
+                const reason = notification.getDismissedReason?.();
+                console.log('[GSI] Prompt was dismissed by user:', reason);
                 finish({
                   success: false,
-                  error: 'Prompt dismissed or unavailable',
+                  error: null, // No error message! User just dismissed prompt.
+                  errorCode: 'user_cancelled',
+                });
+              } else if (notification.isSkippedMoment()) {
+                clearTimeout(timer);
+                console.log('[GSI] Prompt was skipped:', notification.getSkippedReason?.());
+                finish({
+                  success: false,
+                  error: null,
+                  errorCode: 'user_cancelled',
+                });
+              } else if (notification.isNotDisplayed()) {
+                clearTimeout(timer);
+                clearGsiCooldownCookie();
+                const reason = notification.getNotDisplayedReason?.() || 'not_displayed';
+                console.warn('[GSI] Prompt was not displayed:', reason);
+                finish({
+                  success: false,
+                  error: null,
                   errorCode: 'auth/prompt-not-displayed',
                 });
               }
@@ -506,24 +586,39 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
           }
         });
 
+        // If sign-in succeeded, return user
         if (gsiResult.success) {
+          return gsiResult;
+        }
+
+        // If the user cancelled/tapped cross (X), DO NOT show error and DO NOT fall back!
+        // Immediately return so the app remains clean and ready for the user's next tap.
+        if (gsiResult.errorCode === 'user_cancelled') {
           return gsiResult;
         }
       }
     }
 
-    // Attempt Firebase Popup fallback
+    // Attempt Firebase Popup fallback if One Tap was not displayed
     const popupRes = await signInWithFirebasePopup();
     if (popupRes.success) {
       return popupRes;
     }
 
-    // If external OAuth is not authorized for this origin, sign in seamlessly as Caregiver
-    console.warn('[Auth] Google OAuth not configured for this origin. Continuing with Caregiver Cloud Sync...');
-    return await signInAsCaregiverDemo('Caregiver');
+    // If user cancelled the popup, return clean cancellation without any error
+    if (popupRes.errorCode === 'user_cancelled') {
+      return popupRes;
+    }
+
+    // Return popup result (with human-readable error if failed)
+    return popupRes;
   } catch (error: any) {
-    console.warn('[Auth] Sign-in fallback activated:', error);
-    return await signInAsCaregiverDemo('Caregiver');
+    console.warn('[Auth] Sign-in error:', error);
+    return {
+      success: false,
+      error: error?.message || 'Failed to complete Google Sign-In.',
+      errorCode: error?.code || 'auth/unknown',
+    };
   }
 }
 

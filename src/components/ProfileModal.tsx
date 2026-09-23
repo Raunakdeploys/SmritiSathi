@@ -6,6 +6,7 @@ import {
   registerWithEmailPassword,
   signInAsCaregiverDemo,
   signOutUser,
+  clearGsiCooldownCookie,
 } from '../firebase';
 import { playGentleClick, playSuccessChime } from '../utils/audio';
 import {
@@ -43,6 +44,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const handleGoogleSignIn = async () => {
     playGentleClick();
     setAuthError(null);
+    clearGsiCooldownCookie();
     setLoadingGoogle(true);
     try {
       const res = await signInWithGoogle();
@@ -328,6 +330,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <p className="font-bold text-amber-900">Sign-in Notice</p>
                     <p>{authError}</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setAuthError(null)}
+                    className="text-amber-800 hover:text-amber-950 font-bold p-1 text-xs cursor-pointer"
+                    aria-label="Dismiss notice"
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
             </div>
