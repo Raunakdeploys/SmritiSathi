@@ -1274,9 +1274,9 @@ class StoreService {
       return Math.round(sum / Math.min(5, acts.length));
     };
 
-    const memoryScore = getAvg(memoryActs, 86);
-    const spatialScore = getAvg(spatialActs, 82);
-    const sensoryScore = getAvg(sensoryActs, 90);
+    const memoryScore = getAvg(memoryActs, 82);
+    const spatialScore = getAvg(spatialActs, 80);
+    const sensoryScore = getAvg(sensoryActs, 85);
     const execScore = getAvg(execActs, 78);
 
     const overall = Math.round((memoryScore + spatialScore + sensoryScore + execScore) / 4);

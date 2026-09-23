@@ -61,9 +61,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenCareCompass,
 }) => {
   const memoryPct = progress?.memory ?? 80;
-  const attentionPct = progress?.attention ?? 65;
-  const planningPct = progress?.planning ?? 45;
-  const spatialPct = 85;
+  const attentionPct = progress?.attention ?? 75;
+  const planningPct = progress?.planning ?? 70;
+  const spatialPct = progress?.spatial ?? 78;
+  const overallIndex = Math.round((memoryPct + attentionPct + planningPct + spatialPct) / 4);
   const mindPoints = (user?.mindPoints || user?.totalMindPoints || 1240).toLocaleString();
   const userName = user?.name ?? 'Asha Devi';
   const streakDays = user?.currentStreak || user?.dailyStreak || 5;
@@ -207,8 +208,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <div className="flex items-center gap-2 self-start sm:self-auto bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200">
                 <span className="text-xs font-bold text-sky-900">Overall Index:</span>
-                <span className="text-sm font-black text-sky-700">76 / 100</span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">Optimal</span>
+                <span className="text-sm font-black text-sky-700">{overallIndex} / 100</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
+                  {overallIndex >= 80 ? 'Optimal' : overallIndex >= 65 ? 'Stable' : 'Active'}
+                </span>
               </div>
             </div>
 

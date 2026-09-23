@@ -16,6 +16,10 @@ import {
   Award,
   Zap,
   RotateCcw,
+  ArrowUpRight,
+  Target,
+  Activity,
+  Trophy,
 } from 'lucide-react';
 
 interface InteractiveDailyTrainingProgressProps {
@@ -77,6 +81,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
 }) => {
   const [activeTab, setActiveTab] = useState<'domains' | 'checklist' | 'trajectory'>('domains');
   const [expandedDomain, setExpandedDomain] = useState<string | null>('memory');
+  const [selectedMetric, setSelectedMetric] = useState<'overall' | 'memory' | 'spatial' | 'planning' | 'attention'>('overall');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number | null>>({});
   const [drillCompleted, setDrillCompleted] = useState<Record<string, boolean>>({});
 
@@ -282,6 +287,199 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
             <Sparkles className="w-4 h-4 text-amber-300" />
             <span>Full Workout</span>
           </button>
+        </div>
+      </div>
+
+      {/* Premium Interactive Progress Hero Bar */}
+      <div className="bg-gradient-to-br from-[#ffffff] to-[#f4f7fb] p-5 rounded-2xl border border-[#d2ddee] shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-[#002045] text-white rounded-xl shadow-xs">
+              <Activity className="w-4 h-4 text-sky-300" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-[#002045]">
+                  {selectedMetric === 'overall'
+                    ? 'Combined Cognitive Stability Index'
+                    : selectedMetric === 'memory'
+                    ? 'Memory Recall & Kinship'
+                    : selectedMetric === 'spatial'
+                    ? 'Spatial Navigation & Landmarks'
+                    : selectedMetric === 'planning'
+                    ? 'Executive Function & Routine'
+                    : 'Attention & Visual Focus'}
+                </span>
+                <span className="text-[11px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Trophy className="w-3 h-3 text-emerald-600" />
+                  {selectedMetric === 'overall' && averageScore >= 80 ? 'Optimal Baseline' : 'Good Focus'}
+                </span>
+              </div>
+              <p className="text-xs text-[#526071] mt-0.5">
+                {selectedMetric === 'overall'
+                  ? 'Real-time multi-domain score dynamically weighted across daily mental drills.'
+                  : selectedMetric === 'memory'
+                  ? 'Temporal lobe capacity calibrated from FaceBond kin recognition & recall.'
+                  : selectedMetric === 'spatial'
+                  ? 'Hippocampal spatial acuity calibrated from WayBack navigation.'
+                  : selectedMetric === 'planning'
+                  ? 'Frontal lobe executive planning calibrated from daily routine sequencing.'
+                  : 'Parietal visual discrimination calibrated from shape and color puzzles.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-baseline gap-1.5 self-end sm:self-auto">
+            <span className="text-3xl font-black text-[#002045] tracking-tight">
+              {selectedMetric === 'overall'
+                ? averageScore
+                : selectedMetric === 'memory'
+                ? memoryPct
+                : selectedMetric === 'spatial'
+                ? spatialPct
+                : selectedMetric === 'planning'
+                ? planningPct
+                : attentionPct}
+              %
+            </span>
+            <span className="text-xs font-bold text-[#627285]">/ 100%</span>
+          </div>
+        </div>
+
+        {/* Dynamic Interactive Segmented Progress Bar */}
+        <div className="space-y-2">
+          <div className="relative w-full bg-[#e3ebf6] h-4 rounded-full overflow-hidden p-0.5 shadow-inner flex">
+            {selectedMetric === 'overall' ? (
+              <>
+                <div
+                  title={`Memory: ${memoryPct}%`}
+                  className="bg-orange-500 h-full rounded-l-full transition-all duration-700 hover:brightness-110 cursor-pointer"
+                  style={{ width: `${(memoryPct / 4).toFixed(1)}%` }}
+                  onClick={() => setSelectedMetric('memory')}
+                />
+                <div
+                  title={`Spatial: ${spatialPct}%`}
+                  className="bg-[#0F172A] h-full transition-all duration-700 hover:brightness-125 cursor-pointer"
+                  style={{ width: `${(spatialPct / 4).toFixed(1)}%` }}
+                  onClick={() => setSelectedMetric('spatial')}
+                />
+                <div
+                  title={`Planning: ${planningPct}%`}
+                  className="bg-sky-500 h-full transition-all duration-700 hover:brightness-110 cursor-pointer"
+                  style={{ width: `${(planningPct / 4).toFixed(1)}%` }}
+                  onClick={() => setSelectedMetric('planning')}
+                />
+                <div
+                  title={`Attention: ${attentionPct}%`}
+                  className="bg-emerald-500 h-full rounded-r-full transition-all duration-700 hover:brightness-110 cursor-pointer"
+                  style={{ width: `${(attentionPct / 4).toFixed(1)}%` }}
+                  onClick={() => setSelectedMetric('attention')}
+                />
+              </>
+            ) : (
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${
+                  selectedMetric === 'memory'
+                    ? 'bg-orange-500'
+                    : selectedMetric === 'spatial'
+                    ? 'bg-[#0F172A]'
+                    : selectedMetric === 'planning'
+                    ? 'bg-sky-500'
+                    : 'bg-emerald-500'
+                }`}
+                style={{
+                  width: `${
+                    selectedMetric === 'memory'
+                      ? memoryPct
+                      : selectedMetric === 'spatial'
+                      ? spatialPct
+                      : selectedMetric === 'planning'
+                      ? planningPct
+                      : attentionPct
+                  }%`,
+                }}
+              />
+            )}
+          </div>
+
+          {/* Metric Selector Filter Pills */}
+          <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                onClick={() => {
+                  playGentleClick();
+                  setSelectedMetric('overall');
+                }}
+                className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  selectedMetric === 'overall'
+                    ? 'bg-[#002045] text-white shadow-xs'
+                    : 'bg-[#eef2f9] text-[#43474e] hover:bg-[#e2e8f0]'
+                }`}
+              >
+                Combined ({averageScore}%)
+              </button>
+              <button
+                onClick={() => {
+                  playGentleClick();
+                  setSelectedMetric('memory');
+                }}
+                className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  selectedMetric === 'memory'
+                    ? 'bg-orange-600 text-white shadow-xs'
+                    : 'bg-orange-50 text-orange-800 hover:bg-orange-100 border border-orange-200'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                Memory {memoryPct}%
+              </button>
+              <button
+                onClick={() => {
+                  playGentleClick();
+                  setSelectedMetric('spatial');
+                }}
+                className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  selectedMetric === 'spatial'
+                    ? 'bg-[#0F172A] text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-300'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-[#0F172A]" />
+                Spatial {spatialPct}%
+              </button>
+              <button
+                onClick={() => {
+                  playGentleClick();
+                  setSelectedMetric('planning');
+                }}
+                className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  selectedMetric === 'planning'
+                    ? 'bg-sky-600 text-white shadow-xs'
+                    : 'bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-sky-500" />
+                Planning {planningPct}%
+              </button>
+              <button
+                onClick={() => {
+                  playGentleClick();
+                  setSelectedMetric('attention');
+                }}
+                className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  selectedMetric === 'attention'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                Attention {attentionPct}%
+              </button>
+            </div>
+
+            <span className="text-[11px] text-[#64748b] font-medium hidden md:inline">
+              Click any pillar to inspect focus
+            </span>
+          </div>
         </div>
       </div>
 
