@@ -6,7 +6,6 @@ import {
   registerWithEmailPassword,
   signInAsCaregiverDemo,
   signOutUser,
-  GOOGLE_CLIENT_ID,
 } from '../firebase';
 import { playGentleClick, playSuccessChime } from '../utils/audio';
 import {
@@ -15,15 +14,10 @@ import {
   CheckCircle2,
   Cloud,
   AlertCircle,
-  Copy,
-  Check,
   Mail,
   KeyRound,
-  UserPlus,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 interface ProfileModalProps {
@@ -41,29 +35,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 }) => {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [authMode, setAuthMode] = useState<'google' | 'email' | 'demo'>('google');
+  const [authMode, setAuthMode] = useState<'instant' | 'email' | 'google'>('instant');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [copiedOrigin, setCopiedOrigin] = useState(false);
-  const [copiedClientId, setCopiedClientId] = useState(false);
-  const [showOAuthHelp, setShowOAuthHelp] = useState(false);
-
-  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://smritisathi-3.onrender.com';
-
-  const handleCopyOrigin = () => {
-    playGentleClick();
-    navigator.clipboard.writeText(currentOrigin);
-    setCopiedOrigin(true);
-    setTimeout(() => setCopiedOrigin(false), 2500);
-  };
-
-  const handleCopyClientId = () => {
-    playGentleClick();
-    navigator.clipboard.writeText(GOOGLE_CLIENT_ID);
-    setCopiedClientId(true);
-    setTimeout(() => setCopiedClientId(false), 2500);
-  };
 
   const handleGoogleSignIn = async () => {
     playGentleClick();
@@ -75,14 +50,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         playSuccessChime();
       } else if (res.error) {
         setAuthError(res.error);
-        if (res.error.toLowerCase().includes('origin') || res.errorCode?.includes('popup') || res.errorCode?.includes('gsi')) {
-          setShowOAuthHelp(true);
-        }
       }
     } catch (err: any) {
       console.warn('Google sign-in caught exception:', err);
-      setAuthError(err?.message || 'Failed to connect Google account');
-      setShowOAuthHelp(true);
+      setAuthError(err?.message || 'Failed to connect');
     } finally {
       setLoadingGoogle(false);
     }
@@ -220,14 +191,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   type="button"
                   onClick={() => {
                     playGentleClick();
-                    setAuthMode('google');
+                    setAuthMode('instant');
                     setAuthError(null);
                   }}
-                  className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    authMode === 'google' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                  className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    authMode === 'instant' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
                   }`}
                 >
-                  Google Account
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>1-Click Access</span>
                 </button>
                 <button
                   type="button"
@@ -236,41 +208,43 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     setAuthMode('email');
                     setAuthError(null);
                   }}
-                  className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
                     authMode === 'email' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
                   }`}
                 >
-                  Email & Password
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Email & Pass</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     playGentleClick();
-                    setAuthMode('demo');
+                    setAuthMode('google');
                     setAuthError(null);
                   }}
-                  className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    authMode === 'demo' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                  className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    authMode === 'google' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
                   }`}
                 >
-                  1-Click Access
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Google</span>
                 </button>
               </div>
 
-              {/* Tab 1: Google OAuth */}
-              {authMode === 'google' && (
+              {/* Tab 1: 1-Click Access (Recommended Default) */}
+              {authMode === 'instant' && (
                 <div className="space-y-2.5">
                   <p className="text-xs text-[#43474e]">
-                    One-tap sign-in with your Google account. Synchronizes training and emergency alerts.
+                    Instant cloud sync for caregivers and family. No passwords, client IDs, or external accounts needed.
                   </p>
                   <button
-                    id="btn-google-signin-modal"
+                    type="button"
                     disabled={loadingGoogle}
-                    onClick={handleGoogleSignIn}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
+                    onClick={handleDemoSignIn}
+                    className="w-full py-3 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
                   >
-                    <LogIn className="w-4 h-4 text-[#002045]" />
-                    <span>{loadingGoogle ? 'Connecting Google...' : 'Sign In with Google'}</span>
+                    <ShieldCheck className="w-4 h-4 text-emerald-200" />
+                    <span>{loadingGoogle ? 'Connecting Cloud...' : 'Continue as Verified Caregiver'}</span>
                   </button>
                 </div>
               )}
@@ -329,86 +303,23 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 </form>
               )}
 
-              {/* Tab 3: 1-Click Access */}
-              {authMode === 'demo' && (
+              {/* Tab 3: Google Account */}
+              {authMode === 'google' && (
                 <div className="space-y-2.5">
                   <p className="text-xs text-[#43474e]">
-                    Instant access for caregivers and family without waiting for Google OAuth verification. Grants full access to Firestore persistence.
+                    One-tap sign-in with your Google account. Automatically activates cloud synchronization.
                   </p>
                   <button
-                    type="button"
+                    id="btn-google-signin-modal"
                     disabled={loadingGoogle}
-                    onClick={handleDemoSignIn}
-                    className="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                    onClick={handleGoogleSignIn}
+                    className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
                   >
-                    <ShieldCheck className="w-4 h-4 text-emerald-200" />
-                    <span>{loadingGoogle ? 'Activating...' : 'Continue as Verified Caregiver'}</span>
+                    <LogIn className="w-4 h-4 text-[#002045]" />
+                    <span>{loadingGoogle ? 'Connecting Google...' : 'Sign In with Google'}</span>
                   </button>
                 </div>
               )}
-
-              {/* Collapsible Google Cloud Console Fix Diagnostic */}
-              <div className="border border-[#c6d7ee] bg-white rounded-xl overflow-hidden text-xs">
-                <button
-                  type="button"
-                  onClick={() => setShowOAuthHelp(!showOAuthHelp)}
-                  className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 flex items-center justify-between font-bold text-[#002045] text-left cursor-pointer"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500" />
-                    Fix "Error 400: origin_mismatch" Details
-                  </span>
-                  {showOAuthHelp ? <ChevronUp className="w-4 h-4 text-[#66768a]" /> : <ChevronDown className="w-4 h-4 text-[#66768a]" />}
-                </button>
-
-                {showOAuthHelp && (
-                  <div className="p-3 space-y-2.5 border-t border-[#c6d7ee] bg-[#fbfcfe]">
-                    <p className="text-[11px] text-[#4a5568] leading-relaxed">
-                      Google OAuth requires this exact origin to be saved in your Google Cloud Console OAuth 2.0 Client:
-                    </p>
-
-                    <div className="p-2 bg-slate-100 rounded-lg flex items-center justify-between gap-2 border border-slate-200">
-                      <div className="truncate">
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block">App Origin to Add:</span>
-                        <code className="text-xs font-mono font-bold text-[#002045]">{currentOrigin}</code>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCopyOrigin}
-                        className="px-2.5 py-1 bg-white border border-slate-300 rounded font-bold text-[11px] text-[#002045] hover:bg-slate-50 flex items-center gap-1 shrink-0 cursor-pointer"
-                      >
-                        {copiedOrigin ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>{copiedOrigin ? 'Copied' : 'Copy'}</span>
-                      </button>
-                    </div>
-
-                    <div className="p-2 bg-slate-100 rounded-lg flex items-center justify-between gap-2 border border-slate-200">
-                      <div className="truncate">
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block">OAuth Client ID in Google Cloud:</span>
-                        <code className="text-[11px] font-mono font-bold text-[#002045] truncate block max-w-[240px]">
-                          {GOOGLE_CLIENT_ID}
-                        </code>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCopyClientId}
-                        className="px-2.5 py-1 bg-white border border-slate-300 rounded font-bold text-[11px] text-[#002045] hover:bg-slate-50 flex items-center gap-1 shrink-0 cursor-pointer"
-                      >
-                        {copiedClientId ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>{copiedClientId ? 'Copied' : 'Copy'}</span>
-                      </button>
-                    </div>
-
-                    <ol className="text-[11px] text-[#4a5568] list-decimal pl-4 space-y-1">
-                      <li>In Google Cloud Console, ensure Project is <strong>geometric-hill-h7k72</strong></li>
-                      <li>Go to <strong>APIs & Services → Credentials</strong></li>
-                      <li>Open the OAuth 2.0 Web Client ending in <strong>...60iq</strong></li>
-                      <li>Under <strong>Authorized JavaScript origins</strong>, paste: <code className="bg-amber-100 px-1 font-bold text-[#002045]">{currentOrigin}</code> (no trailing slash)</li>
-                      <li>Click <strong>Save</strong>. Google takes 5 minutes to propagate to all edge servers.</li>
-                    </ol>
-                  </div>
-                )}
-              </div>
 
               {authError && (
                 <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex items-start space-x-2 animate-fadeIn">
