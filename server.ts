@@ -1056,6 +1056,195 @@ Analyze this photo taken by the user's camera.
     }
   });
 
+  // ============================================================================
+  // GEMINI MULTI-TURN AI CHATBOT ENDPOINT (Saathi AI Companion)
+  // Supports selectable roles with dedicated system instructions & model tiering:
+  // - General: gemini-3.5-flash (Warm Senior Companion)
+  // - Fast: gemini-3.1-flash-lite (Quick Daily Anchor)
+  // - Complex: gemini-3.1-pro-preview (Clinical Geriatric Specialist)
+  // ============================================================================
+  app.post('/api/gemini/chat', async (req, res) => {
+    try {
+      const {
+        message,
+        history = [],
+        role = 'companion',
+        patientName = 'Asha Devi',
+        caregiverName = 'Rohan Sharma',
+        language = 'en-IN',
+      } = req.body;
+
+      if (!message || typeof message !== 'string' || !message.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: 'A non-empty user message is required.',
+        });
+      }
+
+      // Map role to appropriate Gemini model and system instruction
+      let selectedModel = 'gemini-3.5-flash';
+      let systemInstruction = '';
+      let roleDisplayName = 'Saathi Companion';
+
+      if (role === 'quick') {
+        selectedModel = 'gemini-3.1-flash-lite';
+        roleDisplayName = 'Quick Anchor';
+        systemInstruction = `You are the 'Quick Anchor' fast-response AI assistant in SmritiSaathi.
+Your primary role is to provide instantaneous, clear, crisp, and reassuring answers for seniors (like ${patientName}) and caregivers (like ${caregiverName}).
+Guidelines:
+1. Deliver quick, direct answers regarding: current day/date/time, medicine routine checks, hydration reminders, emergency assistance, and daily grounding.
+2. Keep answers concise: 1 to 3 short, easy-to-read sentences max.
+3. Be positive, warm, clear, and easy to read on mobile screens.
+4. Target language preference: ${language}.`;
+      } else if (role === 'complex' || role === 'clinical') {
+        selectedModel = 'gemini-3.1-pro-preview';
+        roleDisplayName = 'Dr. Smriti (Clinical Specialist)';
+        systemInstruction = `You are 'Dr. Smriti', an advanced geriatric neuropsychologist and clinical dementia care specialist consulting family caregivers (like ${caregiverName}) and elders (${patientName}) on the SmritiSaathi platform.
+You handle complex geriatric reasoning, cognitive health analysis, and evidence-backed caregiving strategies.
+Guidelines:
+1. Provide deep, evidence-based reasoning on: Mild Cognitive Impairment (MCI) progression, Alzheimer's staging, Sundowning syndrome mitigation, and validation therapy protocols.
+2. Offer tactical non-pharmacological behavioral calming techniques when agitation or disorientation happens.
+3. Give clear, structured responses with clinical rationale and 2-3 practical, actionable next steps.
+4. Keep the tone empathetic, professional, reassuring, and dignified.`;
+      } else {
+        // Default: General Companion
+        selectedModel = 'gemini-3.5-flash';
+        roleDisplayName = 'Saathi Memory Companion';
+        systemInstruction = `You are 'Saathi' (स्मृति साथी), a gentle, warm, deeply compassionate and respectful AI memory companion for Indian senior citizens living with Mild Cognitive Impairment (MCI) or early-stage dementia.
+You are conversing with ${patientName}, and their primary caregiver is ${caregiverName}.
+Guidelines:
+1. Validation Therapy: Never argue, harshly correct, or confront if an elder is confused or forgets a detail. First validate their emotions with warmth.
+2. Reality & Cultural Grounding: Gently weave in temporal and sensory anchors (the pleasant morning or evening chai, seasonal weather, Indian festivals like Diwali, Holi, Durga Puja, Eid, and memories of timeless music like Lata Mangeshkar, Kishore Kumar, or classic radio).
+3. Memory Stimulation: Gently reminisce and encourage daily mental exercises available in SmritiSaathi (WayBack neighborhood navigation, FaceBond family photos, LifeThread milestones, DailyRoutine, ShapeSorter).
+4. Tone & Style: Warm, respectful, unhurried. Use respectful Indian terms of address (e.g. 'Namaste', 'Asha ji', 'Dadaji'). Keep paragraphs accessible and uplifting.`;
+      }
+
+      // Convert incoming multi-turn history to @google/genai format
+      const formattedContents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+
+      if (Array.isArray(history)) {
+        for (const item of history) {
+          if (!item || !item.text) continue;
+          const turnRole = item.role === 'model' || item.role === 'assistant' || item.role === 'bot' ? 'model' : 'user';
+          formattedContents.push({
+            role: turnRole,
+            parts: [{ text: String(item.text) }],
+          });
+        }
+      }
+
+      // Append current user turn
+      formattedContents.push({
+        role: 'user',
+        parts: [{ text: message.trim() }],
+      });
+
+      const ai = getGeminiClient();
+
+      if (ai) {
+        // Attempt generation with selected model (with fallback to gemini-3.5-flash if preview requires paid tier or quota is exceeded)
+        const tryGenerateWithModel = async (modelToUse: string) => {
+          return await ai.models.generateContent({
+            model: modelToUse,
+            contents: formattedContents,
+            config: {
+              systemInstruction,
+              temperature: role === 'quick' ? 0.3 : 0.7,
+              topP: 0.9,
+            },
+          });
+        };
+
+        try {
+          const response = await tryGenerateWithModel(selectedModel);
+          const replyText = response.text || '';
+          if (replyText.trim()) {
+            return res.json({
+              success: true,
+              reply: replyText.trim(),
+              modelUsed: selectedModel,
+              roleUsed: role,
+              roleDisplayName,
+              source: 'gemini',
+              timestamp: new Date().toISOString(),
+            });
+          }
+        } catch (primaryModelErr: any) {
+          console.warn(`[Gemini Chat] Primary model ${selectedModel} failed:`, primaryModelErr?.message || primaryModelErr);
+          
+          // If complex model (gemini-3.1-pro-preview) hit a quota or key restriction, fall back seamlessly to gemini-3.5-flash
+          if (selectedModel !== 'gemini-3.5-flash') {
+            try {
+              console.log(`[Gemini Chat] Falling back to gemini-3.5-flash...`);
+              const fallbackResponse = await tryGenerateWithModel('gemini-3.5-flash');
+              const fallbackReply = fallbackResponse.text || '';
+              if (fallbackReply.trim()) {
+                return res.json({
+                  success: true,
+                  reply: fallbackReply.trim(),
+                  modelUsed: 'gemini-3.5-flash (auto-fallback)',
+                  roleUsed: role,
+                  roleDisplayName,
+                  source: 'gemini',
+                  timestamp: new Date().toISOString(),
+                });
+              }
+            } catch (fallbackErr) {
+              console.warn('[Gemini Chat] Fallback model also failed:', fallbackErr);
+            }
+          }
+        }
+      }
+
+      // Contextual Smart Fallback Response (when offline or API key pending)
+      const lower = message.toLowerCase();
+      let fallbackReply = `Namaste ${patientName}! I am right here with you. It is wonderful to spend this time together today. How are you feeling in this moment? Would you like to share a fond memory or explore a relaxing memory game together?`;
+
+      if (role === 'quick') {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dayStr = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+        if (lower.includes('time') || lower.includes('day') || lower.includes('date') || lower.includes('today')) {
+          fallbackReply = `Today is ${dayStr}, and the current time is ${timeStr}. You are right on schedule in your safe home!`;
+        } else if (lower.includes('medicine') || lower.includes('pill') || lower.includes('tablet')) {
+          fallbackReply = `Please have your morning/afternoon water and check your medicine box. ${caregiverName} has organized them clearly for you!`;
+        } else {
+          fallbackReply = `Quick check complete! You are doing splendidly today, ${patientName}. Everything is safe and steady.`;
+        }
+      } else if (role === 'complex' || role === 'clinical') {
+        if (lower.includes('sundown') || lower.includes('evening') || lower.includes('agitat')) {
+          fallbackReply = `Clinical Assessment & Recommendation:\n\n1. Environmental Adaptation: As natural light fades (4:00 PM - 7:00 PM), immediately turn on warm, diffused interior lighting to eliminate disorienting room shadows.\n2. Sensory Grounding: Offer a warm cup of caffeine-free herbal tea or play familiar classical melodies (e.g., Raga Bhairav or favorite nostalgic radio songs).\n3. Validation Protocol: Avoid arguing with temporal disorientation. Reassure ${patientName} that their home is secure and their family is right beside them.`;
+        } else {
+          fallbackReply = `Clinical Care Consultation for ${caregiverName}:\n\n• Routine Continuity: Maintaining a predictable daily schedule for meals, gentle cognitive games, and hydration significantly bolsters executive function stability.\n• Validation Therapy: Always validate emotional feelings first before gently reorienting.\n• Cognitive Stimulation: Engaging in 10-15 minutes of SmritiSaathi's WayBack and FaceBond daily fosters neuroplastic preservation without inducing cognitive fatigue.`;
+        }
+      } else {
+        if (lower.includes('song') || lower.includes('music') || lower.includes('sing')) {
+          fallbackReply = `Ah, music brings such warmth to the soul! Do you remember the golden melodies of Lata Mangeshkar and Mohammed Rafi? A song like 'Ajeeb Dastaan Hai Yeh' carries so many precious stories from the classic days. What was your favorite song to hum around the house?`;
+        } else if (lower.includes('tea') || lower.includes('chai') || lower.includes('morning')) {
+          fallbackReply = `Nothing compares to the aroma of freshly brewed ginger and cardamom chai in the morning! Sitting with a warm cup and looking out at the sky is such a peaceful blessing. Have you enjoyed your warm cup today, ${patientName}?`;
+        } else if (lower.includes('remember') || lower.includes('forget') || lower.includes('worried')) {
+          fallbackReply = `Please do not worry for even a moment, ${patientName}. Some days thoughts move like gentle clouds, and that is completely natural. You are safe, you are loved, and ${caregiverName} is watching over you with love. Shall we play a joyful photo game in 'Name That Face' together?`;
+        }
+      }
+
+      return res.json({
+        success: true,
+        reply: fallbackReply,
+        modelUsed: `${selectedModel} (Smart Offline Engine)`,
+        roleUsed: role,
+        roleDisplayName,
+        source: 'smart-offline',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      console.error('[Gemini Chat Error]', err);
+      res.status(500).json({
+        success: false,
+        error: err?.message || 'Chat service encountered an unexpected error.',
+      });
+    }
+  });
+
   // 11. Gemini AI Distress Voice Reassurance & Realtime Geofence Analysis API
   app.post('/api/gemini/distress-reassurance', async (req, res) => {
     try {

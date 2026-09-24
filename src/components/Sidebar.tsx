@@ -111,6 +111,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <li>
           <button
+            id="nav-btn-saathi-chat"
+            onClick={() => onSelectTab('saathi-chat')}
+            aria-current={currentTab === 'saathi-chat' ? 'page' : undefined}
+            className={`w-full flex items-center justify-between p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
+              currentTab === 'saathi-chat'
+                ? 'bg-[#002045] text-white font-extrabold border-l-4 border-[#FF6321] shadow-md'
+                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
+            }`}
+          >
+            <div className="flex items-center">
+              <span
+                className={`material-symbols-outlined mr-3 text-[24px] ${
+                  currentTab === 'saathi-chat' ? 'filled-icon text-[#FF6321]' : 'text-[#FF6321]'
+                }`}
+              >
+                voice_chat
+              </span>
+              <span className="text-[17px]">Saathi AI Chat</span>
+            </div>
+            <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-[#FF6321] text-white shadow-xs">
+              Gemini
+            </span>
+          </button>
+        </li>
+
+        <li>
+          <button
             id="nav-btn-games"
             onClick={() => onSelectTab('games')}
             className={`w-full flex items-center p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
