@@ -9,6 +9,7 @@ import {
   clearGsiCooldownCookie,
   renderGoogleSignInButton,
 } from '../firebase';
+import { storeService } from '../services/storeService';
 import { playGentleClick, playSuccessChime } from '../utils/audio';
 import {
   LogIn,
@@ -41,6 +42,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [googleButtonReady, setGoogleButtonReady] = useState(false);
   const googleBtnContainerRef = useRef<HTMLDivElement>(null);
 
   // Render official Google Sign-In button whenever Google tab is active
@@ -53,16 +55,36 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       if (isCancelled || !googleBtnContainerRef.current) return;
       renderGoogleSignInButton(
         googleBtnContainerRef.current,
-        () => {
+        (res) => {
           playSuccessChime();
           setAuthError(null);
+          setLoadingGoogle(false);
+          if (res?.googleUser) {
+            storeService.updateUser({
+              name: res.googleUser.name,
+              email: res.googleUser.email,
+              avatarUrl: res.googleUser.photoURL,
+              isGoogleLinked: true,
+              caregiverName: `${res.googleUser.name} (Google)`,
+            });
+          }
         },
-        (err) => setAuthError(err),
+        (err) => {
+          setLoadingGoogle(false);
+          setAuthError(err);
+        },
         () => setLoadingGoogle(true)
-      ).finally(() => {
-        if (!isCancelled) setLoadingGoogle(false);
-      });
-    }, 50);
+      )
+        .then(() => {
+          if (!isCancelled) {
+            setGoogleButtonReady(true);
+            setLoadingGoogle(false);
+          }
+        })
+        .catch(() => {
+          if (!isCancelled) setLoadingGoogle(false);
+        });
+    }, 60);
 
     return () => {
       isCancelled = true;
@@ -79,6 +101,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       const res = await signInWithGoogle();
       if (res.success) {
         playSuccessChime();
+        if (res.googleUser) {
+          storeService.updateUser({
+            name: res.googleUser.name,
+            email: res.googleUser.email,
+            avatarUrl: res.googleUser.photoURL,
+            isGoogleLinked: true,
+            caregiverName: `${res.googleUser.name} (Google)`,
+          });
+        }
       } else if (res.error) {
         setAuthError(res.error);
       }
@@ -348,17 +379,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     id="official-google-button-container"
                   />
 
-                  {/* Manual / Direct Fallback Button */}
-                  <button
-                    id="btn-google-signin-modal"
-                    type="button"
-                    disabled={loadingGoogle}
-                    onClick={handleGoogleSignIn}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
-                  >
-                    <LogIn className="w-4 h-4 text-[#002045]" />
-                    <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google (Direct)'}</span>
-                  </button>
+                  {/* Manual Fallback Button (only shown while official Google button initializes) */}
+                  {!googleButtonReady && (
+                    <button
+                      id="btn-google-signin-modal"
+                      type="button"
+                      disabled={loadingGoogle}
+                      onClick={handleGoogleSignIn}
+                      className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
+                    >
+                      <LogIn className="w-4 h-4 text-[#002045]" />
+                      <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google'}</span>
+                    </button>
+                  )}
                 </div>
               )}
 
