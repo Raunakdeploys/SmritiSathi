@@ -19,7 +19,12 @@ import {
   Heart,
   ShieldCheck,
   ChevronRight,
-  Info
+  Info,
+  AlertCircle,
+  X,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export interface ChatMessage {
@@ -153,9 +158,36 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [aiStatus, setAiStatus] = useState<{
+    hasApiKey: boolean;
+    keySource?: string | null;
+    primaryModel?: string;
+    isRender?: boolean;
+    setupHelp?: string;
+  } | null>(null);
+  const [showRenderHelp, setShowRenderHelp] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Check Gemini live status on mount
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/gemini/status')
+      .then((r) => r.json())
+      .then((data) => {
+        if (isMounted && data.success) {
+          setAiStatus(data);
+          if (!data.hasApiKey) {
+            setShowRenderHelp(true);
+          }
+        }
+      })
+      .catch((err) => console.warn('[Gemini Status Check]', err));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Auto-scroll to bottom of chat thread
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
@@ -418,13 +450,26 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           {/* Role selector tabs */}
           <div className="flex items-center gap-2">
             {/* Live AI Status Indicator */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold shadow-xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span>Gemini AI Live</span>
-            </div>
+            {aiStatus?.hasApiKey !== false ? (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold shadow-xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>Gemini AI Live</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowRenderHelp((prev) => !prev)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold shadow-xs hover:bg-amber-100 transition-colors cursor-pointer"
+                title="Click for Render setup instructions"
+              >
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                <span>Render Key Setup</span>
+                {showRenderHelp ? <ChevronUp className="w-3 h-3 text-amber-600" /> : <ChevronDown className="w-3 h-3 text-amber-600" />}
+              </button>
+            )}
 
             <div className="flex items-center gap-1.5 bg-[#f1f5f9] p-1 rounded-xl self-start sm:self-auto border border-[#e2e8f0]">
               <button
@@ -494,6 +539,47 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               </p>
             </div>
           </div>
+
+          {/* Render Deployment Configuration Alert (shown if key missing or toggled) */}
+          {(aiStatus?.hasApiKey === false || showRenderHelp) && (
+            <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 text-xs shadow-xs">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-extrabold text-amber-950 text-sm flex items-center gap-1.5">
+                      Render Deployment: Activating Live Gemini AI
+                    </h4>
+                    <p className="mt-1 text-amber-900 leading-relaxed text-[12px]">
+                      Your web service is live on Render! To enable real-time unscripted answers from <strong>Gemini 3.5 Flash</strong>, provide your Gemini API key in your Render dashboard:
+                    </p>
+                    <ol className="mt-2.5 space-y-1.5 list-decimal list-inside font-medium text-amber-900 text-[12px]">
+                      <li>
+                        Go to your <a href="https://dashboard.render.com" target="_blank" rel="noopener noreferrer" className="underline font-bold text-amber-950 inline-flex items-center gap-0.5">Render Dashboard <ExternalLink className="w-3 h-3" /></a> and open your Web Service.
+                      </li>
+                      <li>Click the <strong>Environment</strong> tab in the left menu.</li>
+                      <li>Click <strong>Add Environment Variable</strong> and enter:</li>
+                    </ol>
+                    <div className="mt-2 p-2.5 bg-white rounded-xl border border-amber-200 font-mono text-[12px] space-y-1 text-slate-800 shadow-2xs">
+                      <div><span className="text-slate-500 font-sans">Key:</span> <strong className="text-indigo-700">GEMINI_API_KEY</strong></div>
+                      <div><span className="text-slate-500 font-sans">Value:</span> <span className="text-slate-600">[Your Gemini API Key from Google AI Studio / Google Cloud]</span></div>
+                    </div>
+                    <p className="mt-2 text-[11px] text-amber-800 font-medium">
+                      💡 After clicking Save Changes, Render redeploys in ~60s and Live Gemini AI will immediately turn green!
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRenderHelp(false)}
+                  className="text-amber-600 hover:text-amber-900 p-1 rounded-lg hover:bg-amber-100 transition-colors shrink-0"
+                  aria-label="Dismiss guide"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Messages list */}
           {messages.map((msg, index) => {

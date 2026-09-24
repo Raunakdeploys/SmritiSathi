@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
@@ -132,22 +132,44 @@ async function requireAuth(
   }
 }
 
-const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+const currentDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
+
+// Robust Gemini API key resolver supporting all standard cloud variable names
+export function getGeminiApiKey(): { key: string; source: string } | null {
+  const candidates: Array<{ key: string | undefined; name: string }> = [
+    { key: process.env.GEMINI_API_KEY, name: 'GEMINI_API_KEY' },
+    { key: process.env.GOOGLE_API_KEY, name: 'GOOGLE_API_KEY' },
+    { key: process.env.API_KEY, name: 'API_KEY' },
+    { key: process.env.GOOGLE_GENAI_API_KEY, name: 'GOOGLE_GENAI_API_KEY' },
+    { key: process.env.VITE_GEMINI_API_KEY, name: 'VITE_GEMINI_API_KEY' },
+  ];
+
+  for (const item of candidates) {
+    if (item.key && typeof item.key === 'string' && item.key.trim().length > 0) {
+      return { key: item.key.trim(), source: item.name };
+    }
+  }
+  return null;
+}
 
 // Lazy Gemini API Client initialization
 let geminiClient: GoogleGenAI | null = null;
-function getGeminiClient(): GoogleGenAI | null {
-  if (!geminiClient && process.env.GEMINI_API_KEY) {
-    geminiClient = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    });
+let lastUsedApiKey = '';
+
+function getGeminiClient(): { client: GoogleGenAI; keySource: string } | null {
+  const keyInfo = getGeminiApiKey();
+  if (!keyInfo) {
+    return null;
   }
-  return geminiClient;
+
+  if (!geminiClient || lastUsedApiKey !== keyInfo.key) {
+    geminiClient = new GoogleGenAI({
+      apiKey: keyInfo.key,
+    });
+    lastUsedApiKey = keyInfo.key;
+    console.log(`[Gemini SDK] Initialized with key from ${keyInfo.source} (length: ${keyInfo.key.length})`);
+  }
+  return { client: geminiClient, keySource: keyInfo.source };
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -594,11 +616,29 @@ async function startServer() {
 
   // Health check endpoint for Render / monitoring
   app.get('/api/health', (_req, res) => {
+    const keyInfo = getGeminiApiKey();
     res.json({
       status: 'ok',
       service: 'smritisathi',
+      geminiLiveAI: keyInfo ? 'configured' : 'missing_api_key',
+      geminiKeySource: keyInfo ? keyInfo.source : null,
       firebaseAdmin: getApps().length > 0 ? 'initialized' : 'uninitialized',
       time: new Date().toISOString(),
+    });
+  });
+
+  // Gemini AI Status endpoint (checks key configuration for Render / Cloud deployment)
+  app.get('/api/gemini/status', (_req, res) => {
+    const keyInfo = getGeminiApiKey();
+    res.json({
+      success: true,
+      hasApiKey: !!keyInfo,
+      keySource: keyInfo ? keyInfo.source : null,
+      primaryModel: 'gemini-3.5-flash',
+      isRender: !!process.env.RENDER,
+      setupHelp: !keyInfo
+        ? 'Render Deployment: Add GEMINI_API_KEY in Render Dashboard -> Your Service -> Environment tab'
+        : 'Active and ready for live requests',
     });
   });
 
@@ -987,9 +1027,10 @@ async function startServer() {
         rawBase64 = dataUriMatch[2];
       }
 
-      const ai = getGeminiClient();
+      const geminiClientInfo = getGeminiClient();
 
-      if (ai) {
+      if (geminiClientInfo) {
+        const ai = geminiClientInfo.client;
         try {
           const prompt = mode === 'challenge'
             ? `You are an encouraging, respectful, gentle geriatric memory and cognitive coach for Indian senior citizens.
@@ -1201,9 +1242,10 @@ Guidelines:
         }
       }
 
-      const ai = getGeminiClient();
+      const geminiClientInfo = getGeminiClient();
 
-      if (ai) {
+      if (geminiClientInfo) {
+        const { client: ai, keySource } = geminiClientInfo;
         // High-availability candidate cascade: try selected model first, then ultra-fast fallback models
         const candidateModels = [
           selectedModel,
@@ -1214,7 +1256,7 @@ Guidelines:
 
         for (const modelToTry of candidateModels) {
           try {
-            console.log(`[Gemini Chat] Calling live model: ${modelToTry} for role ${role}...`);
+            console.log(`[Gemini Chat] Calling live model: ${modelToTry} via key ${keySource} for role ${role}...`);
             const response = await ai.models.generateContent({
               model: modelToTry,
               contents: formattedContents,
@@ -1247,9 +1289,9 @@ Guidelines:
         }
       }
 
-      // Dynamic Contextual Fallback Response (only if external network or API key unavailable)
+      // Dynamic Intelligent Fallback Response (handles questions when external API key is missing or offline)
       const lower = message.toLowerCase();
-      let fallbackReply = `Namaste ${effectivePatientName}! I am right here with you. It is wonderful to spend this time together today. How are you feeling in this moment? Would you like to share a fond memory or explore a relaxing memory game together?`;
+      let fallbackReply = '';
 
       if (role === 'quick') {
         const now = new Date();
@@ -1259,33 +1301,59 @@ Guidelines:
           fallbackReply = `Today is ${dayStr}, and the current time is ${timeStr}. You are right on schedule in your safe home!`;
         } else if (lower.includes('medicine') || lower.includes('pill') || lower.includes('tablet')) {
           fallbackReply = `Please have your morning/afternoon water and check your medicine box. ${effectiveCaregiverName} has organized them clearly for you!`;
+        } else if (lower.includes('weather') || lower.includes('temp') || lower.includes('rain') || lower.includes('cold') || lower.includes('hot')) {
+          fallbackReply = `It is a pleasant day outside. Please stay comfortably hydrated with warm water or tea, and wear comfortable clothing.`;
         } else {
-          fallbackReply = `Quick check complete! You are doing splendidly today, ${effectivePatientName}. Everything is safe and steady.`;
+          fallbackReply = `Quick check complete! You are doing splendidly today, ${effectivePatientName}. Everything is safe, orderly, and steady.`;
         }
       } else if (role === 'complex' || role === 'clinical') {
         if (lower.includes('sundown') || lower.includes('evening') || lower.includes('agitat')) {
           fallbackReply = `Clinical Assessment & Recommendation:\n\n1. Environmental Adaptation: As natural light fades (4:00 PM - 7:00 PM), immediately turn on warm, diffused interior lighting to eliminate disorienting room shadows.\n2. Sensory Grounding: Offer a warm cup of caffeine-free herbal tea or play familiar classical melodies (e.g., Raga Bhairav or favorite nostalgic radio songs).\n3. Validation Protocol: Avoid arguing with temporal disorientation. Reassure ${effectivePatientName} that their home is secure and their family is right beside them.`;
+        } else if (lower.includes('wander') || lower.includes('night') || lower.includes('door')) {
+          fallbackReply = `Wandering Prevention Clinical Protocol:\n\n1. Door Anchoring: Place visual stop signs or soothing full-length curtains over exterior exits.\n2. Evening Calming Routine: Limit fluid intake 90 minutes before bedtime and ensure nightlights softly illuminate the pathway to the restroom.\n3. Motion Sensors: Ensure caregiver alert chimes are active for nighttime safety.`;
         } else {
           fallbackReply = `Clinical Care Consultation for ${effectiveCaregiverName}:\n\n• Routine Continuity: Maintaining a predictable daily schedule for meals, gentle cognitive games, and hydration significantly bolsters executive function stability.\n• Validation Therapy: Always validate emotional feelings first before gently reorienting.\n• Cognitive Stimulation: Engaging in 10-15 minutes of SmritiSaathi's WayBack and FaceBond daily fosters neuroplastic preservation without inducing cognitive fatigue.`;
         }
       } else {
-        if (lower.includes('song') || lower.includes('music') || lower.includes('sing')) {
-          fallbackReply = `Ah, music brings such warmth to the soul! Do you remember the golden melodies of Lata Mangeshkar and Mohammed Rafi? A song like 'Ajeeb Dastaan Hai Yeh' carries so many precious stories from the classic days. What was your favorite song to hum around the house?`;
-        } else if (lower.includes('tea') || lower.includes('chai') || lower.includes('morning')) {
+        // Companion Mode Intelligent Answers
+        if (lower.includes('weather') || lower.includes('temperature') || lower.includes('climate') || lower.includes('rain') || lower.includes('sunny')) {
+          fallbackReply = `It feels like a calm and pleasant day, ${effectivePatientName}! The weather is gentle. For seniors, staying hydrated with fresh water or warm ginger tea and dressing in soft, comfortable layers is always best. If you'd like, step onto the balcony or near the window for some refreshing natural daylight!`;
+        } else if (lower.includes('london')) {
+          fallbackReply = `Namaste ${effectivePatientName}! London is the historic capital city of the United Kingdom, across the oceans in Europe. It is famous for its cool misty weather, the grand Big Ben clock tower, the River Thames, and those cheerful red double-decker buses. A flight from India takes about 9 hours high above the clouds. Are you thinking about travels, or perhaps loved ones living abroad?`;
+        } else if (lower.includes('delhi')) {
+          fallbackReply = `Delhi is the historic capital of India, filled with grand landmarks like the Red Fort, India Gate, and the peaceful gardens of Lodhi. What fond memories do you cherish of Delhi?`;
+        } else if (lower.includes('mumbai') || lower.includes('bombay')) {
+          fallbackReply = `Mumbai is the vibrant city by the Arabian Sea, renowned for the Gateway of India, the sparkling lights of Marine Drive, and the gentle evening sea breeze.`;
+        } else if (lower.includes('kolkata') || lower.includes('calcutta')) {
+          fallbackReply = `Kolkata is the City of Joy, home to the iconic Howrah Bridge, sweet rasgullas, and the soulful songs of Rabindranath Tagore!`;
+        } else if (lower.includes('song') || lower.includes('music') || lower.includes('sing') || lower.includes('lata') || lower.includes('rafi')) {
+          fallbackReply = `Ah, music brings such warmth to the soul! The golden melodies of Lata Mangeshkar, Kishore Kumar, and Mohammed Rafi carry timeless memories. A song like 'Ajeeb Dastaan Hai Yeh' or 'Lag Ja Gale' warms every heart. What was your favorite melody to hum, ${effectivePatientName}?`;
+        } else if (lower.includes('tea') || lower.includes('chai') || lower.includes('morning') || lower.includes('breakfast')) {
           fallbackReply = `Nothing compares to the aroma of freshly brewed ginger and cardamom chai in the morning! Sitting with a warm cup and looking out at the sky is such a peaceful blessing. Have you enjoyed your warm cup today, ${effectivePatientName}?`;
-        } else if (lower.includes('remember') || lower.includes('forget') || lower.includes('worried')) {
-          fallbackReply = `Please do not worry for even a moment, ${effectivePatientName}. Some days thoughts move like gentle clouds, and that is completely natural. You are safe, you are loved, and ${effectiveCaregiverName} is watching over you with love. Shall we play a joyful photo game in 'Name That Face' together?`;
+        } else if (lower.includes('remember') || lower.includes('forget') || lower.includes('worried') || lower.includes('scared') || lower.includes('anxious')) {
+          fallbackReply = `Please do not worry for even a moment, ${effectivePatientName}. Some days thoughts move like gentle clouds in the sky, and that is completely natural. You are safe, you are loved, and ${effectiveCaregiverName} is watching over you with love. Shall we play a joyful photo game in 'Name That Face' together?`;
+        } else if (lower.startsWith('where is') || lower.startsWith('where are')) {
+          fallbackReply = `That is a wonderful question! While I am currently operating in localized companion mode, places often connect to deep memories. Does that place remind you of a family trip, a story from books, or someone dear to you?`;
+        } else {
+          fallbackReply = `Namaste ${effectivePatientName}! I am right here listening closely to you. Every little conversation keeps our mind active and bright. How are you feeling in this moment, and would you like to share a story or play a gentle memory game together?`;
         }
       }
+
+      // If no API key was configured on the server, append a concise setup guide for the administrator/caregiver
+      const isMissingKey = !geminiClientInfo;
+      const modelDisplayName = isMissingKey
+        ? 'Offline Companion Mode (Setup GEMINI_API_KEY in Render)'
+        : `${selectedModel} (Smart Offline Fallback)`;
 
       return res.json({
         success: true,
         reply: fallbackReply,
-        modelUsed: `${selectedModel} (Smart Offline Fallback)`,
+        modelUsed: modelDisplayName,
         roleUsed: role,
         roleDisplayName,
-        source: 'smart-offline',
+        source: isMissingKey ? 'offline-companion' : 'smart-offline',
         isLiveAI: false,
+        requiresKeySetup: isMissingKey,
         patientName: effectivePatientName,
         timestamp: new Date().toISOString(),
       });
@@ -1314,9 +1382,10 @@ Guidelines:
         breachStatus = 'SAFE_ZONE',
       } = req.body;
 
-      const ai = getGeminiClient();
+      const geminiClientInfo = getGeminiClient();
 
-      if (ai) {
+      if (geminiClientInfo) {
+        const ai = geminiClientInfo.client;
         try {
           const prompt = `You are an empathetic, calm, and respectful AI geriatric voice assistant named SmritiSaathi.
 The patient/elder "${patientName}" is currently located at coordinates (${currentLatitude || 'Unknown'}, ${currentLongitude || 'Unknown'}) in or near ${currentCity || 'current location'}.
