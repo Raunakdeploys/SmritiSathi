@@ -259,7 +259,7 @@ export default function App() {
                 {[
                   { id: 'carecompass', label: 'CareCompass AI (Radar)', icon: 'radar' },
                   { id: 'patient-mode', label: 'Patient Mode (Dadaji)', icon: 'shield_person' },
-                  { id: 'saathi-chat', label: 'Saathi AI Chat (Gemini)', icon: 'voice_chat' },
+                  { id: 'saathi-chat', label: 'Saathi AI Chat', icon: 'voice_chat' },
                   { id: 'games', label: 'Games & Exercises', icon: 'videogame_asset' },
                   { id: 'reality-quest', label: 'Reality Quest', icon: 'explore' },
                   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -669,7 +669,7 @@ export default function App() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           className="fixed bottom-6 right-6 z-40 bg-[#002045] hover:bg-[#1a365d] text-white p-3.5 sm:px-5 sm:py-3.5 rounded-full shadow-2xl border-2 border-white flex items-center gap-2.5 transition-all hover:scale-105 active:scale-95 cursor-pointer group"
-          title="Chat with Saathi AI (Gemini)"
+          title="Chat with Saathi AI"
         >
           <span className="material-symbols-outlined text-[24px] text-[#FF6321] group-hover:rotate-12 transition-transform">
             voice_chat

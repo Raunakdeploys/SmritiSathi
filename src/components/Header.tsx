@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { UserProfile } from '../types';
 import { speakText, playGentleClick, playSuccessChime } from '../utils/audio';
 import { signInWithGoogle, signOutUser } from '../firebase';
+import { storeService } from '../services/storeService';
 import { LogIn, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface HeaderProps {
@@ -36,6 +37,9 @@ export const Header: React.FC<HeaderProps> = ({
       const res = await signInWithGoogle();
       if (res.success) {
         playSuccessChime();
+        if (res.googleUser) {
+          storeService.setAuthenticatedSession(res.googleUser);
+        }
       } else if (res.error) {
         setAuthError(res.error);
       }

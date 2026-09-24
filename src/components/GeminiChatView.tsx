@@ -401,12 +401,12 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 <h1 className="font-extrabold text-lg text-[#002045] leading-tight">
                   {currentConfig.name}
                 </h1>
-                <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border ${currentConfig.badgeColor}`}>
-                  {currentConfig.model}
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${currentConfig.badgeColor}`}>
+                  {currentConfig.taskType}
                 </span>
               </div>
               <p className="text-xs text-[#64748b] font-medium truncate max-w-md">
-                {currentConfig.tagline} • <span className="text-[#002045] font-semibold">{currentConfig.taskType}</span>
+                {currentConfig.tagline}
               </p>
             </div>
           </div>
@@ -472,11 +472,10 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
             <Sparkles className="w-5 h-5 text-[#002045] shrink-0 mt-0.5" />
             <div>
               <p className="font-extrabold text-[#002045] mb-0.5">
-                Multi-Turn Intelligence Powered by {currentConfig.model}
+                Multi-Turn Cognitive Companion Active
               </p>
               <p className="text-[#475569]">
-                Conversation history is continuously preserved across turns. Specific system instructions maintain the{' '}
-                <strong>{currentConfig.name}</strong> role for {currentConfig.taskType.toLowerCase()}.
+                Conversation history is continuously preserved across turns. Role active: <strong>{currentConfig.name}</strong>.
               </p>
             </div>
           </div>
@@ -507,11 +506,6 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     <span>{isUser ? patientName : currentConfig.name}</span>
                     <span>•</span>
                     <span>{msg.timestamp}</span>
-                    {!isUser && msg.modelUsed && (
-                      <span className="hidden sm:inline-block px-1.5 py-0.2 bg-slate-100 border border-slate-200 text-slate-600 rounded text-[9px] font-mono">
-                        {msg.modelUsed}
-                      </span>
-                    )}
                   </div>
 
                   {/* Bubble Content */}
@@ -597,7 +591,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
                 <span className="text-xs font-bold text-[#64748b]">
-                  {currentConfig.name} is thinking via {currentConfig.model}...
+                  Saathi is thinking...
                 </span>
               </div>
             </div>
@@ -682,7 +676,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               Private & secure geriatric memory companion
             </span>
-            <span>Active Model: <strong>{currentConfig.model}</strong></span>
+            <span className="font-medium text-slate-500">SmritiSaathi Cognitive Engine</span>
           </div>
         </div>
       </div>

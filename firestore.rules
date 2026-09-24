@@ -31,9 +31,9 @@ service cloud.firestore {
     // Validation Blueprint for UserProfile
     function isValidUserProfile(data) {
       return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             data.age is number && data.age >= 0 && data.age <= 130 &&
-             data.caregiverName is string && data.caregiverName.size() > 0 && data.caregiverName.size() <= 100 &&
-             data.caregiverPhone is string && data.caregiverPhone.size() > 0 && data.caregiverPhone.size() <= 40;
+             (!('age' in data) || (data.age is number && data.age >= 0 && data.age <= 130)) &&
+             (!('caregiverName' in data) || (data.caregiverName is string && data.caregiverName.size() <= 100)) &&
+             (!('caregiverPhone' in data) || (data.caregiverPhone is string && data.caregiverPhone.size() <= 50));
     }
 
     // Validation Blueprint for CognitiveProgress

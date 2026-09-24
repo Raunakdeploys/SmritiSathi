@@ -131,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="text-[17px]">Saathi AI Chat</span>
             </div>
             <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-[#FF6321] text-white shadow-xs">
-              Gemini
+              AI
             </span>
           </button>
         </li>

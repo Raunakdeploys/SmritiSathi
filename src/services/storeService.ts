@@ -15,7 +15,19 @@ import type {
   AlertLogEntry,
 } from '../types';
 import { INITIAL_FAMILY_MEMORIES } from '../data/memoriesData';
-import { auth, firestoreSyncService } from '../firebase';
+import { auth, firestoreSyncService, registerSignOutCallback } from '../firebase';
+
+export const AUTH_SESSION_KEY = 'smritisaathi_auth_user_session';
+
+export interface StoredUserSession {
+  uid: string;
+  email: string;
+  name: string;
+  avatarUrl?: string;
+  isGoogleLinked: boolean;
+  provider?: string;
+  timestamp: string;
+}
 
 // Helper to determine initial home location without hardcoding Guwahati
 const getInitialHomeLocation = () => {
@@ -435,15 +447,17 @@ class StoreService {
 
   constructor() {
     this.database = this.loadDatabase();
+    registerSignOutCallback(() => this.logoutUser());
     this.initCloudSync();
   }
 
   private async initCloudSync() {
     try {
-      if (!auth.currentUser) {
+      const activeUid = firestoreSyncService.getUserId();
+      if (!activeUid && !auth.currentUser) {
         return;
       }
-      const cloudData = await firestoreSyncService.loadInitialData();
+      const cloudData = await firestoreSyncService.loadInitialData(activeUid || undefined);
       let updated = false;
 
       if (cloudData.profile && Object.keys(cloudData.profile).length > 0) {
@@ -503,15 +517,30 @@ class StoreService {
   private loadDatabase(): AppDatabase {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
+      const sessionRaw = typeof window !== 'undefined' ? localStorage.getItem(AUTH_SESSION_KEY) : null;
+      let session: StoredUserSession | null = null;
+      if (sessionRaw) {
+        try {
+          session = JSON.parse(sessionRaw);
+        } catch {}
+      }
+
       if (saved) {
         const parsed = JSON.parse(saved);
         // Ensure all required fields exist
         if (parsed.user && parsed.familyMembers && parsed.gameProgresses) {
-          // Update avatar to elderly woman if previous default was present
+          // If active authenticated session exists, guarantee signed-in profile is restored
+          if (session && session.isGoogleLinked && session.email) {
+            parsed.user.isGoogleLinked = true;
+            parsed.user.email = session.email;
+            if (session.name) parsed.user.name = session.name;
+            if (session.avatarUrl) parsed.user.avatarUrl = session.avatarUrl;
+          }
+
+          // Update avatar to elderly woman only if unassigned or default placeholder
           if (
             !parsed.user.avatarUrl ||
-            parsed.user.avatarUrl.includes('photo-1544005313-94ddf0286df2') ||
-            parsed.user.avatarUrl.includes('googleusercontent.com')
+            parsed.user.avatarUrl.includes('photo-1544005313-94ddf0286df2')
           ) {
             parsed.user.avatarUrl = INITIAL_USER.avatarUrl;
           }
@@ -918,21 +947,15 @@ class StoreService {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.database));
       this.notifyListeners();
 
-      // Debounced Cloud Sync to Firestore (active when authenticated)
+      // Debounced Cloud Sync to Firestore (active when authenticated or linked)
       if (this.cloudSyncTimer) {
         clearTimeout(this.cloudSyncTimer);
       }
-      if (auth.currentUser) {
+      const activeUid = firestoreSyncService.getUserId();
+      if (activeUid || auth.currentUser) {
         this.cloudSyncTimer = setTimeout(() => {
           try {
-            firestoreSyncService.saveUserProfile(this.database.user);
-            firestoreSyncService.saveCognitiveProgress(this.database.progress);
-            if (this.database.careCompass) {
-              firestoreSyncService.syncCareCompassData(
-                this.database.careCompass.config,
-                this.database.careCompass.telemetry
-              );
-            }
+            firestoreSyncService.saveFullUserDatabase(this.database, activeUid || undefined);
           } catch (syncErr) {
             console.warn('Background Firestore sync caught:', syncErr);
           }
@@ -969,6 +992,82 @@ class StoreService {
     return this.database.user;
   }
 
+  public getSavedAuthSession(): StoredUserSession | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem(AUTH_SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  public setAuthenticatedSession(user: {
+    uid?: string;
+    email: string;
+    name?: string;
+    photoURL?: string;
+    avatarUrl?: string;
+    sub?: string;
+  }): void {
+    const uid = user.uid || user.sub || `google_${Date.now()}`;
+    const email = user.email;
+    const name = user.name || this.database.user.name || 'Google User';
+    const avatarUrl = user.photoURL || user.avatarUrl || this.database.user.avatarUrl;
+
+    const session: StoredUserSession = {
+      uid,
+      email,
+      name,
+      avatarUrl,
+      isGoogleLinked: true,
+      provider: 'google.com',
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+    } catch (e) {
+      console.warn('Failed to save session to localStorage', e);
+    }
+
+    this.database.user = {
+      ...this.database.user,
+      name,
+      email,
+      avatarUrl,
+      isGoogleLinked: true,
+      caregiverName: this.database.user.caregiverName || `${name} (Caregiver)`,
+    };
+
+    this.saveDatabase();
+    this.notifyListeners();
+
+    // Immediately save entire user database to Firestore cloud
+    firestoreSyncService.saveFullUserDatabase(this.database, uid).catch((err) => {
+      console.warn('Background Firestore saveFullUserDatabase error:', err);
+    });
+  }
+
+  public logoutUser(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(AUTH_SESSION_KEY);
+        localStorage.removeItem('smritisaathi_user_session');
+      } catch {}
+    }
+    this.database.user = {
+      ...this.database.user,
+      isGoogleLinked: false,
+      email: undefined,
+      name: INITIAL_USER.name,
+      avatarUrl: INITIAL_USER.avatarUrl,
+      caregiverName: INITIAL_USER.caregiverName,
+    };
+    this.saveDatabase();
+    this.notifyListeners();
+  }
+
   public updateUser(updates: Partial<UserProfile>): UserProfile {
     this.database.user = {
       ...this.database.user,
@@ -998,22 +1097,67 @@ class StoreService {
 
   public async handleAuthChange(authUser: any) {
     if (authUser && !authUser.isAnonymous) {
-      // User is authenticated with Google
+      // User is authenticated with Google or email
       const current = this.database.user;
+      const userName = authUser.displayName || current.name || 'Google User';
+      const userEmail = authUser.email || current.email || '';
+      const userAvatar = authUser.photoURL || current.avatarUrl;
+      const uid = authUser.uid;
+
       this.database.user = {
         ...current,
-        name: authUser.displayName || current.name || 'Google User',
-        email: authUser.email || current.email,
-        avatarUrl: authUser.photoURL || current.avatarUrl,
+        name: userName,
+        email: userEmail,
+        avatarUrl: userAvatar,
         isGoogleLinked: true,
+        caregiverName: current.caregiverName || `${userName} (Caregiver)`,
       };
-      await this.initCloudSync();
-      firestoreSyncService.saveUserProfile(this.database.user);
+
+      try {
+        localStorage.setItem(
+          AUTH_SESSION_KEY,
+          JSON.stringify({
+            uid,
+            email: userEmail,
+            name: userName,
+            avatarUrl: userAvatar,
+            isGoogleLinked: true,
+            provider: authUser.providerData?.[0]?.providerId || 'google.com',
+            timestamp: new Date().toISOString(),
+          })
+        );
+      } catch {}
+
       this.saveDatabase();
+      this.notifyListeners();
+
+      // Immediately save full user database to Firestore cloud
+      await firestoreSyncService.saveFullUserDatabase(this.database, uid);
+      await this.initCloudSync();
     } else {
-      if (this.database.user.isGoogleLinked) {
-        this.database.user.isGoogleLinked = false;
-        this.saveDatabase();
+      // AuthUser is null (e.g. on page refresh while Firebase is initializing or if signed in via GIS)
+      const activeSession = this.getSavedAuthSession();
+      if (activeSession && activeSession.isGoogleLinked && activeSession.email) {
+        // User is still signed in via persisted session! DO NOT log them out upon refresh!
+        if (!this.database.user.isGoogleLinked || this.database.user.email !== activeSession.email) {
+          this.database.user = {
+            ...this.database.user,
+            isGoogleLinked: true,
+            email: activeSession.email,
+            name: activeSession.name || this.database.user.name,
+            avatarUrl: activeSession.avatarUrl || this.database.user.avatarUrl,
+          };
+          this.saveDatabase();
+          this.notifyListeners();
+        }
+      } else {
+        // No saved session: only reset if currently marked as linked
+        if (this.database.user.isGoogleLinked) {
+          this.database.user.isGoogleLinked = false;
+          this.database.user.email = undefined;
+          this.saveDatabase();
+          this.notifyListeners();
+        }
       }
     }
   }

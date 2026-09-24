@@ -60,13 +60,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           setAuthError(null);
           setLoadingGoogle(false);
           if (res?.googleUser) {
-            storeService.updateUser({
-              name: res.googleUser.name,
-              email: res.googleUser.email,
-              avatarUrl: res.googleUser.photoURL,
-              isGoogleLinked: true,
-              caregiverName: `${res.googleUser.name} (Google)`,
-            });
+            storeService.setAuthenticatedSession(res.googleUser);
           }
         },
         (err) => {
@@ -102,13 +96,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       if (res.success) {
         playSuccessChime();
         if (res.googleUser) {
-          storeService.updateUser({
-            name: res.googleUser.name,
-            email: res.googleUser.email,
-            avatarUrl: res.googleUser.photoURL,
-            isGoogleLinked: true,
-            caregiverName: `${res.googleUser.name} (Google)`,
-          });
+          storeService.setAuthenticatedSession(res.googleUser);
         }
       } else if (res.error) {
         setAuthError(res.error);
@@ -171,6 +159,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     setLoadingGoogle(true);
     try {
       await signOutUser();
+      onClose();
     } catch (err) {
       console.error('Google sign-out failed:', err);
     } finally {

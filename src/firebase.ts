@@ -33,6 +33,7 @@ import type {
   CareCompassConfig,
   CareCompassTelemetry,
   AlertLogEntry,
+  AppDatabase,
 } from './types';
 
 // Detect and validate environment variables with safe fallback to firebase-applet-config.json
@@ -632,16 +633,47 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
 // Backward compatibility alias
 export const signInWithGoogleSafe = signInWithGoogle;
 
+// Sign-out event listener registry
+let onSignOutCallback: (() => void) | null = null;
+export function registerSignOutCallback(cb: () => void): void {
+  onSignOutCallback = cb;
+}
+
 /**
- * Signs out from Firebase Auth and notifies backend to terminate session
+ * Signs out from Firebase Auth, clears local user session, and notifies backend to terminate session
  */
 export async function signOutUser(): Promise<void> {
   try {
-    // Optionally inform backend using existing token before sign out
+    // 1. Clear persisted session from localStorage immediately
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('smritisaathi_auth_user_session');
+        localStorage.removeItem('smritisaathi_user_session');
+      } catch {}
+    }
+
+    // 2. Trigger storeService session reset listener immediately
+    if (onSignOutCallback) {
+      try {
+        onSignOutCallback();
+      } catch (cbErr) {
+        console.warn('[SignOut] Callback warning:', cbErr);
+      }
+    }
+
+    // 3. Clear Google Identity Services auto-selection & cooldown
+    clearGsiCooldownCookie();
+    if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
+      try {
+        (window as any).google.accounts.id.disableAutoSelect();
+      } catch {}
+    }
+
+    // 4. Optionally inform backend using existing token before sign out
     const idToken = await auth.currentUser?.getIdToken().catch(() => null);
     if (idToken) {
       const targetUrl = API_BASE_URL ? `${API_BASE_URL}/api/auth/logout` : '/api/auth/logout';
-      await fetch(targetUrl, {
+      fetch(targetUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -649,11 +681,11 @@ export async function signOutUser(): Promise<void> {
         },
       }).catch(() => {});
     }
-  } catch {
-    // non-fatal
-  } finally {
-    // Single source of truth: Firebase signOut
-    await signOut(auth);
+
+    // 5. Firebase Auth signOut
+    await signOut(auth).catch(() => {});
+  } catch (err) {
+    console.warn('[Firebase Auth] Sign out notice:', err);
   }
 }
 
@@ -691,28 +723,41 @@ export async function testFirestoreConnection(): Promise<boolean> {
 // Real-time Cloud Firestore Synchronizers for SmritiSathi dementia care modules
 export const firestoreSyncService = {
   getUserId(): string | null {
-    return auth.currentUser?.uid || null;
+    if (auth.currentUser?.uid) return auth.currentUser.uid;
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('smritisaathi_auth_user_session');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return parsed.uid || parsed.sub || null;
+        }
+      } catch {}
+    }
+    return null;
   },
 
-  async saveUserProfile(profile: UserProfile): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) return; // Local mode: changes saved in localStorage
+  async saveUserProfile(profile: UserProfile, explicitUid?: string): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, 'users', uid);
       await setDoc(
         userDocRef,
         {
-          name: profile.name,
-          age: profile.age,
+          name: profile.name || 'Caregiver User',
+          email: profile.email || '',
+          age: typeof profile.age === 'number' ? profile.age : 72,
           avatarUrl: profile.avatarUrl || '',
           mindPoints: profile.mindPoints || profile.totalMindPoints || 0,
           currentStreak: profile.currentStreak || profile.dailyStreak || 0,
           longestStreak: profile.longestStreak || 0,
           totalSessions: profile.totalSessions || 0,
           dailyGoalCompleted: !!profile.dailyGoalCompleted,
-          caregiverName: profile.caregiverName,
-          caregiverPhone: profile.caregiverPhone,
+          caregiverName: profile.caregiverName || `${profile.name || 'Primary'} (Caregiver)`,
+          caregiverPhone: profile.caregiverPhone || '+91 98765 43210',
           preferences: profile.preferences || {},
+          isGoogleLinked: true,
+          lastSyncedAt: new Date().toISOString(),
         },
         { merge: true }
       );
@@ -721,17 +766,17 @@ export const firestoreSyncService = {
     }
   },
 
-  async saveCognitiveProgress(progress: CognitiveProgress): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) return;
+  async saveCognitiveProgress(progress: CognitiveProgress, explicitUid?: string): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
     try {
-      const progressDocRef = doc(db, 'users', user.uid, 'progress', 'cognitive');
+      const progressDocRef = doc(db, 'users', uid, 'progress', 'cognitive');
       await setDoc(
         progressDocRef,
         {
-          memory: progress.memory,
-          attention: progress.attention,
-          planning: progress.planning,
+          memory: progress.memory ?? 80,
+          attention: progress.attention ?? 75,
+          planning: progress.planning ?? 70,
           lastUpdated: progress.lastUpdated || new Date().toISOString(),
         },
         { merge: true }
@@ -741,11 +786,11 @@ export const firestoreSyncService = {
     }
   },
 
-  async recordActivity(activity: ActivityItem): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) return;
+  async recordActivity(activity: ActivityItem, explicitUid?: string): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
     try {
-      const activityDocRef = doc(db, 'users', user.uid, 'activities', activity.id);
+      const activityDocRef = doc(db, 'users', uid, 'activities', activity.id);
       await setDoc(activityDocRef, {
         id: activity.id,
         title: activity.title,
@@ -762,11 +807,15 @@ export const firestoreSyncService = {
     }
   },
 
-  async syncCareCompassData(config: CareCompassConfig, telemetry: CareCompassTelemetry): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) return;
+  async syncCareCompassData(
+    config: CareCompassConfig,
+    telemetry: CareCompassTelemetry,
+    explicitUid?: string
+  ): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
     try {
-      const compassDocRef = doc(db, 'users', user.uid, 'careCompass', 'live');
+      const compassDocRef = doc(db, 'users', uid, 'careCompass', 'live');
       await setDoc(
         compassDocRef,
         {
@@ -781,11 +830,11 @@ export const firestoreSyncService = {
     }
   },
 
-  async logAlert(alert: AlertLogEntry): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) return;
+  async logAlert(alert: AlertLogEntry, explicitUid?: string): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
     try {
-      const alertDocRef = doc(db, 'users', user.uid, 'alerts', alert.id);
+      const alertDocRef = doc(db, 'users', uid, 'alerts', alert.id);
       await setDoc(alertDocRef, {
         id: alert.id,
         timestamp: alert.timestamp,
@@ -802,23 +851,60 @@ export const firestoreSyncService = {
     }
   },
 
-  async loadInitialData(): Promise<{
+  /**
+   * Complete cloud database backup to Firestore for authenticated user
+   */
+  async saveFullUserDatabase(database: AppDatabase, explicitUid?: string): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
+    try {
+      // 1. Profile
+      await this.saveUserProfile(database.user, uid);
+
+      // 2. Cognitive Progress
+      if (database.progress) {
+        await this.saveCognitiveProgress(database.progress, uid);
+      }
+
+      // 3. CareCompass Live Data
+      if (database.careCompass?.config && database.careCompass?.telemetry) {
+        await this.syncCareCompassData(
+          database.careCompass.config,
+          database.careCompass.telemetry,
+          uid
+        );
+      }
+
+      // 4. Recent activities
+      if (database.activities && database.activities.length > 0) {
+        const recent = database.activities.slice(0, 10);
+        for (const act of recent) {
+          await this.recordActivity(act, uid);
+        }
+      }
+      console.log('[Firestore] Complete user database safely synced to cloud for uid:', uid);
+    } catch (err) {
+      console.warn('[Firestore] Error syncing full user database:', err);
+    }
+  },
+
+  async loadInitialData(explicitUid?: string): Promise<{
     profile?: Partial<UserProfile>;
     progress?: CognitiveProgress;
     activities?: ActivityItem[];
     careCompass?: { config?: CareCompassConfig; telemetry?: CareCompassTelemetry };
   }> {
-    const user = auth.currentUser;
-    if (!user) {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) {
       return {};
     }
 
     try {
-      const userDocSnap = await getDoc(doc(db, 'users', user.uid));
-      const progressDocSnap = await getDoc(doc(db, 'users', user.uid, 'progress', 'cognitive'));
-      const compassDocSnap = await getDoc(doc(db, 'users', user.uid, 'careCompass', 'live'));
+      const userDocSnap = await getDoc(doc(db, 'users', uid));
+      const progressDocSnap = await getDoc(doc(db, 'users', uid, 'progress', 'cognitive'));
+      const compassDocSnap = await getDoc(doc(db, 'users', uid, 'careCompass', 'live'));
       const activitiesSnap = await getDocs(
-        query(collection(db, 'users', user.uid, 'activities'), limit(20))
+        query(collection(db, 'users', uid, 'activities'), limit(20))
       );
 
       const result: {

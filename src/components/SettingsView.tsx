@@ -8,6 +8,7 @@ import {
   signInAsCaregiverDemo,
   signOutUser,
 } from '../firebase';
+import { storeService } from '../services/storeService';
 import {
   LogIn,
   LogOut,
@@ -208,6 +209,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         const res = await signInWithGoogle();
                         if (res.success) {
                           playSuccessChime();
+                          if (res.googleUser) {
+                            storeService.setAuthenticatedSession(res.googleUser);
+                          }
                         } else if (res.error) {
                           setAuthError(res.error);
                         }
