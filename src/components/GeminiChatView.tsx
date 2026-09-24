@@ -30,6 +30,8 @@ export interface ChatMessage {
   modelUsed?: string;
   roleUsed?: string;
   error?: boolean;
+  isLiveAI?: boolean;
+  source?: string;
 }
 
 export type ChatRole = 'companion' | 'quick' | 'complex';
@@ -100,7 +102,7 @@ const ROLE_CONFIGS: Record<
     id: 'complex',
     name: 'Dr. Smriti (Clinical Specialist)',
     tagline: 'Complex geriatric dementia & caregiver intelligence',
-    model: 'gemini-3.1-pro-preview',
+    model: 'gemini-3.5-flash',
     taskType: 'Particularly Complex Tasks',
     icon: Stethoscope,
     badgeColor: 'bg-blue-100 text-blue-900 border-blue-200',
@@ -277,6 +279,8 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           modelUsed: data.modelUsed || ROLE_CONFIGS[activeRole].model,
           roleUsed: data.roleUsed || activeRole,
+          isLiveAI: data.isLiveAI ?? (data.source === 'gemini-live' || data.source === 'gemini'),
+          source: data.source || 'gemini-live',
         };
         setMessages((prev) => [...prev, botMessage]);
 
@@ -412,54 +416,65 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           </div>
 
           {/* Role selector tabs */}
-          <div className="flex items-center gap-1.5 bg-[#f1f5f9] p-1 rounded-xl self-start sm:self-auto border border-[#e2e8f0]">
-            <button
-              id="chat-role-companion"
-              onClick={() => handleSelectRole('companion')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeRole === 'companion'
-                  ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
-                  : 'text-[#64748b] hover:text-[#002045]'
-              }`}
-            >
-              <Heart className="w-3.5 h-3.5 text-rose-500" />
-              <span>Companion (General)</span>
-            </button>
+          <div className="flex items-center gap-2">
+            {/* Live AI Status Indicator */}
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold shadow-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Gemini AI Live</span>
+            </div>
 
-            <button
-              id="chat-role-quick"
-              onClick={() => handleSelectRole('quick')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeRole === 'quick'
-                  ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
-                  : 'text-[#64748b] hover:text-[#002045]'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>Quick Anchor (Fast)</span>
-            </button>
+            <div className="flex items-center gap-1.5 bg-[#f1f5f9] p-1 rounded-xl self-start sm:self-auto border border-[#e2e8f0]">
+              <button
+                id="chat-role-companion"
+                onClick={() => handleSelectRole('companion')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeRole === 'companion'
+                    ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
+                    : 'text-[#64748b] hover:text-[#002045]'
+                }`}
+              >
+                <Heart className="w-3.5 h-3.5 text-rose-500" />
+                <span>Companion</span>
+              </button>
 
-            <button
-              id="chat-role-complex"
-              onClick={() => handleSelectRole('complex')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeRole === 'complex'
-                  ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
-                  : 'text-[#64748b] hover:text-[#002045]'
-              }`}
-            >
-              <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
-              <span>Clinical Specialist (Complex)</span>
-            </button>
+              <button
+                id="chat-role-quick"
+                onClick={() => handleSelectRole('quick')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeRole === 'quick'
+                    ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
+                    : 'text-[#64748b] hover:text-[#002045]'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                <span>Quick Anchor</span>
+              </button>
 
-            <button
-              id="chat-clear-history-btn"
-              onClick={handleClearChat}
-              title="Clear conversation"
-              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer ml-1"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+              <button
+                id="chat-role-complex"
+                onClick={() => handleSelectRole('complex')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeRole === 'complex'
+                    ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
+                    : 'text-[#64748b] hover:text-[#002045]'
+                }`}
+              >
+                <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
+                <span>Clinical</span>
+              </button>
+
+              <button
+                id="chat-clear-history-btn"
+                onClick={handleClearChat}
+                title="Clear conversation"
+                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer ml-1"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -555,6 +570,20 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                               <Copy className="w-3.5 h-3.5" />
                             )}
                           </button>
+                        </div>
+
+                        {/* Live AI Indicator badge */}
+                        <div className="flex items-center gap-1.5">
+                          {msg.isLiveAI || msg.source === 'gemini-live' || msg.source === 'gemini' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Live Gemini AI
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 font-medium">
+                              {msg.modelUsed || 'Saathi AI'}
+                            </span>
+                          )}
                         </div>
 
                         {/* Retry button for error states */}
