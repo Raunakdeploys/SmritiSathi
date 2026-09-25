@@ -67,7 +67,7 @@ const ROLE_CONFIGS: Record<
     id: 'companion',
     name: 'Saathi (Companion)',
     tagline: 'Warm memory friend & gentle conversational buddy',
-    model: 'gemini-3.5-flash',
+    model: 'gemini-3.8-flash',
     taskType: 'General Tasks',
     icon: Heart,
     badgeColor: 'bg-rose-100 text-rose-800 border-rose-200',
@@ -87,7 +87,7 @@ const ROLE_CONFIGS: Record<
     id: 'quick',
     name: 'Quick Anchor',
     tagline: 'Lightning-fast temporal & routine orientation',
-    model: 'gemini-3.1-flash-lite',
+    model: 'gemini-3.8-flash',
     taskType: 'Tasks That Happen Fast',
     icon: Zap,
     badgeColor: 'bg-amber-100 text-amber-900 border-amber-200',
@@ -107,7 +107,7 @@ const ROLE_CONFIGS: Record<
     id: 'complex',
     name: 'Dr. Smriti (Clinical Specialist)',
     tagline: 'Complex geriatric dementia & caregiver intelligence',
-    model: 'gemini-3.5-flash',
+    model: 'gemini-3.8-flash',
     taskType: 'Particularly Complex Tasks',
     icon: Stethoscope,
     badgeColor: 'bg-blue-100 text-blue-900 border-blue-200',
@@ -551,7 +551,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                       Render Deployment: Activating Live Gemini AI
                     </h4>
                     <p className="mt-1 text-amber-900 leading-relaxed text-[12px]">
-                      Your web service is live on Render! To enable real-time unscripted answers from <strong>Gemini 3.5 Flash</strong>, provide your Gemini API key in your Render dashboard:
+                      Your web service is live on Render! To enable real-time unscripted answers from <strong>Gemini 3.8 Flash</strong>, provide your Gemini API key in your Render dashboard:
                     </p>
                     <ol className="mt-2.5 space-y-1.5 list-decimal list-inside font-medium text-amber-900 text-[12px]">
                       <li>

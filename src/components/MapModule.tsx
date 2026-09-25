@@ -63,7 +63,6 @@ interface MapModuleProps {
   telemetry?: CareCompassTelemetry;
   config?: CareCompassConfig;
   onUpdateLocation?: (lat: number, lng: number) => void;
-  onOpenKeyModal?: () => void;
   className?: string;
   isSimulating?: boolean;
 }
@@ -75,7 +74,6 @@ export const MapModule: React.FC<MapModuleProps> = ({
   telemetry: propTelemetry,
   config: propConfig,
   onUpdateLocation,
-  onOpenKeyModal,
   className = '',
   isSimulating = false,
 }) => {
@@ -429,21 +427,6 @@ export const MapModule: React.FC<MapModuleProps> = ({
           >
             <ExternalLink className="w-4 h-4 text-sky-400" />
           </button>
-
-          {/* Key Modal Button */}
-          {onOpenKeyModal && (
-            <button
-              onClick={onOpenKeyModal}
-              title="Configure Google Maps API Key"
-              className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
-                apiKey
-                  ? 'bg-sky-950 border-sky-500/50 text-sky-300 hover:bg-sky-900'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              <Key className="w-4 h-4" />
-            </button>
-          )}
         </div>
       </div>
 
@@ -757,7 +740,6 @@ export const MapModule: React.FC<MapModuleProps> = ({
             config={config}
             viewMode={viewMode}
             onUpdateLocation={onUpdateLocation}
-            onOpenKeyModal={onOpenKeyModal}
           />
         ) : (
           /* Authentic Live Satellite & Normal Street Map */
@@ -864,13 +846,11 @@ const InteractiveGeofenceEngine: React.FC<{
   config: CareCompassConfig;
   viewMode: ViewMode;
   onUpdateLocation?: (lat: number, lng: number) => void;
-  onOpenKeyModal?: () => void;
 }> = ({
   telemetry,
   config,
   viewMode,
   onUpdateLocation,
-  onOpenKeyModal,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 

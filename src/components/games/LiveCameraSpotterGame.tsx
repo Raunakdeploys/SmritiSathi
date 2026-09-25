@@ -761,7 +761,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                         </div>
                         <div>
                           <span className="text-xs font-bold uppercase tracking-wider text-[#556987]">
-                            AI Recognition Result • {analysisResult.source === 'gemini' ? 'Gemini 3.7 Flash' : 'Vision System'}
+                            AI Recognition Result • {analysisResult.source === 'gemini' ? 'Gemini 3.8 Flash' : 'Vision System'}
                           </span>
                           <h4 className="text-2xl font-black text-[#002045]">{analysisResult.identifiedObject}</h4>
                         </div>

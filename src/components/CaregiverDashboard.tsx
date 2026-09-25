@@ -54,7 +54,6 @@ import {
 } from '../services/storeService';
 import { MapModule } from './MapModule';
 import { CareCompassSettingsModal } from './CareCompassSettingsModal';
-import { GoogleMapsKeyModal } from './GoogleMapsKeyModal';
 import { EmergencyBreachModal } from './EmergencyBreachModal';
 import {
   deviceLocationService,
@@ -176,7 +175,6 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
     }
   };
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [isBreachModalOpen, setIsBreachModalOpen] = useState(false);
   const [isSirenActive, setIsSirenActive] = useState(false);
   const [isWanderSimRunning, setIsWanderSimRunning] = useState(false);
@@ -863,7 +861,6 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
             telemetry={telemetry}
             config={config}
             onUpdateLocation={handleMapUpdateLocation}
-            onOpenKeyModal={() => setIsKeyModalOpen(true)}
             isSimulating={isWanderSimRunning}
           />
 
@@ -1290,13 +1287,6 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
         onClose={() => setIsSettingsOpen(false)}
         config={config}
         onSaveConfig={onUpdateConfig}
-      />
-
-      <GoogleMapsKeyModal
-        isOpen={isKeyModalOpen}
-        onClose={() => setIsKeyModalOpen(false)}
-        currentKey={config.googleMapsApiKey}
-        onSaveKey={(k) => onUpdateConfig({ googleMapsApiKey: k })}
       />
 
       <EmergencyBreachModal
