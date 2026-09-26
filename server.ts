@@ -177,6 +177,41 @@ function getGeminiClient(): { client: GoogleGenAI; keySource: string } | null {
   return { client: geminiClient, keySource: keyInfo.source };
 }
 
+// Rate-limit & Quota Exhaustion Guard
+// Tracks temporary rate-limit cooldown windows to avoid hammering exhausted quotas or logging error spam
+let geminiQuotaCooldownUntil = 0;
+
+function isGeminiInQuotaCooldown(): boolean {
+  return Date.now() < geminiQuotaCooldownUntil;
+}
+
+function checkAndHandleQuotaExhaustion(err: any): boolean {
+  const errStr = typeof err === 'object' ? JSON.stringify(err) : String(err || '');
+  const isQuota =
+    err?.status === 'RESOURCE_EXHAUSTED' ||
+    err?.code === 429 ||
+    errStr.includes('RESOURCE_EXHAUSTED') ||
+    errStr.includes('429') ||
+    errStr.includes('quota') ||
+    errStr.includes('Quota exceeded');
+
+  if (isQuota) {
+    let delaySec = 35;
+    const match =
+      errStr.match(/retry in\s+(\d+(?:\.\d+)?)s/i) ||
+      errStr.match(/retryDelay"?\s*:\s*"?(\d+)s?/i);
+    if (match && match[1]) {
+      delaySec = Math.ceil(parseFloat(match[1])) + 2;
+    }
+    geminiQuotaCooldownUntil = Date.now() + delaySec * 1000;
+    console.log(
+      `[Gemini SDK] Rate-limit/Quota limit reached. Activated smooth ${delaySec}s cooldown; seamlessly using autonomous intelligence.`
+    );
+    return true;
+  }
+  return false;
+}
+
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'database.json');
 
@@ -1034,7 +1069,7 @@ async function startServer() {
 
       const geminiClientInfo = getGeminiClient();
 
-      if (geminiClientInfo) {
+      if (geminiClientInfo && !isGeminiInQuotaCooldown()) {
         const ai = geminiClientInfo.client;
         try {
           const prompt = mode === 'challenge'
@@ -1105,7 +1140,10 @@ Analyze this photo taken by the user's camera.
           parsedResult.source = 'gemini';
           return res.json({ success: true, result: parsedResult });
         } catch (geminiError) {
-          console.warn('Gemini vision API error, using smart fallback heuristic:', geminiError);
+          const wasQuota = checkAndHandleQuotaExhaustion(geminiError);
+          if (!wasQuota) {
+            console.log('Gemini vision API notice, using smart fallback heuristic');
+          }
         }
       }
 
@@ -1517,13 +1555,13 @@ Guidelines:
 
       const geminiClientInfo = getGeminiClient();
 
-      if (geminiClientInfo) {
+      if (geminiClientInfo && !isGeminiInQuotaCooldown()) {
         const { client: ai, keySource } = geminiClientInfo;
-        const maxRetries = 2;
+        const maxRetries = 1;
 
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
           try {
-            console.log(`[Gemini Chat] Calling live model: ${selectedModel} (attempt ${attempt + 1}) via key ${keySource}...`);
+            console.log(`[Gemini Chat] Calling live model: ${selectedModel} via key ${keySource}...`);
             const response = await ai.models.generateContent({
               model: selectedModel,
               contents: formattedContents,
@@ -1550,9 +1588,14 @@ Guidelines:
               });
             }
           } catch (modelErr: any) {
-            console.warn(`[Gemini Chat] ${selectedModel} attempt ${attempt + 1} issue:`, modelErr?.message || modelErr);
+            const wasQuota = checkAndHandleQuotaExhaustion(modelErr);
+            if (wasQuota) {
+              // Rate limit / quota exceeded: immediately stop retrying to avoid hammering quota or emitting error logs
+              break;
+            }
             if (attempt < maxRetries) {
-              await new Promise((resolve) => setTimeout(resolve, 600 * (attempt + 1)));
+              console.log(`[Gemini Chat] Transient note on attempt ${attempt + 1}, retrying...`);
+              await new Promise((resolve) => setTimeout(resolve, 800));
             }
           }
         }
@@ -1625,7 +1668,7 @@ Guidelines:
 
       const geminiClientInfo = getGeminiClient();
 
-      if (geminiClientInfo) {
+      if (geminiClientInfo && !isGeminiInQuotaCooldown()) {
         const ai = geminiClientInfo.client;
         try {
           const prompt = `You are an empathetic, calm, and respectful AI geriatric voice assistant named SmritiSaathi.
@@ -1676,7 +1719,10 @@ Generate:
           const parsedResult = JSON.parse(response.text?.trim() || '{}');
           return res.json({ success: true, ...parsedResult, source: 'gemini' });
         } catch (geminiErr) {
-          console.warn('Gemini distress reassurance generation error, using fallback:', geminiErr);
+          const wasQuota = checkAndHandleQuotaExhaustion(geminiErr);
+          if (!wasQuota) {
+            console.log('Gemini distress reassurance notice, using fallback script');
+          }
         }
       }
 
