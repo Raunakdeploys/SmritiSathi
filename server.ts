@@ -1762,7 +1762,7 @@ Guidelines:
 
         for (const candidateModel of candidateModels) {
           try {
-            console.log(`[Gemini Chat] Calling live model: ${candidateModel} (Tokens: ${maxTokens}) with Google Search Grounding via ${keySource}...`);
+            console.log(`[Gemini Chat] Calling live model: ${candidateModel} with Google Search Grounding via ${keySource}...`);
             const response = await ai.models.generateContent({
               model: candidateModel,
               contents: formattedContents,
@@ -1770,12 +1770,19 @@ Guidelines:
                 systemInstruction,
                 temperature: role === 'quick' ? 0.2 : 0.6,
                 topP: 0.9,
-                maxOutputTokens: maxTokens,
                 tools: [{ googleSearch: {} }],
               },
             });
 
-            const replyText = response.text || '';
+            let replyText = response.text || '';
+            if (!replyText && response.candidates?.[0]?.content?.parts) {
+              replyText = response.candidates[0].content.parts
+                .filter((p: any) => p.text)
+                .map((p: any) => p.text)
+                .join('\n')
+                .trim();
+            }
+
             if (replyText.trim()) {
               const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
               const groundingChunks = (groundingMetadata as any)?.groundingChunks;
@@ -1827,10 +1834,16 @@ Guidelines:
                   systemInstruction,
                   temperature: role === 'quick' ? 0.2 : 0.6,
                   topP: 0.9,
-                  maxOutputTokens: maxTokens,
                 },
               });
-              const replyText = fallbackResponse.text || '';
+              let replyText = fallbackResponse.text || '';
+              if (!replyText && fallbackResponse.candidates?.[0]?.content?.parts) {
+                replyText = fallbackResponse.candidates[0].content.parts
+                  .filter((p: any) => p.text)
+                  .map((p: any) => p.text)
+                  .join('\n')
+                  .trim();
+              }
               if (replyText.trim()) {
                 chatResponseCache.set(cacheKey, {
                   reply: replyText.trim(),
