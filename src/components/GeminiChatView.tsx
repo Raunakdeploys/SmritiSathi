@@ -25,11 +25,14 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  MessageSquare,
-  CornerDownLeft,
-  Calendar,
+  KeyRound,
+  CheckCircle2,
+  Music,
+  Coffee,
+  HelpCircle,
   Compass,
-  Sliders,
+  CornerDownLeft,
+  Eye,
 } from 'lucide-react';
 
 export interface ChatMessage {
@@ -74,7 +77,7 @@ const ROLE_CONFIGS: Record<
     name: 'Saathi (Companion)',
     shortName: 'Companion',
     tagline: 'Warm memory friend & gentle conversational buddy',
-    model: 'gemini-3.8-flash',
+    model: 'gemini-3.1-flash-lite',
     taskType: 'General Memory Tasks',
     icon: Heart,
     badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
@@ -82,7 +85,7 @@ const ROLE_CONFIGS: Record<
     borderColor: 'border-rose-200',
     avatarBg: 'bg-[#002045] text-white',
     welcomeMessage: (name) =>
-      `Namaste ${name || 'Asha ji'}! I am Saathi, your memory friend. I am right here with you to talk about pleasant memories, share warm stories of classic songs and seasons, or just keep you company. How are you feeling right now?`,
+      `Namaste ${name || 'Asha ji'}! I am Saathi, your personal memory friend. I am right here with you to talk about pleasant memories, share warm stories of classic songs and seasons, or just keep you company. How are you feeling right now?`,
     quickPrompts: [
       {
         label: 'Tea & Monsoons ☕',
@@ -95,19 +98,24 @@ const ROLE_CONFIGS: Record<
         category: 'Music',
       },
       {
+        label: '1983 World Cup 🏏',
+        text: 'Tell me the story of Kapil Dev and India winning the 1983 Cricket World Cup! 🏏',
+        category: 'Sports',
+      },
+      {
+        label: 'Why is the sky blue? 🌌',
+        text: 'Why is the sky blue? Can you explain in a simple, beautiful way? 🌌',
+        category: 'Science',
+      },
+      {
         label: 'Gentle Comfort 🌸',
         text: 'I feel a little forgetful today, can you comfort and reassure me? 🌸',
         category: 'Comfort',
       },
       {
-        label: 'Mind Exercise 🧠',
-        text: 'Suggest a peaceful memory exercise we can do together 🧠',
-        category: 'Wellness',
-      },
-      {
-        label: 'Childhood Games 🪁',
-        text: 'Tell me about the games we played in childhood like carrom and flying kites 🪁',
-        category: 'Nostalgia',
+        label: 'Sweet Story 📖',
+        text: 'Tell me a heartwarming story about kindness and family 📖',
+        category: 'Story',
       },
     ],
   },
@@ -116,7 +124,7 @@ const ROLE_CONFIGS: Record<
     name: 'Quick Anchor',
     shortName: 'Quick',
     tagline: 'Lightning-fast temporal & routine orientation',
-    model: 'gemini-3.8-flash',
+    model: 'gemini-3.1-flash-lite',
     taskType: 'Tasks That Happen Fast',
     icon: Zap,
     badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -137,6 +145,11 @@ const ROLE_CONFIGS: Record<
         category: 'Orientation',
       },
       {
+        label: 'Calculate 15 + 27 🧮',
+        text: 'What is 15 + 27? 🧮',
+        category: 'Math',
+      },
+      {
         label: 'Medicine Routine 💊',
         text: 'Did I take my morning medicine and drink water? 💊',
         category: 'Health',
@@ -146,11 +159,6 @@ const ROLE_CONFIGS: Record<
         text: 'Who is my primary emergency family contact? 📞',
         category: 'Safety',
       },
-      {
-        label: 'Next Meal 🍲',
-        text: 'Is it time for lunch or afternoon tea? 🍲',
-        category: 'Routine',
-      },
     ],
   },
   complex: {
@@ -158,7 +166,7 @@ const ROLE_CONFIGS: Record<
     name: 'Dr. Smriti (Clinical Specialist)',
     shortName: 'Clinical',
     tagline: 'Complex geriatric dementia & caregiver intelligence',
-    model: 'gemini-3.8-flash',
+    model: 'gemini-3.1-flash-lite',
     taskType: 'Caregiver & Clinical Advice',
     icon: Stethoscope,
     badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
@@ -189,9 +197,9 @@ const ROLE_CONFIGS: Record<
         category: 'Safety',
       },
       {
-        label: 'Caregiver Fatigue 🧘',
-        text: 'How can caregivers manage emotional burnout and stay patient? 🧘',
-        category: 'Self-Care',
+        label: 'Joint & Arthritis Care 🦵',
+        text: 'What gentle daily habits help relieve elderly knee and joint aches? 🦵',
+        category: 'Health',
       },
     ],
   },
@@ -200,7 +208,7 @@ const ROLE_CONFIGS: Record<
 const STORAGE_KEY_PREFIX = 'smritisathi_gemini_chat_history_v2_';
 
 export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigateTab }) => {
-  const patientName = user?.name || 'Asha Devi';
+  const patientName = user?.name || 'Roy';
   const caregiverName = user?.caregiverName || 'Rohan Sharma';
 
   const [activeRole, setActiveRole] = useState<ChatRole>('companion');
@@ -235,7 +243,13 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     return user?.preferences?.voiceAssistance ?? true;
   });
 
-  // Current temporal state for the anchor clock widget
+  // Senior Accessibility: Dynamic Font Size Selector
+  const [fontSizeMode, setFontSizeMode] = useState<'normal' | 'large' | 'xlarge'>(() => {
+    const saved = localStorage.getItem('smritisathi_chat_font_size');
+    return (saved as any) || 'normal';
+  });
+
+  // Live clock
   const [currentTimeStr, setCurrentTimeStr] = useState(() =>
     new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   );
@@ -248,21 +262,26 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     })
   );
 
+  // Gemini Live AI Status
   const [aiStatus, setAiStatus] = useState<{
     hasApiKey: boolean;
     keySource?: string | null;
     primaryModel?: string;
-    isRender?: boolean;
-    setupHelp?: string;
   } | null>(null);
-  const [showRenderHelp, setShowRenderHelp] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  // Update live clock every second
+  // Save font size preference
+  const handleToggleFontSize = () => {
+    const nextMode = fontSizeMode === 'normal' ? 'large' : fontSizeMode === 'large' ? 'xlarge' : 'normal';
+    setFontSizeMode(nextMode);
+    localStorage.setItem('smritisathi_chat_font_size', nextMode);
+  };
+
+  // Update live clock
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
@@ -281,23 +300,20 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     return () => clearInterval(timer);
   }, []);
 
-  // Check Gemini live status on mount
-  useEffect(() => {
-    let isMounted = true;
+  // Fetch Gemini live status on mount
+  const checkStatus = () => {
     fetch('/api/gemini/status')
       .then((r) => r.json())
       .then((data) => {
-        if (isMounted && data.success) {
+        if (data.success) {
           setAiStatus(data);
-          if (!data.hasApiKey) {
-            setShowRenderHelp(true);
-          }
         }
       })
       .catch((err) => console.warn('[Gemini Status Check]', err));
-    return () => {
-      isMounted = false;
-    };
+  };
+
+  useEffect(() => {
+    checkStatus();
   }, []);
 
   // Auto-scroll inside chat thread smoothly
@@ -328,7 +344,6 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     if (newRole === activeRole) return;
     setActiveRole(newRole);
 
-    // Stop ongoing speech
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
       setSpeakingId(null);
@@ -344,7 +359,6 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
       console.warn('Failed to load role messages', e);
     }
 
-    // Default welcome if no history for this role
     setMessages([
       {
         id: `welcome-${newRole}-${Date.now()}`,
@@ -394,16 +408,15 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    // Optimistically update multi-turn thread
     const updatedHistory = [...messages, userMessage];
     setMessages(updatedHistory);
     setLoading(true);
 
     try {
-      // Prepare history payload for server-side @google/genai SDK
+      // Send concise history (last 6 messages) to optimize token efficiency
       const historyPayload = messages
         .filter((m) => !m.error)
-        .slice(-12)
+        .slice(-6)
         .map((m) => ({
           role: m.role,
           text: m.text,
@@ -439,7 +452,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
         };
         setMessages((prev) => [...prev, botMessage]);
 
-        // Auto-speak in companion mode if voiceAssistance enabled
+        // Auto-speak reply if enabled
         if (autoSpeakReplies) {
           handleSpeak(botMessage.text, botMessage.id);
         }
@@ -473,7 +486,6 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
     window.speechSynthesis.cancel();
 
-    // Clean markdown/bullet points for smooth spoken speech
     const cleanText = text.replace(/[*_#•-]/g, ' ').replace(/\s+/g, ' ').trim();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 0.9;
@@ -542,7 +554,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     }
   };
 
-  // Handle textarea key down: Enter to submit, Shift+Enter for newline
+  // Textarea Enter key handling
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -550,7 +562,6 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     }
   };
 
-  // Handle auto-expanding textarea
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputMessage(e.target.value);
     const textarea = e.target;
@@ -560,18 +571,24 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
   const currentConfig = ROLE_CONFIGS[activeRole];
 
+  // Font size class mapping for high readability
+  const fontClasses = {
+    normal: 'text-sm sm:text-base leading-relaxed',
+    large: 'text-base sm:text-lg leading-relaxed',
+    xlarge: 'text-lg sm:text-xl leading-relaxed',
+  }[fontSizeMode];
+
   return (
     <div className="flex-1 flex flex-col lg:flex-row bg-[#F8F9FA] h-[calc(100dvh-72px)] sm:h-[calc(100vh-72px)] overflow-hidden relative">
       {/* =========================================================================
           MAIN CHAT PANE (Adaptive for Phone, Tablet, and PC)
          ========================================================================= */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-[#F8F9FA] relative">
-        {/* TOP APP BAR / PERSONA HEADER */}
-        {/* On Phone: Compact 56px sticky bar. On Tablet: Roomy segmented bar. On PC: Clean breadcrumb bar */}
-        <header className="bg-white border-b border-[#e2e8f0] px-3 sm:px-5 lg:px-6 py-2.5 sm:py-3 shrink-0 shadow-xs z-20">
+        {/* TOP APP BAR & STATUS BAR */}
+        <header className="bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] px-3 sm:px-5 lg:px-6 py-2.5 sm:py-3 shrink-0 shadow-xs z-20">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             {/* Left: Persona Avatar & Title */}
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div
                 className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl ${currentConfig.avatarBg} flex items-center justify-center shrink-0 shadow-xs transition-transform`}
               >
@@ -579,25 +596,38 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <h1 className="font-extrabold text-sm sm:text-base lg:text-lg text-[#002045] truncate leading-tight">
+                  <h1 className="font-black text-sm sm:text-base lg:text-lg text-[#002045] truncate leading-tight">
                     {currentConfig.name}
                   </h1>
-                  <span className="hidden sm:inline-flex text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 whitespace-nowrap">
-                    gemini-3.8-flash
+                  <span className="hidden sm:inline-flex text-[10px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 whitespace-nowrap">
+                    gemini-3.1-flash-lite
                   </span>
                 </div>
-                <p className="text-[11px] sm:text-xs text-[#64748b] truncate max-w-[200px] sm:max-w-xs md:max-w-md">
+                <p className="text-[11px] sm:text-xs text-[#64748b] truncate max-w-[180px] sm:max-w-xs md:max-w-md font-medium">
                   {currentConfig.tagline}
                 </p>
               </div>
             </div>
 
             {/* Right: Controls & Persona Switcher */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Live Gemini AI Status Badge (Compact on mobile) */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              {/* Senior Font Size Switcher Toggle (Noticeable UX improvement) */}
+              <button
+                type="button"
+                onClick={handleToggleFontSize}
+                title={`Change font size (Current: ${fontSizeMode})`}
+                className="px-2 py-1 rounded-lg border border-[#cbd5e1] hover:border-[#002045] bg-[#f8fafc] text-xs font-black text-[#002045] transition-colors cursor-pointer flex items-center gap-0.5"
+              >
+                <Eye className="w-3 h-3 text-slate-500" />
+                <span>
+                  {fontSizeMode === 'normal' ? 'A' : fontSizeMode === 'large' ? 'A+' : 'A++'}
+                </span>
+              </button>
+
+              {/* Gemini Live AI Status Badge */}
               <div
-                className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] sm:text-xs font-bold"
-                title="Powered by Gemini 3.8 Flash with Autonomous Backup"
+                className="flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px] sm:text-xs font-bold"
+                title="Gemini 3.1 Flash Lite Live AI Active"
               >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -606,7 +636,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 <span className="hidden sm:inline">Gemini Live</span>
               </div>
 
-              {/* Persona Switcher Tabs (Segmented control) */}
+              {/* Persona Switcher Tabs */}
               <div className="flex items-center bg-[#f1f5f9] p-0.5 sm:p-1 rounded-xl border border-[#e2e8f0]">
                 <button
                   id="tab-role-companion"
@@ -630,7 +660,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                       ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
                       : 'text-[#64748b] hover:text-[#002045]'
                   }`}
-                  title="Quick Temporal & Routine Anchor"
+                  title="Quick Anchor"
                 >
                   <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span className="hidden md:inline">Quick</span>
@@ -655,7 +685,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               <button
                 id="btn-clear-chat-history"
                 onClick={handleClearChat}
-                title="Clear chat history"
+                title="Clear chat conversation"
                 className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
@@ -670,7 +700,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 scroll-smooth"
         >
           <div className="max-w-3xl mx-auto space-y-4 sm:space-y-5">
-            {/* Persona Role Banner */}
+            {/* Active Persona Banner */}
             <div
               className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border ${currentConfig.borderColor} ${currentConfig.bgTint} flex items-start gap-3 text-xs sm:text-sm text-[#334155] shadow-xs`}
             >
@@ -685,33 +715,15 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   </span>
                 </div>
                 <p className="text-slate-600 text-xs mt-0.5 leading-relaxed">
-                  {currentConfig.tagline}. Multi-turn memory is active across conversational turns.
+                  {currentConfig.tagline}. Everything you ask is answered with thoughtful care.
                 </p>
               </div>
             </div>
 
-            {/* Render Setup Alert (if API key missing) */}
-            {aiStatus?.hasApiKey === false && (
-              <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 text-xs shadow-xs">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-2.5">
-                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-bold text-amber-950 text-xs sm:text-sm">
-                        Live Gemini AI: Autonomous Answering Active
-                      </h4>
-                      <p className="text-amber-900 text-xs mt-1">
-                        To connect directly to your Gemini API key on Render, add <code className="font-mono bg-white px-1 py-0.5 rounded border border-amber-200">GEMINI_API_KEY</code> in your Render Environment settings.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Conversation Messages */}
-            {messages.map((msg, index) => {
+            {messages.map((msg) => {
               const isUser = msg.role === 'user';
+              const isCurrentlySpeaking = speakingId === msg.id;
 
               return (
                 <div
@@ -723,7 +735,9 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   {/* Speaker Avatar */}
                   <div
                     className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
-                      isUser ? 'bg-[#FF6321] text-white' : currentConfig.avatarBg
+                      isUser
+                        ? 'bg-gradient-to-br from-[#FF6321] to-[#e04f11] text-white ring-2 ring-orange-200'
+                        : `${currentConfig.avatarBg} ring-2 ring-slate-200`
                     }`}
                   >
                     {isUser ? (
@@ -748,31 +762,42 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
                     {/* Text Bubble */}
                     <div
-                      className={`relative p-3.5 sm:p-5 rounded-2xl shadow-xs text-sm sm:text-base leading-relaxed break-words ${
+                      className={`relative p-3.5 sm:p-5 rounded-2xl shadow-xs break-words ${fontClasses} ${
                         isUser
-                          ? 'bg-[#002045] text-white rounded-tr-xs font-medium'
+                          ? 'bg-gradient-to-r from-[#002045] to-[#12396b] text-white rounded-tr-xs font-medium shadow-sm'
                           : msg.error
                           ? 'bg-rose-50 border-2 border-rose-300 text-rose-900 rounded-tl-xs'
-                          : 'bg-white border border-[#e2e8f0] text-[#0f172a] rounded-tl-xs font-normal'
+                          : 'bg-white border border-[#e2e8f0] text-[#0f172a] rounded-tl-xs font-normal shadow-xs'
                       }`}
                     >
                       <div className="whitespace-pre-wrap select-text">{msg.text}</div>
 
-                      {/* Bot Controls: Listen, Copy, Source */}
+                      {/* Bot Controls: Listen Aloud, Copy, Source */}
                       {!isUser && (
-                        <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-xs text-[#64748b]">
+                        <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs text-[#64748b]">
                           <div className="flex items-center gap-2">
-                            {/* Speak Aloud Button */}
+                            {/* Speak Aloud Button with Dancing Sound Wave Visualizer */}
                             <button
                               type="button"
                               onClick={() => handleSpeak(msg.text, msg.id)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#002045] font-bold text-xs transition-colors cursor-pointer active:scale-95 min-h-[32px]"
-                              title="Listen aloud"
+                              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer active:scale-95 min-h-[32px] ${
+                                isCurrentlySpeaking
+                                  ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-300'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-[#002045]'
+                              }`}
+                              title="Listen aloud with gentle voice readout"
                             >
-                              {speakingId === msg.id ? (
+                              {isCurrentlySpeaking ? (
                                 <>
                                   <VolumeX className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
-                                  <span className="text-rose-600 font-extrabold">Stop</span>
+                                  <span className="font-extrabold text-rose-700">Stop</span>
+                                  {/* Dancing Audio Equalizer Wave Animation */}
+                                  <div className="flex items-center gap-0.5 h-3 ml-1">
+                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '70%', animationDelay: '0ms' }} />
+                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '100%', animationDelay: '150ms' }} />
+                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '40%', animationDelay: '300ms' }} />
+                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '80%', animationDelay: '450ms' }} />
+                                  </div>
                                 </>
                               ) : (
                                 <>
@@ -805,8 +830,8 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                                 Live AI
                               </span>
                             ) : (
-                              <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium">
-                                {msg.modelUsed || 'Saathi'}
+                              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                                {msg.modelUsed || 'Saathi Engine'}
                               </span>
                             )}
                           </div>
@@ -857,7 +882,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     />
                   </div>
                   <span className="text-xs sm:text-sm font-bold text-[#64748b]">
-                    {currentConfig.shortName} is thinking...
+                    {currentConfig.shortName} is reflecting...
                   </span>
                 </div>
               </div>
@@ -867,7 +892,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           </div>
         </div>
 
-        {/* QUICK SUGGESTIONS DRAWER / CHIPS CAROUSEL */}
+        {/* QUICK SUGGESTIONS CAROUSEL */}
         {showPromptsDrawer && (
           <div className="px-3 sm:px-6 py-2 bg-white/95 border-t border-[#f1f5f9] shrink-0">
             <div className="max-w-3xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
@@ -889,9 +914,25 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           </div>
         )}
 
-        {/* BOTTOM MESSAGE INPUT BAR (Pinned & Responsive for Phone, Tablet, PC) */}
+        {/* BOTTOM MESSAGE INPUT BAR (Pinned & Responsive) */}
         <div className="p-2.5 sm:p-4 bg-white border-t border-[#e2e8f0] shrink-0 shadow-lg z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="max-w-3xl mx-auto">
+            {/* Active Voice Listening Banner */}
+            {isListening && (
+              <div className="mb-2 p-2 bg-rose-50 border border-rose-300 rounded-xl flex items-center justify-between text-xs text-rose-900 animate-pulse">
+                <span className="flex items-center gap-2 font-bold">
+                  <Mic className="w-4 h-4 text-rose-600 animate-bounce" />
+                  Listening to your voice... Speak naturally in English, Hindi, or regional languages.
+                </span>
+                <button
+                  onClick={() => setIsListening(false)}
+                  className="font-extrabold text-rose-700 underline cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -906,7 +947,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 title={isListening ? 'Stop listening' : 'Voice dictation'}
                 className={`p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 ${
                   isListening
-                    ? 'bg-rose-600 text-white animate-pulse'
+                    ? 'bg-rose-600 text-white animate-pulse shadow-md'
                     : 'text-[#64748b] hover:text-[#002045] hover:bg-[#e2e8f0]'
                 }`}
               >
@@ -917,7 +958,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 )}
               </button>
 
-              {/* Expanding Textarea / Input (text-base prevents iOS Safari zoom) */}
+              {/* Textarea Input (text-base prevents iOS Safari zoom) */}
               <textarea
                 ref={textareaRef}
                 id="gemini-chat-input"
@@ -928,7 +969,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 placeholder={
                   isListening
                     ? 'Listening to your voice...'
-                    : `Ask ${currentConfig.shortName} anything (multilingual)...`
+                    : `Ask ${currentConfig.shortName} anything (science, songs, health, math)...`
                 }
                 disabled={loading}
                 className="flex-1 bg-transparent px-2 py-2.5 text-base sm:text-base text-[#0f172a] placeholder-[#94a3b8] font-medium resize-none max-h-32 focus:outline-none"
@@ -963,7 +1004,6 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
       {/* =========================================================================
           DESKTOP WORKSTATION SIDEBAR (Visible on PC / lg screens >= 1024px)
-          Provides dedicated companion commands, live temporal anchors, memory cues
          ========================================================================= */}
       <aside className="hidden lg:flex w-80 xl:w-96 flex-col border-l border-[#e2e8f0] bg-white h-full shrink-0 overflow-y-auto">
         {/* Sidebar Header */}
@@ -1115,7 +1155,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
         {/* Footer info */}
         <div className="p-4 border-t border-[#e2e8f0] text-center text-[11px] text-[#94a3b8]">
-          SmritiSaathi Cognitive Engine · Unified gemini-3.8-flash
+          SmritiSaathi Cognitive Engine · Unified gemini-3.1-flash-lite
         </div>
       </aside>
     </div>
