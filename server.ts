@@ -229,7 +229,16 @@ function isGeminiInQuotaCooldown(): boolean {
 }
 
 // In-memory smart response cache (preserves API quota and avoids re-querying identical prompts)
-const chatResponseCache = new Map<string, { reply: string; timestamp: number }>();
+const chatResponseCache = new Map<
+  string,
+  {
+    reply: string;
+    timestamp: number;
+    groundingSources?: Array<{ title: string; uri: string }>;
+    webSearchQueries?: string[];
+    modelUsed?: string;
+  }
+>();
 
 function checkAndHandleQuotaExhaustion(err: any): boolean {
   const errStr = typeof err === 'object' ? JSON.stringify(err) : String(err || '');
@@ -724,9 +733,13 @@ async function startServer() {
       success: true,
       hasApiKey: !!keyInfo,
       keySource: keyInfo ? keyInfo.source : null,
-      primaryModel: 'gemini-3.1-flash-lite',
+      primaryModel: 'gemini-3.8-flash',
+      fallbackModel: 'gemini-3.1-flash-lite',
+      googleSearchGrounding: true,
+      webSearchCapable: true,
+      searchCapabilities: 'Live internal web search grounding enabled via Google Search tool',
       isRender: !!process.env.RENDER,
-      setupHelp: 'Active and ready for live requests',
+      setupHelp: 'Active and ready for live requests with Google Search grounding',
     });
   });
 
@@ -1629,8 +1642,8 @@ Analyze this photo taken by the user's camera.
           ? caregiverName
           : db.user?.caregiverName || caregiverName || 'Rohan Sharma';
 
-      // Primary model: gemini-3.1-flash-lite (fast, separate quota, cost-effective), with cascade to gemini-3.8-flash
-      const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+      // Primary models: gemini-3.8-flash (superior text reasoning + native Google Search grounding) & gemini-3.1-flash-lite
+      const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
       let systemInstruction = '';
       let roleDisplayName = 'Saathi Companion';
 
@@ -1638,6 +1651,7 @@ Analyze this photo taken by the user's camera.
         roleDisplayName = 'Quick Anchor';
         systemInstruction = `You are the 'Quick Anchor' fast-response AI assistant in SmritiSaathi.
 Your primary role is to provide instantaneous, clear, crisp, and reassuring answers for seniors (like ${effectivePatientName}) and caregivers (like ${effectiveCaregiverName}).
+You have real-time Google Search grounding enabled to search the live web. Whenever the user asks about current date/time, weather, today's news, current events, or facts beyond 2024, use Google Search internally to answer with live, accurate facts.
 Guidelines:
 1. Deliver quick, direct answers regarding: current day/date/time, medicine routine checks, hydration reminders, emergency assistance, and daily grounding.
 2. Keep answers concise: 1 to 3 short, easy-to-read sentences max.
@@ -1646,22 +1660,25 @@ Guidelines:
       } else if (role === 'complex' || role === 'clinical') {
         roleDisplayName = 'Dr. Smriti (Clinical Specialist)';
         systemInstruction = `You are 'Dr. Smriti', an advanced geriatric neuropsychologist and clinical dementia care specialist consulting family caregivers (like ${effectiveCaregiverName}) and elders (${effectivePatientName}) on the SmritiSaathi platform.
-You handle complex geriatric reasoning, cognitive health analysis, and evidence-backed caregiving strategies.
+You have real-time Google Search grounding enabled to search the live web for the latest dementia research, clinical trials, FDA/global drug approvals (e.g., Lecanemab, Donanemab, Kisunla, new amyloid/tau therapies, 2025/2026 findings), and recent medical breakthroughs.
 Guidelines:
-1. Provide deep, evidence-based reasoning on: Mild Cognitive Impairment (MCI) progression, Alzheimer's staging, Sundowning syndrome mitigation, and validation therapy protocols.
-2. Offer tactical non-pharmacological behavioral calming techniques when agitation or disorientation happens.
-3. Give clear, structured responses with clinical rationale and 2-3 practical, actionable next steps.
-4. Keep the tone empathetic, professional, reassuring, and dignified.`;
+1. When asked about modern developments, recent clinical studies, or facts beyond 2024, use Google Search internally to provide current, evidence-backed insights.
+2. Provide deep, evidence-based reasoning on: Mild Cognitive Impairment (MCI) progression, Alzheimer's staging, Sundowning syndrome mitigation, and validation therapy protocols.
+3. Offer tactical non-pharmacological behavioral calming techniques when agitation or disorientation happens.
+4. Give clear, structured responses with clinical rationale and 2-3 practical, actionable next steps.
+5. Keep the tone empathetic, professional, reassuring, and dignified.`;
       } else {
         // Default: General Companion
         roleDisplayName = 'Saathi Memory Companion';
         systemInstruction = `You are 'Saathi' (स्मृति साथी), a gentle, warm, deeply compassionate and respectful AI memory companion for Indian senior citizens living with Mild Cognitive Impairment (MCI) or early-stage dementia.
 You are conversing with ${effectivePatientName}, and their primary caregiver is ${effectiveCaregiverName}.
+You have Google Search grounding enabled to search the web internally whenever you need current information, recent news, weather, or facts beyond 2024.
 Guidelines:
-1. Validation Therapy: Never argue, harshly correct, or confront if an elder is confused or forgets a detail. First validate their emotions with warmth.
-2. Reality & Cultural Grounding: Gently weave in temporal and sensory anchors (the pleasant morning or evening chai, seasonal weather, Indian festivals like Diwali, Holi, Durga Puja, Eid, and memories of timeless music like Lata Mangeshkar, Kishore Kumar, or classic radio).
-3. Memory Stimulation: Gently reminisce and encourage daily mental exercises available in SmritiSaathi (WayBack neighborhood navigation, FaceBond family photos, LifeThread milestones, DailyRoutine, ShapeSorter).
-4. Tone & Style: Warm, respectful, unhurried. Use respectful Indian terms of address (e.g. 'Namaste', 'Asha ji', 'Dadaji', or their preferred name). Keep paragraphs accessible, uplifting, and comforting. Answer questions asked directly, clearly, and thoughtfully.`;
+1. Internal Web Search: If the senior or caregiver asks what is happening in the world, today's news, recent events, or anything you don't know with certainty, internally search the web to answer accurately and warmly.
+2. Validation Therapy: Never argue, harshly correct, or confront if an elder is confused or forgets a detail. First validate their emotions with warmth.
+3. Reality & Cultural Grounding: Gently weave in temporal and sensory anchors (the pleasant morning or evening chai, seasonal weather, Indian festivals like Diwali, Holi, Durga Puja, Eid, and memories of timeless music like Lata Mangeshkar, Kishore Kumar, or classic radio).
+4. Memory Stimulation: Gently reminisce and encourage daily mental exercises available in SmritiSaathi (WayBack neighborhood navigation, FaceBond family photos, LifeThread milestones, DailyRoutine, ShapeSorter).
+5. Tone & Style: Warm, respectful, unhurried. Use respectful Indian terms of address (e.g. 'Namaste', 'Asha ji', 'Dadaji', or their preferred name). Keep paragraphs accessible, uplifting, and comforting. Answer questions asked directly, clearly, and thoughtfully.`;
       }
 
       // Convert and strictly sanitize incoming multi-turn history for Gemini API
@@ -1721,13 +1738,16 @@ Guidelines:
         return res.json({
           success: true,
           reply: cached.reply,
-          modelUsed: 'gemini-3.1-flash-lite',
+          modelUsed: (cached as any).modelUsed || 'gemini-3.8-flash',
           roleUsed: role,
           roleDisplayName,
           source: 'gemini-live',
           isLiveAI: true,
           patientName: effectivePatientName,
           timestamp: new Date().toISOString(),
+          groundingSources: (cached as any).groundingSources || [],
+          webSearchQueries: (cached as any).webSearchQueries || [],
+          searchGroundingActive: true,
         });
       }
 
@@ -1737,12 +1757,12 @@ Guidelines:
 
       if (geminiClientInfo && !isGeminiInQuotaCooldown()) {
         const { client: ai, keySource } = geminiClientInfo;
-        // Smart Token Cap: saves quota and responds promptly without clipping thoughts
-        const maxTokens = role === 'quick' ? 90 : role === 'complex' ? 320 : 200;
+        // Adequate token room for grounded search answers
+        const maxTokens = role === 'quick' ? 300 : role === 'complex' ? 1000 : 700;
 
         for (const candidateModel of candidateModels) {
           try {
-            console.log(`[Gemini Chat] Calling live model: ${candidateModel} (Tokens: ${maxTokens}) via ${keySource}...`);
+            console.log(`[Gemini Chat] Calling live model: ${candidateModel} (Tokens: ${maxTokens}) with Google Search Grounding via ${keySource}...`);
             const response = await ai.models.generateContent({
               model: candidateModel,
               contents: formattedContents,
@@ -1751,13 +1771,35 @@ Guidelines:
                 temperature: role === 'quick' ? 0.2 : 0.6,
                 topP: 0.9,
                 maxOutputTokens: maxTokens,
+                tools: [{ googleSearch: {} }],
               },
             });
 
             const replyText = response.text || '';
             if (replyText.trim()) {
-              chatResponseCache.set(cacheKey, { reply: replyText.trim(), timestamp: Date.now() });
-              console.log(`[Gemini Chat] Live response generated successfully via ${candidateModel}`);
+              const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+              const groundingChunks = (groundingMetadata as any)?.groundingChunks;
+              const webSources: Array<{ title: string; uri: string }> = [];
+              if (Array.isArray(groundingChunks)) {
+                for (const chunk of groundingChunks) {
+                  if (chunk?.web?.uri) {
+                    webSources.push({
+                      title: chunk.web.title || chunk.web.uri,
+                      uri: chunk.web.uri,
+                    });
+                  }
+                }
+              }
+              const webSearchQueries: string[] = (groundingMetadata as any)?.webSearchQueries || [];
+
+              chatResponseCache.set(cacheKey, {
+                reply: replyText.trim(),
+                groundingSources: webSources,
+                webSearchQueries,
+                modelUsed: candidateModel,
+                timestamp: Date.now(),
+              });
+              console.log(`[Gemini Chat] Live response generated via ${candidateModel} (Web sources: ${webSources.length})`);
               return res.json({
                 success: true,
                 reply: replyText.trim(),
@@ -1768,11 +1810,51 @@ Guidelines:
                 isLiveAI: true,
                 patientName: effectivePatientName,
                 timestamp: new Date().toISOString(),
+                groundingSources: webSources,
+                webSearchQueries,
+                searchGroundingActive: true,
               });
             }
           } catch (modelErr: any) {
-            console.warn(`[Gemini Chat] Candidate ${candidateModel} notice:`, modelErr?.message || modelErr);
-            checkAndHandleQuotaExhaustion(modelErr);
+            console.warn(`[Gemini Chat] Candidate ${candidateModel} with search notice:`, modelErr?.message || modelErr);
+            // Fallback: If search tool fails on this candidate, retry without search tools
+            try {
+              console.log(`[Gemini Chat] Retrying candidate ${candidateModel} without tools...`);
+              const fallbackResponse = await ai.models.generateContent({
+                model: candidateModel,
+                contents: formattedContents,
+                config: {
+                  systemInstruction,
+                  temperature: role === 'quick' ? 0.2 : 0.6,
+                  topP: 0.9,
+                  maxOutputTokens: maxTokens,
+                },
+              });
+              const replyText = fallbackResponse.text || '';
+              if (replyText.trim()) {
+                chatResponseCache.set(cacheKey, {
+                  reply: replyText.trim(),
+                  modelUsed: candidateModel,
+                  timestamp: Date.now(),
+                });
+                return res.json({
+                  success: true,
+                  reply: replyText.trim(),
+                  modelUsed: candidateModel,
+                  roleUsed: role,
+                  roleDisplayName,
+                  source: 'gemini-live',
+                  isLiveAI: true,
+                  patientName: effectivePatientName,
+                  timestamp: new Date().toISOString(),
+                  groundingSources: [],
+                  webSearchQueries: [],
+                  searchGroundingActive: false,
+                });
+              }
+            } catch (fallbackErr: any) {
+              checkAndHandleQuotaExhaustion(fallbackErr);
+            }
           }
         }
       }

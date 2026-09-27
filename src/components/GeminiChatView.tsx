@@ -33,6 +33,7 @@ import {
   Compass,
   CornerDownLeft,
   Eye,
+  Globe,
 } from 'lucide-react';
 
 export interface ChatMessage {
@@ -45,6 +46,9 @@ export interface ChatMessage {
   error?: boolean;
   isLiveAI?: boolean;
   source?: string;
+  groundingSources?: Array<{ title?: string; uri?: string }>;
+  webSearchQueries?: string[];
+  webSearchUsed?: boolean;
 }
 
 export type ChatRole = 'companion' | 'quick' | 'complex';
@@ -76,8 +80,8 @@ const ROLE_CONFIGS: Record<
     id: 'companion',
     name: 'Saathi (Companion)',
     shortName: 'Companion',
-    tagline: 'Warm memory friend & gentle conversational buddy',
-    model: 'gemini-3.1-flash-lite',
+    tagline: 'Warm memory friend & gentle conversational buddy (Live Web Search)',
+    model: 'gemini-3.8-flash',
     taskType: 'General Memory Tasks',
     icon: Heart,
     badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
@@ -85,8 +89,13 @@ const ROLE_CONFIGS: Record<
     borderColor: 'border-rose-200',
     avatarBg: 'bg-[#002045] text-white',
     welcomeMessage: (name) =>
-      `Namaste ${name || 'Asha ji'}! I am Saathi, your personal memory friend. I am right here with you to talk about pleasant memories, share warm stories of classic songs and seasons, or just keep you company. How are you feeling right now?`,
+      `Namaste ${name || 'Asha ji'}! I am Saathi, your personal memory friend. I am equipped with live internal Google Search to check the web for any current facts or recent news beyond 2024, or we can talk about pleasant memories and classic songs. How are you feeling today?`,
     quickPrompts: [
+      {
+        label: 'Latest 2025/2026 News 🌐',
+        text: 'Search the live web for the latest major news and events in India in 2025 and 2026 🌐',
+        category: 'Live Search',
+      },
       {
         label: 'Tea & Monsoons ☕',
         text: 'Tell me a nostalgic memory about classic Indian tea and rainy days ☕',
@@ -112,19 +121,14 @@ const ROLE_CONFIGS: Record<
         text: 'I feel a little forgetful today, can you comfort and reassure me? 🌸',
         category: 'Comfort',
       },
-      {
-        label: 'Sweet Story 📖',
-        text: 'Tell me a heartwarming story about kindness and family 📖',
-        category: 'Story',
-      },
     ],
   },
   quick: {
     id: 'quick',
     name: 'Quick Anchor',
     shortName: 'Quick',
-    tagline: 'Lightning-fast temporal & routine orientation',
-    model: 'gemini-3.1-flash-lite',
+    tagline: 'Lightning-fast temporal & routine orientation (Live Web Search)',
+    model: 'gemini-3.8-flash',
     taskType: 'Tasks That Happen Fast',
     icon: Zap,
     badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -132,8 +136,13 @@ const ROLE_CONFIGS: Record<
     borderColor: 'border-amber-200',
     avatarBg: 'bg-amber-600 text-white',
     welcomeMessage: (name) =>
-      `Hello ${name || 'there'}! Quick Anchor active. I provide instant, snappy answers for dates, times, hydration, medicine routines, and emergency contacts. What do you need right now?`,
+      `Hello ${name || 'there'}! Quick Anchor active with live web search. I provide instant, snappy answers for dates, times, live weather, medicine routines, and emergency contacts. What do you need right now?`,
     quickPrompts: [
+      {
+        label: 'Live Headlines & Weather 🌐',
+        text: 'Search the web for today\'s top news headlines and weather forecast 🌐',
+        category: 'Live Search',
+      },
       {
         label: 'Today’s Date & Day 📅',
         text: 'What day of the week and date is today? 📅',
@@ -165,8 +174,8 @@ const ROLE_CONFIGS: Record<
     id: 'complex',
     name: 'Dr. Smriti (Clinical Specialist)',
     shortName: 'Clinical',
-    tagline: 'Complex geriatric dementia & caregiver intelligence',
-    model: 'gemini-3.1-flash-lite',
+    tagline: 'Complex geriatric dementia & caregiver intelligence (Live Web Search)',
+    model: 'gemini-3.8-flash',
     taskType: 'Caregiver & Clinical Advice',
     icon: Stethoscope,
     badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
@@ -174,8 +183,13 @@ const ROLE_CONFIGS: Record<
     borderColor: 'border-blue-200',
     avatarBg: 'bg-blue-800 text-white',
     welcomeMessage: (name) =>
-      `Welcome to the Clinical Caregiver Consultation. I am Dr. Smriti, specialized in geriatric neuropsychology, MCI progression, and non-pharmacological behavioral care. How can I assist you with clinical guidance or caregiving today?`,
+      `Welcome to the Clinical Caregiver Consultation. I am Dr. Smriti, specialized in geriatric neuropsychology, MCI progression, and non-pharmacological behavioral care. Live Google Search grounding is enabled for the latest 2025/2026 Alzheimer's trials and clinical approvals. How can I assist you today?`,
     quickPrompts: [
+      {
+        label: '2025/2026 Dementia Research 🌐',
+        text: 'Search the web and explain the latest 2025-2026 FDA approvals and clinical dementia trials 🌐',
+        category: 'Live Search',
+      },
       {
         label: 'Sundowning Protocol 🌅',
         text: 'How do I handle evening agitation or sundowning syndrome? 🌅',
@@ -449,6 +463,9 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           roleUsed: data.roleUsed || activeRole,
           isLiveAI: data.isLiveAI ?? (data.source === 'gemini-live' || data.source === 'gemini'),
           source: data.source || 'gemini-live',
+          groundingSources: data.groundingSources,
+          webSearchQueries: data.webSearchQueries,
+          webSearchUsed: (data.groundingSources && data.groundingSources.length > 0) || (data.webSearchQueries && data.webSearchQueries.length > 0) || !!data.searchGroundingActive,
         };
         setMessages((prev) => [...prev, botMessage]);
 
@@ -772,6 +789,44 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     >
                       <div className="whitespace-pre-wrap select-text">{msg.text}</div>
 
+                      {/* Grounding & Web Search Sources UI */}
+                      {!isUser && msg.groundingSources && msg.groundingSources.length > 0 && (
+                        <div className="mt-3 pt-2.5 border-t border-sky-100 bg-sky-50/60 -mx-1 sm:-mx-2 px-2.5 py-2 rounded-xl">
+                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-sky-900 mb-1.5">
+                            <Globe className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                            <span>Live Web Search Grounding</span>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-200/70 text-sky-800 font-extrabold">
+                              {msg.groundingSources.length} source{msg.groundingSources.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {msg.groundingSources.map((source, sIdx) => {
+                              let hostName = 'Web Source';
+                              try {
+                                if (source.uri) {
+                                  hostName = new URL(source.uri).hostname.replace('www.', '');
+                                }
+                              } catch {
+                                hostName = 'Web Source';
+                              }
+                              return (
+                                <a
+                                  key={sIdx}
+                                  href={source.uri}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-sky-100 text-sky-800 hover:text-sky-950 border border-sky-200 text-[11px] font-semibold transition-all shadow-2xs max-w-full truncate"
+                                  title={source.title || source.uri}
+                                >
+                                  <span className="truncate max-w-[180px] sm:max-w-xs">{source.title || hostName}</span>
+                                  <ExternalLink className="w-2.5 h-2.5 shrink-0 text-sky-500" />
+                                </a>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Bot Controls: Listen Aloud, Copy, Source */}
                       {!isUser && (
                         <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs text-[#64748b]">
@@ -824,7 +879,12 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
                           {/* Source Model */}
                           <div className="flex items-center gap-1.5">
-                            {msg.isLiveAI || msg.source === 'gemini-live' || msg.source === 'gemini' ? (
+                            {msg.groundingSources && msg.groundingSources.length > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-50 text-sky-800 border border-sky-200 text-[10px] sm:text-[11px] font-bold">
+                                <Globe className="w-3 h-3 text-sky-600" />
+                                🌐 Web Grounded
+                              </span>
+                            ) : msg.isLiveAI || msg.source === 'gemini-live' || msg.source === 'gemini' ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-bold">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                 Live AI
