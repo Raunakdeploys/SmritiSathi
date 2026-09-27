@@ -355,5 +355,64 @@
       "imageUrl": "https://images.unsplash.com/photo-1532629345422-7515f3d16bb7?w=500&auto=format&fit=crop&q=80",
       "isClaimed": false
     }
-  ]
+  ],
+  "careCompass": {
+    "config": {
+      "patientName": "Asha Devi",
+      "patientHonorific": "Shri",
+      "patientAge": 76,
+      "caregiverName": "Rohan Sharma (Son)",
+      "caregiverPhone": "+919876543210",
+      "preferredLanguage": "en-IN",
+      "homeLocation": {
+        "label": "Home Base",
+        "city": "Live Location",
+        "area": "Perimeter Base",
+        "latitude": 26.1495,
+        "longitude": 91.739
+      },
+      "safeRadiusMeters": 300,
+      "alertRadiusMeters": 600,
+      "autoSirenOnBreach": true,
+      "autoWhatsAppOnBreach": true
+    },
+    "telemetry": {
+      "latitude": 26.1495,
+      "longitude": 91.739,
+      "accuracy": 5,
+      "distanceMeters": 0,
+      "bearingDegrees": 0,
+      "bearingText": "North",
+      "geofenceStatus": "CRITICAL_BREACH",
+      "batteryLevel": 88,
+      "isCharging": false,
+      "movementState": "Stationary",
+      "speedKmh": 0,
+      "heartRateBpm": 75,
+      "heartRateStatus": "normal",
+      "isRealtimeGps": true,
+      "isSundowningHours": false,
+      "sundowningRisk": "low",
+      "lastUpdated": "27 Sept 2026, 8:41:35 pm",
+      "breadcrumbs": []
+    },
+    "alertLogs": [
+      {
+        "id": "alert-1790521895523",
+        "timestamp": "27 Sept 2026, 8:41:35 pm",
+        "severity": "critical",
+        "cause": "Geofence Breach",
+        "distanceMeters": 0,
+        "latitude": 26.1495,
+        "longitude": 91.739,
+        "notes": "Emergency SOS (GEOFENCE_EXIT): WhatsApp [DELIVERED] & Voice [PENDING_CONFIGURATION] to +919876543210",
+        "whatsappDispatched": true,
+        "directCallDialed": false,
+        "dispatchId": "SOS-EMG-MUJYI8NQ-653",
+        "deliveryStatus": "DELIVERED",
+        "channel": "AUTOMATED_SMS_GATEWAY"
+      }
+    ],
+    "memories": []
+  }
 }

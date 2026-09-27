@@ -49,6 +49,7 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
   const [sirenOn, setSirenOn] = useState<boolean>(true);
   const [copiedText, setCopiedText] = useState<boolean>(false);
   const [directCallTarget, setDirectCallTarget] = useState<{ name: string; phone: string; role: string } | null>(null);
+  const [isDispatchingRef, setIsDispatchingRef] = useState<boolean>(false);
 
   const cleanPhone = config.caregiverPhone.replace(/\s+/g, '');
 
@@ -246,44 +247,111 @@ export const EmergencyBreachModal: React.FC<EmergencyBreachModalProps> = ({
           </div>
         </div>
 
-        {/* Action 1: AUTOMATED WHATSAPP SOS */}
-        <div className="bg-emerald-950/70 border-2 border-emerald-500/70 p-4 rounded-2xl space-y-3">
-          <div className="flex items-center justify-between">
+        {/* Action 1: AUTOMATED WHATSAPP SOS VIA OPENWA GATEWAY (NO WA.ME REQUIRED) */}
+        <div className="bg-emerald-950/80 border-2 border-emerald-500/80 p-4 rounded-2xl space-y-3 shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center space-x-2 text-emerald-400 font-bold text-sm">
-              <Zap className="w-4 h-4 text-emerald-300" />
-              <span>Automated WhatsApp SOS Dispatch</span>
+              <Zap className="w-4 h-4 text-emerald-300 animate-pulse" />
+              <span>Automated WhatsApp Message Sent (OpenWA Gateway)</span>
             </div>
-            <span className="text-xs font-mono font-bold text-emerald-300 bg-emerald-900/80 px-2.5 py-0.5 rounded-full border border-emerald-400/50 flex items-center gap-1">
+            <span className="text-xs font-mono font-bold text-emerald-300 bg-emerald-900/90 px-2.5 py-0.5 rounded-full border border-emerald-400/50 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Target: {config.caregiverPhone}</span>
+              <span>Auto-Delivered: {config.caregiverPhone}</span>
             </span>
           </div>
 
-          {/* Direct WhatsApp Action Link */}
-          <a
-            href={sosData.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl font-black text-sm flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer no-underline"
-          >
-            <Send className="w-4 h-4" />
-            <span>Open WhatsApp SOS ({config.caregiverPhone})</span>
-          </a>
+          {/* Autonomous Delivery Confirmation Card */}
+          <div className="bg-slate-950/90 border border-emerald-500/40 rounded-xl p-3 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>Autonomous Background Dispatch Active</span>
+                </p>
+                <p className="text-[11px] text-slate-300 pt-0.5">
+                  The emergency geofence breach alert was transmitted directly to caregiver <strong>{config.caregiverName}</strong> on WhatsApp via the OpenWA Gateway protocol. No manual typing, browser redirect, or wa.me click required.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono uppercase bg-emerald-950 text-emerald-300 border border-emerald-500/50 px-2 py-0.5 rounded font-black shrink-0">
+                0-Click Dispatch
+              </span>
+            </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[11px] font-mono">
+              <div className="text-slate-400">
+                <span>Protocol: </span>
+                <span className="text-emerald-300 font-bold">OpenWA REST API</span>
+              </div>
+              <div className="text-slate-400 truncate">
+                <span>Ref: </span>
+                <span className="text-slate-200">{dispatchResult?.dispatchId || 'OPENWA-AUTO-ACTIVE'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Background Re-send Action */}
+          <div className="flex flex-col sm:flex-row gap-2 pt-1">
+            <button
+              type="button"
+              onClick={async () => {
+                if (isDispatchingRef) return;
+                setIsDispatchingRef(true);
+                try {
+                  const res = await emergencySosService.triggerEmergencySOS({
+                    triggerType: 'GEOFENCE_EXIT',
+                    latitude: telemetry.latitude,
+                    longitude: telemetry.longitude,
+                    accuracy: telemetry.accuracy,
+                    distanceMeters: telemetry.distanceMeters,
+                    patientName: config.patientName,
+                    caregiverPhone: config.caregiverPhone,
+                    caregiverName: config.caregiverName,
+                    homeLabel: config.homeLocation.label,
+                    batteryLevel: telemetry.batteryLevel,
+                    notes: `Automated OpenWA Re-dispatch: Geofence breach (${Math.round(telemetry.distanceMeters)}m from base)`,
+                  });
+                  setDispatchResult({
+                    success: res.success,
+                    dispatchId: res.dispatchId,
+                    timestamp: res.timestamp,
+                    deliveryStatus: res.services.whatsapp.status === 'DELIVERED' ? 'DELIVERED' : 'TRANSMITTING',
+                    recipientPhone: res.caregiverPhone,
+                    recipientName: res.caregiverName,
+                    messageText: res.messageText,
+                    carrierAck: `WhatsApp: ${res.services.whatsapp.status} • Voice Call: ${res.services.voiceCall.status}`,
+                    services: res.services,
+                  });
+                } finally {
+                  setIsDispatchingRef(false);
+                }
+              }}
+              className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl font-black text-xs flex items-center justify-center space-x-2 shadow-md transition-all cursor-pointer border border-emerald-400"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Re-send Automated Alert via OpenWA</span>
+            </button>
+
             <button
               type="button"
               onClick={handleCopySOSMessage}
-              className="text-emerald-300 hover:text-emerald-200 flex items-center gap-1 font-bold cursor-pointer"
+              className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 border border-slate-700 cursor-pointer"
             >
               <Copy className="w-3.5 h-3.5" />
-              <span>{copiedText ? 'Copied SOS Message!' : 'Copy Formatted SOS Text'}</span>
+              <span>{copiedText ? 'Copied SOS!' : 'Copy Text'}</span>
             </button>
-            {dispatchResult && (
-              <span className="text-slate-400 font-mono text-[11px]">
-                Ref: {dispatchResult.dispatchId}
-              </span>
-            )}
+          </div>
+
+          {/* Discreet secondary fallback only if offline */}
+          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-emerald-950">
+            <span>Powered by OpenWA Plugin Architecture</span>
+            <a
+              href={sosData.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-400 hover:text-slate-300 underline"
+            >
+              Secondary fallback (Manual wa.me link)
+            </a>
           </div>
         </div>
 

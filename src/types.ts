@@ -248,7 +248,7 @@ export type EmergencyDeliveryStatus = 'DELIVERED' | 'QUEUED' | 'PENDING_CONFIGUR
 export interface EmergencyServiceStatus {
   service: 'whatsapp' | 'voice_call';
   status: EmergencyDeliveryStatus;
-  provider: 'twilio' | 'meta' | 'simulation_fallback';
+  provider: 'openwa' | 'twilio' | 'meta' | 'simulation_fallback';
   id?: string;
   error?: string;
   details?: string;
@@ -351,6 +351,12 @@ export interface CareCompassConfig {
   autoSirenOnBreach: boolean;
   autoWhatsAppOnBreach: boolean;
   googleMapsApiKey?: string;
+  openWaConfig?: {
+    enabled?: boolean;
+    gatewayUrl?: string; // e.g. 'http://localhost:2785' or 'http://localhost:8080'
+    apiKey?: string;
+    sessionId?: string; // default 'default'
+  };
 }
 
 export interface MemoryCard {

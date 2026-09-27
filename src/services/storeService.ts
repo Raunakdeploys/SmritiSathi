@@ -121,6 +121,11 @@ export const INITIAL_CARE_COMPASS_CONFIG: CareCompassConfig = {
   preferredLanguage: 'en-IN',
   autoSirenOnBreach: true,
   autoWhatsAppOnBreach: true,
+  openWaConfig: {
+    enabled: true,
+    gatewayUrl: 'http://localhost:2785',
+    sessionId: 'default',
+  },
 };
 
 export const INITIAL_CARE_COMPASS_TELEMETRY: CareCompassTelemetry = getInitialTelemetry();

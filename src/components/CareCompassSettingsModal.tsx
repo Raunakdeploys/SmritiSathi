@@ -36,6 +36,33 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
   const [searchQuery, setSearchQuery] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [isOpenWaTesting, setIsOpenWaTesting] = useState(false);
+  const [openWaTestFeedback, setOpenWaTestFeedback] = useState<string | null>(null);
+
+  const handleTestOpenWa = async () => {
+    setIsOpenWaTesting(true);
+    setOpenWaTestFeedback(null);
+    try {
+      const res = await fetch('/api/openwa/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toPhone: formData.caregiverPhone,
+          patientName: formData.patientName,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOpenWaTestFeedback(`✅ OpenWA alert sent to ${formData.caregiverPhone}`);
+      } else {
+        setOpenWaTestFeedback(`⚠️ OpenWA response: ${data.error || 'Check gateway'}`);
+      }
+    } catch (e: any) {
+      setOpenWaTestFeedback(`❌ OpenWA: ${e?.message || 'Connection failed'}`);
+    } finally {
+      setIsOpenWaTesting(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -466,6 +493,77 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
                 </span>
               </div>
             </label>
+
+            {/* OpenWA Gateway Configuration Box */}
+            <div className="mt-2 p-3 bg-slate-900 border border-emerald-500/40 rounded-xl space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                  <Send className="w-3.5 h-3.5" />
+                  <span>OpenWA WhatsApp API Gateway (No wa.me links)</span>
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/30">
+                  rmyndharis/OpenWA-plugins
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300">
+                When a geofence breach occurs, SmritiSaathi dispatches the emergency coordinates, alert reason, and battery telemetry directly through OpenWA's REST API. No browser tabs or manual wa.me clicks are opened.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1">OpenWA Gateway URL</label>
+                  <input
+                    type="text"
+                    value={formData.openWaConfig?.gatewayUrl || 'http://localhost:2785'}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        openWaConfig: {
+                          ...formData.openWaConfig,
+                          gatewayUrl: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="http://localhost:2785"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1">OpenWA API Key (Optional)</label>
+                  <input
+                    type="password"
+                    value={formData.openWaConfig?.apiKey || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        openWaConfig: {
+                          ...formData.openWaConfig,
+                          apiKey: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Optional API key"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={handleTestOpenWa}
+                  disabled={isOpenWaTesting}
+                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>{isOpenWaTesting ? 'Sending OpenWA Test...' : 'Test OpenWA WhatsApp Alert'}</span>
+                </button>
+                {openWaTestFeedback && (
+                  <span className="text-[11px] font-mono text-emerald-300">
+                    {openWaTestFeedback}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

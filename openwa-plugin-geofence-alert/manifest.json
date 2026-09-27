@@ -1,0 +1,18 @@
+{
+  "id": "smritisaathi-geofence-alert",
+  "name": "CareCompass Geofence Alert",
+  "version": "1.0.0",
+  "description": "Autonomous WhatsApp emergency dispatch plugin for dementia wandering and geofence perimeter breach alerts without requiring manual wa.me links.",
+  "type": "standard",
+  "main": "dist/index.js",
+  "permissions": [
+    "messages:send",
+    "net:fetch",
+    "webhook:ingress"
+  ],
+  "hooks": [
+    "webhook.ingress"
+  ],
+  "author": "SmritiSaathi Health",
+  "repository": "https://github.com/rmyndharis/OpenWA-plugins"
+}
