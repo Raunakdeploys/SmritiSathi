@@ -27,6 +27,13 @@ import { DirectCallModal } from './components/DirectCallModal';
 import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { PatientMode } from './components/PatientMode';
 import { GeminiChatView } from './components/GeminiChatView';
+import { usePageSEO } from './utils/usePageSEO';
+import { analytics } from './utils/analytics';
+import { NotFoundView } from './components/NotFoundView';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { LegalModals } from './components/LegalModals';
+import { ThankYouModal } from './components/ThankYouModal';
+import { StickyMobileCTA } from './components/StickyMobileCTA';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
 import { WayBackGame } from './components/games/WayBackGame';
@@ -43,6 +50,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
+
+  // Dynamic SEO Page Title & Meta Tags
+  usePageSEO(currentTab);
 
   // Reactive state synced with storeService
   const [database, setDatabase] = useState<AppDatabase>(() => storeService.getDatabase());
@@ -61,6 +71,13 @@ export default function App() {
   const [isWhereAmIOpen, setIsWhereAmIOpen] = useState(false);
   const [isDirectCallOpen, setIsDirectCallOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'contact' | null>(null);
+  const [thankYouState, setThankYouState] = useState<{
+    isOpen: boolean;
+    title?: string;
+    subtitle?: string;
+    points?: number;
+  }>({ isOpen: false });
 
   // Subscribe to storeService updates & Google auth state
   useEffect(() => {
@@ -105,7 +122,14 @@ export default function App() {
       title,
       notes: `Completed Level ${levelPlayed || 1} with ${accuracy}% accuracy.`,
     });
+    analytics.logEvent(`game_completed_${gameId}`, 'cognitive_game', { score, pointsEarned, accuracy });
     setActiveGameId(null);
+    setThankYouState({
+      isOpen: true,
+      title: `${title} Completed!`,
+      subtitle: `Brilliant effort! You achieved ${accuracy}% accuracy on Level ${levelPlayed || 1}.`,
+      points: pointsEarned,
+    });
   };
 
   // Handle Daily Workout Complete
@@ -141,7 +165,14 @@ export default function App() {
       notes: 'Completed comprehensive memory, attention, and executive reasoning drills',
     });
 
+    analytics.logEvent('daily_training_completed', 'cognitive_game', { bonusPoints });
     setIsDailyTrainingOpen(false);
+    setThankYouState({
+      isOpen: true,
+      title: 'Daily Mind Workout Complete!',
+      subtitle: 'You completed your 3-pillar cognitive drills today. Your brain is stimulated and resilient!',
+      points: bonusPoints,
+    });
   };
 
   // Handle Reality Quest Complete
@@ -151,10 +182,17 @@ export default function App() {
       score: 100,
       pointsEarned: 60,
       accuracy: 100,
-      durationMinutes: 5,
-      category: 'Planning',
-      title: 'RealityQuest Sensory & Temporal Anchoring',
-      notes: 'Verified calendar, season, and physical household anchors',
+      durationMinutes: 10,
+      category: 'Orientation',
+      title: 'Sensory & Temporal Reality Quest',
+      notes: 'Completed comprehensive sensory anchoring and temporal orientation',
+    });
+    analytics.logEvent('reality_quest_completed', 'cognitive_game', { points: 60 });
+    setThankYouState({
+      isOpen: true,
+      title: 'Reality Quest Completed!',
+      subtitle: 'You successfully grounded your temporal and spatial awareness. Superb focus!',
+      points: 60,
     });
   };
 
@@ -437,6 +475,91 @@ export default function App() {
           )}
 
           {currentTab === 'help' && <HelpView user={user} />}
+
+          {/* 404 Page Safe Anchor for unknown routes */}
+          {![
+            'carecompass',
+            'patient-mode',
+            'dashboard',
+            'saathi-chat',
+            'games',
+            'reality-quest',
+            'caregiver',
+            'history',
+            'settings',
+            'help',
+          ].includes(currentTab) && (
+            <NotFoundView
+              onNavigateHome={() => setCurrentTab('dashboard')}
+              onOpenSOS={() => setIsDirectCallOpen(true)}
+            />
+          )}
+
+          {/* Real Production-Grade Footer with Legal, Helplines & Address */}
+          {currentTab !== 'patient-mode' && currentTab !== 'saathi-chat' && (
+            <footer className="mt-12 border-t border-slate-200 bg-white/80 backdrop-blur-xs py-8 px-4 sm:px-8 text-xs text-slate-600">
+              <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                {/* Brand & Address */}
+                <div className="text-center md:text-left space-y-1">
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-[#002045] flex items-center justify-center text-white font-bold text-xs">
+                      स
+                    </div>
+                    <span className="font-extrabold text-[#002045] text-sm tracking-tight">SmritiSaathi</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                      DPDP Safe · AI Grounded
+                    </span>
+                  </div>
+                  <p className="text-slate-500 text-[11px]">
+                    Cognitive Wellness &amp; Assistive Tech Labs · Bengaluru, Karnataka 560038, India
+                  </p>
+                  <p className="text-slate-400 text-[10px]">
+                    © 2026 SmritiSaathi. Designed with dignity for seniors and family caregivers.
+                  </p>
+                </div>
+
+                {/* Emergency Hotline Badge */}
+                <div className="flex items-center gap-3 bg-orange-50/80 border border-orange-200 px-4 py-2.5 rounded-2xl">
+                  <div className="w-8 h-8 rounded-xl bg-[#FF6321] text-white flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[18px]">phone_in_talk</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-extrabold text-[#002045] text-xs">National Elder Helpline</p>
+                    <p className="text-orange-900 font-bold text-xs">
+                      Toll-Free: <a href="tel:14567" className="underline hover:text-orange-700">14567</a> · Emergency: <a href="tel:112" className="underline hover:text-orange-700">112</a>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Legal & Policy Modals Links */}
+                <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-slate-600">
+                  <button
+                    type="button"
+                    onClick={() => setLegalModalType('privacy')}
+                    className="hover:text-[#002045] hover:underline cursor-pointer"
+                  >
+                    Privacy Policy
+                  </button>
+                  <span className="text-slate-300">·</span>
+                  <button
+                    type="button"
+                    onClick={() => setLegalModalType('terms')}
+                    className="hover:text-[#002045] hover:underline cursor-pointer"
+                  >
+                    Terms &amp; Clinical Use
+                  </button>
+                  <span className="text-slate-300">·</span>
+                  <button
+                    type="button"
+                    onClick={() => setLegalModalType('contact')}
+                    className="hover:text-[#002045] hover:underline cursor-pointer"
+                  >
+                    Contact &amp; Support
+                  </button>
+                </div>
+              </div>
+            </footer>
+          )}
         </div>
       </div>
 
@@ -680,6 +803,39 @@ export default function App() {
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
         </button>
       )}
+
+      {/* Sticky Mobile Quick Action Anchor */}
+      <StickyMobileCTA
+        onNavigateTab={(tab) => {
+          setCurrentTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenSOS={() => setIsDirectCallOpen(true)}
+        currentTab={currentTab}
+      />
+
+      {/* GDPR / DPDP Cookie Consent Banner */}
+      <CookieConsentBanner />
+
+      {/* Legal, Privacy & Contact Helplines Modals */}
+      <LegalModals
+        type={legalModalType}
+        onClose={() => setLegalModalType(null)}
+      />
+
+      {/* Celebratory Thank You & Milestone Achievement Modal */}
+      <ThankYouModal
+        isOpen={thankYouState.isOpen}
+        title={thankYouState.title}
+        subtitle={thankYouState.subtitle}
+        pointsEarned={thankYouState.points}
+        onClose={() => setThankYouState({ isOpen: false })}
+        onNextAction={() => {
+          setCurrentTab('games');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        nextActionLabel="Play Another Exercise"
+      />
     </div>
   );
 }

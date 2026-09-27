@@ -2938,6 +2938,20 @@ Generate:
     res.json({ success: true, dispatches: automatedDispatches });
   });
 
+  // SEO: Explicit Robots.txt & Sitemap.xml routes
+  app.get('/robots.txt', (_req, res) => {
+    res.type('text/plain').send('User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: https://smritisathi.in/sitemap.xml\n');
+  });
+
+  app.get('/sitemap.xml', (_req, res) => {
+    const sitemapPath = path.resolve(process.cwd(), 'public', 'sitemap.xml');
+    if (fs.existsSync(sitemapPath)) {
+      res.type('application/xml').sendFile(sitemapPath);
+    } else {
+      res.type('application/xml').send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://smritisathi.in/</loc></url></urlset>');
+    }
+  });
+
   // Static assets & SPA fallback
   const isProduction = process.env.NODE_ENV === 'production';
   const distPath = path.resolve(process.cwd(), 'dist');
