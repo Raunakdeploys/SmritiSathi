@@ -54,10 +54,20 @@ export function CookieConsentBanner() {
             <Cookie className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-              <span>Privacy &amp; Data Dignity</span>
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            </h3>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                <span>Privacy &amp; Data Dignity</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              </h3>
+              <button
+                type="button"
+                onClick={handleAcceptAll}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Dismiss banner"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-xs text-slate-300 mt-1 leading-relaxed">
               SmritiSaathi uses secure on-device storage to preserve your reminiscence photos, game scores, and GPS safe zones without selling personal medical data.
             </p>

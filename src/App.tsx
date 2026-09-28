@@ -33,7 +33,6 @@ import { NotFoundView } from './components/NotFoundView';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { LegalModals } from './components/LegalModals';
 import { ThankYouModal } from './components/ThankYouModal';
-import { StickyMobileCTA } from './components/StickyMobileCTA';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
 import { WayBackGame } from './components/games/WayBackGame';
@@ -803,16 +802,6 @@ export default function App() {
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
         </button>
       )}
-
-      {/* Sticky Mobile Quick Action Anchor */}
-      <StickyMobileCTA
-        onNavigateTab={(tab) => {
-          setCurrentTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        onOpenSOS={() => setIsDirectCallOpen(true)}
-        currentTab={currentTab}
-      />
 
       {/* GDPR / DPDP Cookie Consent Banner */}
       <CookieConsentBanner />
