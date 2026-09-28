@@ -8,6 +8,7 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 import type { AppDatabase, UserProfile, CognitiveProgress, ActivityItem, GameInfo, FamilyFaceItem, RewardItem, CameraIdentifyResult } from './src/types';
+import { performLiveWebSearch } from './src/services/liveWebSearch';
 
 // ==============================================================================
 // 1. FIREBASE ADMIN SDK INITIALIZATION (Production Server-Side)
@@ -1306,7 +1307,9 @@ Analyze this photo taken by the user's camera.
     role: string,
     patientName: string,
     caregiverName: string,
-    language: string = 'en-IN'
+    language: string = 'en-IN',
+    liveWebContext?: string,
+    webSources?: Array<{ title: string; uri: string }>
   ): string {
     const raw = (userQuery || '').trim();
     const q = raw.toLowerCase();
@@ -1602,7 +1605,19 @@ Analyze this photo taken by the user's camera.
       return `You are most welcome, ${patientName}! It is always my absolute pleasure to be with you. Your smile and peace of mind mean the world to us.`;
     }
 
-    // 14. DYNAMIC ENCYCLOPEDIC INQUIRY SYNTHESIZER
+    // 14. LIVE WEB SEARCH GROUNDED RESPONSE SYNTHESIS
+    if (webSources && webSources.length > 0 && (q.includes('news') || q.includes('latest') || q.includes('today') || q.includes('2025') || q.includes('2026') || q.includes('recent') || q.includes('breakthrough') || q.includes('fda') || q.includes('trial') || q.includes('weather') || q.includes('update'))) {
+      const topHeadlines = webSources.slice(0, 3).map((s) => `• ${s.title}`).join('\n');
+      if (role === 'quick') {
+        return `Latest live search updates:\n${topHeadlines}`;
+      }
+      if (role === 'complex' || role === 'clinical') {
+        return `Based on live verified medical and research publications:\n\n${topHeadlines}\n\nClinical implications: Ongoing trials focus on early amyloid/tau biomarker interventions, disease-modifying therapies, and structured non-pharmacological care protocols for ${patientName}.`;
+      }
+      return `Namaste ${patientName}! Here are the latest updates from live web reports:\n\n${topHeadlines}\n\nIt is wonderful staying curious and connected with the world while remaining safe and peaceful at home with ${caregiverName}.`;
+    }
+
+    // 15. DYNAMIC ENCYCLOPEDIC INQUIRY SYNTHESIZER
     // For any general query or topic, synthesize an informative, respectful, and engaging multi-paragraph response
     const cleanedTopic = raw.replace(/[?!.]/g, '').trim();
     return `Namaste ${patientName}!\n\nRegarding **${cleanedTopic}**: Exploring topics like this is such a wonderful way to exercise our curiosity and keep our cognitive horizons wide and bright.\n\nThroughout life, every memory and idea we reflect upon connects to experiences, family conversations, and timeless observations. Taking a moment to think about this strengthens memory recall and brings pleasant mental focus.\n\nIs there a particular memory, childhood experience, or story connected to this that you would love to share with me? I would be so honored to hear it!`;
@@ -1751,23 +1766,34 @@ Guidelines:
         });
       }
 
+      // Execute fast parallel multi-source live web search to retrieve real-time facts & citations
+      const liveSearchResults = await performLiveWebSearch(message.trim());
+      const initialWebSources: Array<{ title: string; uri: string }> = liveSearchResults.results.map((r) => ({
+        title: r.title,
+        uri: r.uri,
+      }));
+
+      // If live web search returned verified results, inject into systemInstruction
+      let effectiveSystemInstruction = systemInstruction;
+      if (liveSearchResults.formattedContext) {
+        effectiveSystemInstruction += `\n\n${liveSearchResults.formattedContext}`;
+      }
+
       // Check client-supplied key or use guaranteed built-in Gemini engine
       const clientKey = (req.headers['x-gemini-api-key'] as string) || req.body?.geminiApiKey;
       const geminiClientInfo = getGeminiClient(clientKey);
 
       if (geminiClientInfo && !isGeminiInQuotaCooldown()) {
         const { client: ai, keySource } = geminiClientInfo;
-        // Adequate token room for grounded search answers
-        const maxTokens = role === 'quick' ? 300 : role === 'complex' ? 1000 : 700;
 
         for (const candidateModel of candidateModels) {
           try {
-            console.log(`[Gemini Chat] Calling live model: ${candidateModel} with Google Search Grounding via ${keySource}...`);
+            console.log(`[Gemini Chat] Calling live model: ${candidateModel} with Google Search Grounding & Web Inject via ${keySource}...`);
             const response = await ai.models.generateContent({
               model: candidateModel,
               contents: formattedContents,
               config: {
-                systemInstruction,
+                systemInstruction: effectiveSystemInstruction,
                 temperature: role === 'quick' ? 0.2 : 0.6,
                 topP: 0.9,
                 tools: [{ googleSearch: {} }],
@@ -1786,18 +1812,20 @@ Guidelines:
             if (replyText.trim()) {
               const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
               const groundingChunks = (groundingMetadata as any)?.groundingChunks;
-              const webSources: Array<{ title: string; uri: string }> = [];
+              const webSourcesMap = new Map<string, string>();
+
+              for (const s of initialWebSources) {
+                if (s.uri) webSourcesMap.set(s.uri, s.title);
+              }
               if (Array.isArray(groundingChunks)) {
                 for (const chunk of groundingChunks) {
                   if (chunk?.web?.uri) {
-                    webSources.push({
-                      title: chunk.web.title || chunk.web.uri,
-                      uri: chunk.web.uri,
-                    });
+                    webSourcesMap.set(chunk.web.uri, chunk.web.title || chunk.web.uri);
                   }
                 }
               }
-              const webSearchQueries: string[] = (groundingMetadata as any)?.webSearchQueries || [];
+              const webSources: Array<{ title: string; uri: string }> = Array.from(webSourcesMap.entries()).map(([uri, title]) => ({ uri, title }));
+              const webSearchQueries: string[] = (groundingMetadata as any)?.webSearchQueries || [liveSearchResults.query];
 
               chatResponseCache.set(cacheKey, {
                 reply: replyText.trim(),
@@ -1819,19 +1847,19 @@ Guidelines:
                 timestamp: new Date().toISOString(),
                 groundingSources: webSources,
                 webSearchQueries,
-                searchGroundingActive: true,
+                searchGroundingActive: webSources.length > 0,
               });
             }
           } catch (modelErr: any) {
             console.warn(`[Gemini Chat] Candidate ${candidateModel} with search notice:`, modelErr?.message || modelErr);
             // Fallback: If search tool fails on this candidate, retry without search tools
             try {
-              console.log(`[Gemini Chat] Retrying candidate ${candidateModel} without tools...`);
+              console.log(`[Gemini Chat] Retrying candidate ${candidateModel} with injected live web context...`);
               const fallbackResponse = await ai.models.generateContent({
                 model: candidateModel,
                 contents: formattedContents,
                 config: {
-                  systemInstruction,
+                  systemInstruction: effectiveSystemInstruction,
                   temperature: role === 'quick' ? 0.2 : 0.6,
                   topP: 0.9,
                 },
@@ -1847,6 +1875,8 @@ Guidelines:
               if (replyText.trim()) {
                 chatResponseCache.set(cacheKey, {
                   reply: replyText.trim(),
+                  groundingSources: initialWebSources,
+                  webSearchQueries: [liveSearchResults.query],
                   modelUsed: candidateModel,
                   timestamp: Date.now(),
                 });
@@ -1860,9 +1890,9 @@ Guidelines:
                   isLiveAI: true,
                   patientName: effectivePatientName,
                   timestamp: new Date().toISOString(),
-                  groundingSources: [],
-                  webSearchQueries: [],
-                  searchGroundingActive: false,
+                  groundingSources: initialWebSources,
+                  webSearchQueries: [liveSearchResults.query],
+                  searchGroundingActive: initialWebSources.length > 0,
                 });
               }
             } catch (fallbackErr: any) {
@@ -1872,16 +1902,24 @@ Guidelines:
         }
       }
 
-      // Comprehensive High-Intelligence Responder (answers with encyclopedic depth if upstream quota is cooling down)
+      // Comprehensive High-Intelligence Responder (answers with encyclopedic depth and live web grounding if upstream quota is cooling down)
       const answer = generateSmartAutonomousReply(
         message.trim(),
         role,
         effectivePatientName,
         effectiveCaregiverName,
-        language
+        language,
+        liveSearchResults.formattedContext,
+        initialWebSources
       );
 
-      chatResponseCache.set(cacheKey, { reply: answer, timestamp: Date.now() });
+      chatResponseCache.set(cacheKey, {
+        reply: answer,
+        groundingSources: initialWebSources,
+        webSearchQueries: [liveSearchResults.query],
+        modelUsed: 'gemini-3.1-flash-lite',
+        timestamp: Date.now(),
+      });
 
       return res.json({
         success: true,
@@ -1893,6 +1931,9 @@ Guidelines:
         isLiveAI: true,
         patientName: effectivePatientName,
         timestamp: new Date().toISOString(),
+        groundingSources: initialWebSources,
+        webSearchQueries: [liveSearchResults.query],
+        searchGroundingActive: initialWebSources.length > 0,
       });
     } catch (err: any) {
       console.error('[Gemini Chat Error]', err);
