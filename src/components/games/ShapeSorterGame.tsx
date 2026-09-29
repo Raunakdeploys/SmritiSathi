@@ -27,7 +27,7 @@ const ALL_SHAPES: ShapeItem[] = [
   { id: 'triangle-green', name: 'Emerald Triangle', icon: 'change_history', colorName: 'Emerald Green', colorClass: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-400' },
   { id: 'star-yellow', name: 'Luminous Star', icon: 'star', colorName: 'Bright Yellow', colorClass: 'text-yellow-500', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-400' },
   { id: 'diamond-blue', name: 'Azure Diamond', icon: 'diamond', colorName: 'Royal Blue', colorClass: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-400' },
-  { id: 'square-navy', name: 'Sapphire Square', icon: 'square', colorName: 'Navy Blue', colorClass: 'text-white', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-400' },
+  { id: 'square-navy', name: 'Sapphire Square', icon: 'square', colorName: 'Navy Blue', colorClass: 'text-[#002045]', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-400' },
   { id: 'hexagon-purple', name: 'Amethyst Hexagon', icon: 'hexagon', colorName: 'Purple', colorClass: 'text-purple-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-400' },
   { id: 'sun-orange', name: 'Marigold Sunburst', icon: 'wb_sunny', colorName: 'Warm Orange', colorClass: 'text-orange-500', bgColor: 'bg-orange-50', borderColor: 'border-orange-400' },
 ];
@@ -338,18 +338,18 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
 
   return (
     <div id="shape-sorter-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-[#f8f9fc] text-white w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
+      <div className="bg-[#f8f9fc] text-[#002045] w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
         
         {/* Top Header Bar */}
         <div className="bg-[#002045] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-[#d7e2ff] text-white rounded-xl flex items-center justify-center shadow-inner">
-              <Layers className="w-6 h-6 text-white" />
+            <div className="p-2 bg-[#d7e2ff] text-[#002045] rounded-xl flex items-center justify-center shadow-inner">
+              <Layers className="w-6 h-6 text-[#002045]" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-xl font-bold tracking-tight">Shape & Geometry Studio</h2>
-                <span className="bg-[#facc15] text-white text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                <span className="bg-[#facc15] text-[#002045] text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                   Interactive Cognitive Puzzles
                 </span>
               </div>
@@ -384,7 +384,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                   initRound('sequence', selectedLevel, 0);
                 }}
                 className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                  subMode === 'sequence' ? 'bg-[#d7e2ff] text-white shadow-xs' : 'text-[#a0c4ff] hover:text-white'
+                  subMode === 'sequence' ? 'bg-[#d7e2ff] text-[#002045] shadow-xs' : 'text-[#a0c4ff] hover:text-white'
                 }`}
               >
                 🔁 Sequence Recall
@@ -398,7 +398,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                   initRound('matrix', selectedLevel, 0);
                 }}
                 className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                  subMode === 'matrix' ? 'bg-[#d7e2ff] text-white shadow-xs' : 'text-[#a0c4ff] hover:text-white'
+                  subMode === 'matrix' ? 'bg-[#d7e2ff] text-[#002045] shadow-xs' : 'text-[#a0c4ff] hover:text-white'
                 }`}
               >
                 🧩 Odd-One-Out
@@ -412,7 +412,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                   initRound('bins', selectedLevel, 0);
                 }}
                 className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                  subMode === 'bins' ? 'bg-[#d7e2ff] text-white shadow-xs' : 'text-[#a0c4ff] hover:text-white'
+                  subMode === 'bins' ? 'bg-[#d7e2ff] text-[#002045] shadow-xs' : 'text-[#a0c4ff] hover:text-white'
                 }`}
               >
                 📥 Tray Sorter
@@ -420,7 +420,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
             </div>
 
             <div className="flex items-center space-x-3">
-              <span className="text-xs font-black text-white uppercase">Level {selectedLevel}:</span>
+              <span className="text-xs font-black text-[#002045] uppercase">Level {selectedLevel}:</span>
               <div className="flex space-x-1">
                 {[1, 2, 3].map((lvl) => (
                   <button
@@ -432,14 +432,14 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                       initRound(subMode, lvl, 0);
                     }}
                     className={`px-2.5 py-0.5 text-xs font-black rounded-md border ${
-                      selectedLevel === lvl ? 'bg-[#002045] text-white border-[#002045]' : 'bg-white text-white border-[#c8d8f8]'
+                      selectedLevel === lvl ? 'bg-[#002045] text-white border-[#002045]' : 'bg-white text-[#002045] border-[#c8d8f8]'
                     }`}
                   >
                     L{lvl}
                   </button>
                 ))}
               </div>
-              <span className="bg-[#d7e2ff] text-white font-black text-xs px-2.5 py-1 rounded-md border border-[#a0c4ff]">
+              <span className="bg-[#d7e2ff] text-[#002045] font-black text-xs px-2.5 py-1 rounded-md border border-[#a0c4ff]">
                 Score: {score}
               </span>
             </div>
@@ -450,22 +450,22 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 flex flex-col justify-center">
           {isFinished ? (
             <div className="text-center py-6 flex flex-col items-center space-y-5">
-              <div className="w-20 h-20 bg-[#d7e2ff] text-white rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
-                <Trophy className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-[#d7e2ff] text-[#002045] rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
+                <Trophy className="w-10 h-10 text-[#002045]" />
               </div>
               <div>
-                <h3 className="text-3xl font-black text-white">Shape Mastery Completed!</h3>
+                <h3 className="text-3xl font-black text-[#002045]">Shape Mastery Completed!</h3>
                 <p className="text-[#3b5998] text-base mt-1">Excellent visual discrimination and sequential memory.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 w-full max-w-sm bg-[#eef3fc] p-4 rounded-xl border border-[#c8d8f8]">
                 <div className="bg-white p-3 rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987]">Total Score</p>
-                  <p className="text-2xl font-black text-white">{score}</p>
+                  <p className="text-2xl font-black text-[#002045]">{score}</p>
                 </div>
                 <div className="bg-white p-3 rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987]">Puzzles Solved</p>
-                  <p className="text-2xl font-black text-white">{correctCount} / {totalRounds}</p>
+                  <p className="text-2xl font-black text-[#002045]">{correctCount} / {totalRounds}</p>
                 </div>
               </div>
 
@@ -487,7 +487,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                       <span className="text-xs font-black uppercase tracking-wider text-[#3b5998]">
                         Round {roundIndex + 1} of {totalRounds} • Visual Working Memory
                       </span>
-                      <h3 className="text-xl font-black text-white">
+                      <h3 className="text-xl font-black text-[#002045]">
                         {isPatternVisible
                           ? `👀 Memorize the Pattern! (${memorizeSecondsLeft}s remaining)`
                           : '🧠 Recreate from Memory!'}
@@ -503,7 +503,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                       id="peek-pattern-btn"
                       onClick={() => startMemorizeCountdown(sequenceTarget)}
                       disabled={isPatternVisible}
-                      className="px-4 py-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] disabled:opacity-40 text-white rounded-xl text-xs font-bold flex items-center space-x-2 border border-[#c8d8f8] shadow-xs transition-all"
+                      className="px-4 py-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] disabled:opacity-40 text-[#002045] rounded-xl text-xs font-bold flex items-center space-x-2 border border-[#c8d8f8] shadow-xs transition-all"
                     >
                       <Eye className="w-4 h-4" />
                       <span>{isPatternVisible ? `Disappearing in ${memorizeSecondsLeft}s...` : 'Peek Pattern (3s)'}</span>
@@ -515,12 +515,12 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                     
                     {/* Status Badge */}
                     {isPatternVisible ? (
-                      <div className="flex items-center space-x-2 bg-[#facc15] text-white px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider animate-pulse mb-4 shadow-md">
+                      <div className="flex items-center space-x-2 bg-[#facc15] text-[#002045] px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider animate-pulse mb-4 shadow-md">
                         <Timer className="w-4 h-4" />
                         <span>Memorizing Phase • Disappearing in {memorizeSecondsLeft}s</span>
                       </div>
                     ) : (
-                      <div className="flex items-center space-x-2 bg-[#d7e2ff] text-white px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider mb-4 border border-[#a0c4ff] shadow-sm">
+                      <div className="flex items-center space-x-2 bg-[#d7e2ff] text-[#002045] px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider mb-4 border border-[#a0c4ff] shadow-sm">
                         <Lock className="w-4 h-4" />
                         <span>Memory Slots • {userSequence.length} of {sequenceTarget.length} Recalled</span>
                       </div>
@@ -630,7 +630,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                           <span className={`material-symbols-outlined text-[38px] sm:text-[42px] ${shape.colorClass}`}>
                             {shape.icon}
                           </span>
-                          <span className="text-xs font-black text-white text-center">{shape.name}</span>
+                          <span className="text-xs font-black text-[#002045] text-center">{shape.name}</span>
                         </button>
                       ))}
                     </div>
@@ -644,11 +644,11 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                   <div className="bg-white p-5 rounded-2xl border-2 border-[#002045] shadow-sm flex items-center justify-between">
                     <div>
                       <span className="text-xs font-black uppercase tracking-wider text-[#3b5998]">Round {roundIndex + 1} of {totalRounds} • Spatial Analysis</span>
-                      <h3 className="text-xl font-black text-white">{matrixRule}</h3>
+                      <h3 className="text-xl font-black text-[#002045]">{matrixRule}</h3>
                     </div>
                     <button
                       onClick={() => speakText(matrixRule, true)}
-                      className="p-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-white rounded-xl border border-[#c8d8f8]"
+                      className="p-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-[#002045] rounded-xl border border-[#c8d8f8]"
                     >
                       <Volume2 className="w-5 h-5" />
                     </button>
@@ -674,7 +674,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                           <span className={`material-symbols-outlined text-[54px] ${opt.item.colorClass}`}>
                             {opt.item.icon}
                           </span>
-                          <span className="text-sm font-black text-white text-center">{opt.item.name}</span>
+                          <span className="text-sm font-black text-[#002045] text-center">{opt.item.name}</span>
 
                           {isSelected && (
                             <p className="text-xs font-bold text-center mt-1 text-[#3b5998]">{opt.reason}</p>
@@ -692,7 +692,7 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                   <div className="bg-white p-5 rounded-2xl border-2 border-[#002045] shadow-sm flex items-center justify-between">
                     <div>
                       <span className="text-xs font-black uppercase tracking-wider text-[#3b5998]">Tactile Sorting Tray</span>
-                      <h3 className="text-xl font-black text-white">Sort the active piece into its matching color tray below!</h3>
+                      <h3 className="text-xl font-black text-[#002045]">Sort the active piece into its matching color tray below!</h3>
                     </div>
                   </div>
 
@@ -700,12 +700,12 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                   <div className="bg-[#002045] p-6 rounded-2xl text-center text-white flex flex-col items-center justify-center space-y-2 border-2 border-[#1a365d]">
                     <span className="text-xs font-black uppercase tracking-widest text-[#a0c4ff]">Active Item To Sort</span>
                     {activeItemToSort ? (
-                      <div className="flex items-center space-x-3 bg-white p-3 px-6 rounded-2xl text-white shadow-lg animate-bounce">
+                      <div className="flex items-center space-x-3 bg-white p-3 px-6 rounded-2xl text-[#002045] shadow-lg animate-bounce">
                         <span className={`material-symbols-outlined text-[44px] ${activeItemToSort.colorClass}`}>
                           {activeItemToSort.icon}
                         </span>
                         <div className="text-left">
-                          <p className="text-base font-black text-white">{activeItemToSort.name}</p>
+                          <p className="text-base font-black text-[#002045]">{activeItemToSort.name}</p>
                           <p className="text-xs text-[#556987] font-bold">Color Theme: {activeItemToSort.colorName}</p>
                         </div>
                       </div>
@@ -724,8 +724,8 @@ export const ShapeSorterGame: React.FC<ShapeSorterGameProps> = ({
                         className={`p-6 rounded-2xl border-3 ${bin.colorClass} shadow-md flex flex-col items-center justify-center space-y-3 transition-all hover:scale-102 active:scale-98`}
                       >
                         <span className="material-symbols-outlined text-[48px]">{bin.icon}</span>
-                        <span className="text-base font-black text-white">{bin.name}</span>
-                        <span className="text-xs font-bold bg-white/80 px-3 py-1 rounded-full text-white shadow-xs">
+                        <span className="text-base font-black text-[#002045]">{bin.name}</span>
+                        <span className="text-xs font-bold bg-white/80 px-3 py-1 rounded-full text-[#002045] shadow-xs">
                           {bin.matchedCount} Items Sorted
                         </span>
                       </button>

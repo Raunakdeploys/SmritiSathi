@@ -232,18 +232,18 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
 
   return (
     <div id="word-pair-game-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-[#f8f9fc] text-white w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
+      <div className="bg-[#f8f9fc] text-[#002045] w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
         
         {/* Top Header Bar */}
         <div className="bg-[#002045] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-[#d7e2ff] text-white rounded-xl flex items-center justify-center shadow-inner">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="p-2 bg-[#d7e2ff] text-[#002045] rounded-xl flex items-center justify-center shadow-inner">
+              <Sparkles className="w-6 h-6 text-[#002045]" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-xl font-bold tracking-tight">Memory Tiles & Word Association</h2>
-                <span className="bg-[#facc15] text-white text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                <span className="bg-[#facc15] text-[#002045] text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                   Concentration & Language
                 </span>
               </div>
@@ -274,7 +274,7 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
                   initCards(selectedLevel);
                 }}
                 className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                  subMode === 'cards' ? 'bg-[#d7e2ff] text-white shadow-xs' : 'text-[#a0c4ff] hover:text-white'
+                  subMode === 'cards' ? 'bg-[#d7e2ff] text-[#002045] shadow-xs' : 'text-[#a0c4ff] hover:text-white'
                 }`}
               >
                 🎴 Memory Card Flip
@@ -286,14 +286,14 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
                   setProverbIndex(0);
                 }}
                 className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                  subMode === 'proverbs' ? 'bg-[#d7e2ff] text-white shadow-xs' : 'text-[#a0c4ff] hover:text-white'
+                  subMode === 'proverbs' ? 'bg-[#d7e2ff] text-[#002045] shadow-xs' : 'text-[#a0c4ff] hover:text-white'
                 }`}
               >
                 📜 Proverb Builder
               </button>
             </div>
 
-            <div className="flex items-center space-x-3 text-xs font-bold text-white">
+            <div className="flex items-center space-x-3 text-xs font-bold text-[#002045]">
               {subMode === 'cards' ? (
                 <>
                   <span>Matches: {matchesFound} / {selectedLevel === 1 ? 3 : selectedLevel === 2 ? 4 : 6}</span>
@@ -302,7 +302,7 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
               ) : (
                 <span>Proverb {proverbIndex + 1} of {PROVERBS.length}</span>
               )}
-              <span className="bg-[#d7e2ff] text-white font-black px-2.5 py-1 rounded-md border border-[#a0c4ff]">
+              <span className="bg-[#d7e2ff] text-[#002045] font-black px-2.5 py-1 rounded-md border border-[#a0c4ff]">
                 Score: {score}
               </span>
             </div>
@@ -313,22 +313,22 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 flex flex-col justify-center">
           {isFinished ? (
             <div className="text-center py-6 flex flex-col items-center space-y-5">
-              <div className="w-20 h-20 bg-[#d7e2ff] text-white rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
-                <Trophy className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-[#d7e2ff] text-[#002045] rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
+                <Trophy className="w-10 h-10 text-[#002045]" />
               </div>
               <div>
-                <h3 className="text-3xl font-black text-white">Memory Match Victor!</h3>
+                <h3 className="text-3xl font-black text-[#002045]">Memory Match Victor!</h3>
                 <p className="text-[#3b5998] text-base mt-1">Superb episodic concentration and language recall!</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 w-full max-w-sm bg-[#eef3fc] p-4 rounded-xl border border-[#c8d8f8]">
                 <div className="bg-white p-3 rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987]">Total Score</p>
-                  <p className="text-2xl font-black text-white">{score}</p>
+                  <p className="text-2xl font-black text-[#002045]">{score}</p>
                 </div>
                 <div className="bg-white p-3 rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987]">Total Flips</p>
-                  <p className="text-2xl font-black text-white">{movesCount || proverbsSolved}</p>
+                  <p className="text-2xl font-black text-[#002045]">{movesCount || proverbsSolved}</p>
                 </div>
               </div>
 
@@ -345,12 +345,12 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-[#c8d8f8] shadow-xs">
                 <div className="text-xs text-[#556987] font-semibold flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-white" />
+                  <Sparkles className="w-4 h-4 text-[#002045]" />
                   <span>Tap two cards to flip them over and find connected life pairs (e.g. Chai + Cardamom).</span>
                 </div>
                 <button
                   onClick={() => initCards(selectedLevel)}
-                  className="px-3 py-1.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-white text-xs font-bold rounded-lg flex items-center space-x-1 border border-[#c8d8f8]"
+                  className="px-3 py-1.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-[#002045] text-xs font-bold rounded-lg flex items-center space-x-1 border border-[#c8d8f8]"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Shuffle</span>
@@ -371,7 +371,7 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
                           ? 'bg-emerald-50 border-emerald-500 scale-98 shadow-inner ring-2 ring-emerald-300 opacity-90'
                           : isVisible
                           ? `${card.bgClass} border-[#002045] shadow-lg scale-102`
-                          : 'bg-[#002045] border-[#1a365d] hover:bg-[#1a365d] hover:border-blue-700'
+                          : 'bg-[#002045] border-[#1a365d] hover:bg-[#1a365d] hover:border-[#adc7f7]'
                       }`}
                     >
                       {isVisible ? (
@@ -379,7 +379,7 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
                           <span className={`material-symbols-outlined text-[32px] sm:text-[38px] ${card.colorClass} mb-1`}>
                             {card.icon}
                           </span>
-                          <p className="text-xs sm:text-sm font-black text-white leading-tight line-clamp-2">
+                          <p className="text-xs sm:text-sm font-black text-[#002045] leading-tight line-clamp-2">
                             {card.text}
                           </p>
                           <span className="text-[10px] text-[#556987] font-bold mt-0.5">
@@ -407,7 +407,7 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
                   <span className="text-xs font-black uppercase tracking-wider text-[#3b5998]">Proverb & Wisdom Recall</span>
                   <button
                     onClick={() => speakText(PROVERBS[proverbIndex].sentence, true)}
-                    className="p-2 bg-[#eef3fc] hover:bg-[#d0e0fc] text-white rounded-xl border border-[#c8d8f8]"
+                    className="p-2 bg-[#eef3fc] hover:bg-[#d0e0fc] text-[#002045] rounded-xl border border-[#c8d8f8]"
                   >
                     <Volume2 className="w-5 h-5" />
                   </button>
@@ -431,7 +431,7 @@ export const WordPairGame: React.FC<WordPairGameProps> = ({
                     <button
                       key={opt}
                       onClick={() => handleProverbOption(opt)}
-                      className="p-4 bg-[#f8fafd] hover:bg-[#d7e2ff] border-2 border-blue-700 hover:border-[#002045] rounded-xl text-lg font-black text-white transition-all transform active:scale-95 shadow-sm"
+                      className="p-4 bg-[#f8fafd] hover:bg-[#d7e2ff] border-2 border-[#adc7f7] hover:border-[#002045] rounded-xl text-lg font-black text-[#002045] transition-all transform active:scale-95 shadow-sm"
                     >
                       {opt.toUpperCase()}
                     </button>

@@ -46,14 +46,14 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
     <div className="fixed inset-0 bg-[#002045]/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-[#ffffff] rounded-2xl border-2 border-[#002045] p-5 sm:p-7 max-w-3xl w-full shadow-2xl my-auto max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-blue-800">
+        <div className="flex justify-between items-center pb-4 border-b border-[#c4c6cf]">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 rounded-full bg-[#ffdeaa] border border-[#f8bc4b] flex items-center justify-center text-[#2d1d00]">
               <span className="material-symbols-outlined filled-icon text-[30px]">stars</span>
             </div>
             <div>
-              <h2 className="font-extrabold text-[22px] sm:text-[26px] text-white">Mind Points Rewards</h2>
-              <p className="text-sm text-blue-200">
+              <h2 className="font-extrabold text-[22px] sm:text-[26px] text-[#002045]">Mind Points Rewards</h2>
+              <p className="text-sm text-[#43474e]">
                 Available balance: <span className="font-bold text-[#2d1d00] text-base">{mindPoints.toLocaleString()} pts</span>
               </p>
             </div>
@@ -61,7 +61,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="p-2 text-blue-200 hover:bg-[#f0f3ff] rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center cursor-pointer"
+            className="p-2 text-[#43474e] hover:bg-[#f0f3ff] rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center cursor-pointer"
           >
             <span className="material-symbols-outlined text-[28px]">close</span>
           </button>
@@ -74,7 +74,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
             className={`px-5 py-2.5 rounded-xl font-bold text-[17px] transition-all cursor-pointer ${
               activeTab === 'available'
                 ? 'bg-[#002045] text-white shadow-xs'
-                : 'bg-[#f0f3ff] text-blue-200 hover:bg-[#d9e3f9]'
+                : 'bg-[#f0f3ff] text-[#43474e] hover:bg-[#d9e3f9]'
             }`}
           >
             Available Rewards ({availableRewards.length})
@@ -84,7 +84,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
             className={`px-5 py-2.5 rounded-xl font-bold text-[17px] transition-all cursor-pointer ${
               activeTab === 'claimed'
                 ? 'bg-[#002045] text-white shadow-xs'
-                : 'bg-[#f0f3ff] text-blue-200 hover:bg-[#d9e3f9]'
+                : 'bg-[#f0f3ff] text-[#43474e] hover:bg-[#d9e3f9]'
             }`}
           >
             Claimed Vouchers ({claimedRewards.length})
@@ -99,21 +99,21 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
               return (
                 <div
                   key={reward.id}
-                  className="p-4 sm:p-5 bg-[#0b1d3a] rounded-2xl border-2 border-blue-800 hover:border-[#002045] flex flex-col sm:flex-row items-center gap-4 transition-all"
+                  className="p-4 sm:p-5 bg-[#f9f9ff] rounded-2xl border-2 border-[#c4c6cf] hover:border-[#002045] flex flex-col sm:flex-row items-center gap-4 transition-all"
                 >
                   <img
                     src={reward.imageUrl}
                     alt={reward.title}
-                    className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-xl border border-blue-800 shadow-xs flex-shrink-0"
+                    className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-xl border border-[#d9e3f9] shadow-xs flex-shrink-0"
                   />
                   <div className="flex-1 text-center sm:text-left">
-                    <span className="bg-[#d9e3f9] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+                    <span className="bg-[#d9e3f9] text-[#002045] text-xs font-bold px-2.5 py-0.5 rounded-full">
                       {reward.category}
                     </span>
-                    <h3 className="font-bold text-[19px] sm:text-[20px] text-white mt-1">
+                    <h3 className="font-bold text-[19px] sm:text-[20px] text-[#002045] mt-1">
                       {reward.title}
                     </h3>
-                    <p className="text-[15px] text-blue-200 mt-1">{reward.description}</p>
+                    <p className="text-[15px] text-[#43474e] mt-1">{reward.description}</p>
                     <div className="mt-2 font-extrabold text-[18px] text-[#2d1d00] flex items-center justify-center sm:justify-start">
                       <span className="material-symbols-outlined text-[20px] mr-1 text-amber-600">stars</span>
                       {reward.cost.toLocaleString()} Mind Points
@@ -136,7 +136,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
             })
           ) : (
             claimedRewards.length === 0 ? (
-              <div className="text-center py-10 text-blue-200">
+              <div className="text-center py-10 text-[#43474e]">
                 <span className="material-symbols-outlined text-[48px] text-gray-400 mb-2">inventory_2</span>
                 <p className="text-[18px]">No vouchers claimed yet. Play more games to earn and redeem!</p>
               </div>
@@ -157,7 +157,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
                     </span>
                     <h3 className="font-bold text-[19px] text-emerald-950 mt-1">{reward.title}</h3>
                     <p className="text-sm text-emerald-800 mt-1">Claimed: {reward.claimedAt || 'Recently'}</p>
-                    <p className="font-mono font-bold text-base text-white bg-white inline-block px-3 py-1 rounded-lg border border-emerald-300 mt-2">
+                    <p className="font-mono font-bold text-base text-[#002045] bg-white inline-block px-3 py-1 rounded-lg border border-emerald-300 mt-2">
                       Code: {reward.claimCode || 'SS-8821-DEL'}
                     </p>
                   </div>
@@ -171,15 +171,15 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
       {/* Success Modal */}
       {successModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-60 animate-fadeIn">
-          <div className="bg-[#0b1d3a] text-white rounded-2xl border-2 border-emerald-600 p-6 max-w-md w-full text-center space-y-4 shadow-2xl">
+          <div className="bg-white rounded-2xl border-2 border-emerald-600 p-6 max-w-md w-full text-center space-y-4 shadow-2xl">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-700">
               <span className="material-symbols-outlined text-[36px]">check_circle</span>
             </div>
-            <h3 className="font-extrabold text-[24px] text-white">Reward Claimed!</h3>
-            <p className="text-[17px] text-blue-200">
+            <h3 className="font-extrabold text-[24px] text-[#002045]">Reward Claimed!</h3>
+            <p className="text-[17px] text-[#43474e]">
               You redeemed <strong>{successModal.title}</strong>! Your family caregiver has also received notification.
             </p>
-            <div className="bg-[#f0f3ff] p-3 rounded-xl font-mono text-lg font-bold text-white">
+            <div className="bg-[#f0f3ff] p-3 rounded-xl font-mono text-lg font-bold text-[#002045]">
               Voucher Code: SS-{Math.floor(1000 + Math.random() * 9000)}-DEL
             </div>
             <button

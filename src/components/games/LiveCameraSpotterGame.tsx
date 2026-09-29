@@ -382,7 +382,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
 
   return (
     <div id="live-camera-spotter-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-[#f8f9fc] text-white w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
+      <div className="bg-[#f8f9fc] text-[#002045] w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
         
         {/* Hidden Canvas for video frame extraction */}
         <canvas ref={canvasRef} className="hidden" />
@@ -391,13 +391,13 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
         {/* Top Header Bar */}
         <div className="bg-[#002045] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-[#d7e2ff] text-white rounded-xl flex items-center justify-center shadow-inner">
-              <Camera className="w-6 h-6 text-white" />
+            <div className="p-2 bg-[#d7e2ff] text-[#002045] rounded-xl flex items-center justify-center shadow-inner">
+              <Camera className="w-6 h-6 text-[#002045]" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-xl font-bold tracking-tight">Live Camera Object Spotter</h2>
-                <span className="bg-[#facc15] text-white text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                <span className="bg-[#facc15] text-[#002045] text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                   Gemini Vision AI
                 </span>
               </div>
@@ -417,7 +417,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                   setAnalysisResult(null);
                 }}
                 className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                  gameMode === 'scavenger' ? 'bg-[#d7e2ff] text-white shadow-sm' : 'text-[#a0c4ff] hover:text-white'
+                  gameMode === 'scavenger' ? 'bg-[#d7e2ff] text-[#002045] shadow-sm' : 'text-[#a0c4ff] hover:text-white'
                 }`}
               >
                 🎯 Quest Mode
@@ -431,7 +431,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                   setAnalysisResult(null);
                 }}
                 className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                  gameMode === 'explore' ? 'bg-[#d7e2ff] text-white shadow-sm' : 'text-[#a0c4ff] hover:text-white'
+                  gameMode === 'explore' ? 'bg-[#d7e2ff] text-[#002045] shadow-sm' : 'text-[#a0c4ff] hover:text-white'
                 }`}
               >
                 🔍 Free Explore
@@ -456,7 +456,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
         {!isFinished && gameMode === 'scavenger' && (
           <div className="bg-[#e2eafc] px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between border-b border-[#c8d8f8] gap-2">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-black text-white uppercase tracking-wider">Difficulty Level:</span>
+              <span className="text-xs font-black text-[#002045] uppercase tracking-wider">Difficulty Level:</span>
               <div className="flex space-x-1.5">
                 {[1, 2, 3].map((lvl) => (
                   <button
@@ -472,7 +472,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                     className={`px-3 py-1 text-xs font-bold rounded-md border transition-all ${
                       selectedLevel === lvl
                         ? 'bg-[#002045] text-white border-[#002045] shadow-sm'
-                        : 'bg-white text-white border-[#b0c8f0] hover:bg-[#d0e0fc]'
+                        : 'bg-white text-[#002045] border-[#b0c8f0] hover:bg-[#d0e0fc]'
                     }`}
                   >
                     {lvl === 1 ? 'Level 1 (Gentle)' : lvl === 2 ? 'Level 2 (Moderate)' : 'Level 3 (Master)'}
@@ -481,9 +481,9 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center space-x-4 text-xs font-bold text-white">
+            <div className="flex items-center space-x-4 text-xs font-bold text-[#002045]">
               <span>Round {currentIndex + 1} of {totalRounds}</span>
-              <span className="bg-[#d7e2ff] px-2.5 py-1 rounded-md text-white font-black border border-[#a0c4ff]">
+              <span className="bg-[#d7e2ff] px-2.5 py-1 rounded-md text-[#002045] font-black border border-[#a0c4ff]">
                 Score: {score} pts
               </span>
             </div>
@@ -496,11 +496,11 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
           {/* Completion Screen */}
           {isFinished ? (
             <div className="text-center py-8 px-4 flex flex-col items-center space-y-6">
-              <div className="w-20 h-20 bg-[#d7e2ff] text-white rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
-                <Trophy className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-[#d7e2ff] text-[#002045] rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
+                <Trophy className="w-10 h-10 text-[#002045]" />
               </div>
               <div>
-                <h3 className="text-3xl font-black text-white">Memory Quest Completed!</h3>
+                <h3 className="text-3xl font-black text-[#002045]">Memory Quest Completed!</h3>
                 <p className="text-[#3b5998] text-base mt-2 max-w-md mx-auto">
                   You successfully spotted and recognized everyday objects in your environment, sharpening visual pathways and episodic memory!
                 </p>
@@ -509,15 +509,15 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
               <div className="grid grid-cols-3 gap-3 sm:gap-6 w-full max-w-lg bg-[#eef3fc] p-4 rounded-xl border border-[#c8d8f8]">
                 <div className="p-3 bg-white rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987] font-semibold">Total Score</p>
-                  <p className="text-2xl font-black text-white">{score}</p>
+                  <p className="text-2xl font-black text-[#002045]">{score}</p>
                 </div>
                 <div className="p-3 bg-white rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987] font-semibold">Spotted Items</p>
-                  <p className="text-2xl font-black text-white">{correctCount} / {totalRounds}</p>
+                  <p className="text-2xl font-black text-[#002045]">{correctCount} / {totalRounds}</p>
                 </div>
                 <div className="p-3 bg-white rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987] font-semibold">Accuracy</p>
-                  <p className="text-2xl font-black text-white">{Math.round((correctCount / totalRounds) * 100)}%</p>
+                  <p className="text-2xl font-black text-[#002045]">{Math.round((correctCount / totalRounds) * 100)}%</p>
                 </div>
               </div>
 
@@ -548,7 +548,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                     setCapturedImage(null);
                     setAnalysisResult(null);
                   }}
-                  className="bg-white border-2 border-[#002045] text-white hover:bg-[#eef3fc] px-6 py-3.5 rounded-xl font-bold text-base transition-all"
+                  className="bg-white border-2 border-[#002045] text-[#002045] hover:bg-[#eef3fc] px-6 py-3.5 rounded-xl font-bold text-base transition-all"
                 >
                   Play Again
                 </button>
@@ -565,7 +565,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                     </div>
                     <div>
                       <span className="text-xs font-bold tracking-wider text-[#3b5998] uppercase">Target Object to Find</span>
-                      <h3 className="text-2xl font-black text-white">{currentTarget.name}</h3>
+                      <h3 className="text-2xl font-black text-[#002045]">{currentTarget.name}</h3>
                       <p className="text-sm text-[#475569] mt-0.5">{currentTarget.hint}</p>
                     </div>
                   </div>
@@ -577,7 +577,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                         playGentleClick();
                         speakText(`Find and spot: ${currentTarget.name}. ${currentTarget.hint}`, true);
                       }}
-                      className="p-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-white rounded-xl border border-[#c8d8f8] transition-colors"
+                      className="p-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-[#002045] rounded-xl border border-[#c8d8f8] transition-colors"
                       title="Listen to Target"
                     >
                       <Volume2 className="w-5 h-5" />
@@ -588,7 +588,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                         playGentleClick();
                         setShowHint(!showHint);
                       }}
-                      className="px-3.5 py-2 bg-[#f1f5f9] hover:bg-[#e2e8f0] text-white rounded-xl text-xs font-bold border border-[#cbd5e1] flex items-center space-x-1.5 transition-colors"
+                      className="px-3.5 py-2 bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#002045] rounded-xl text-xs font-bold border border-[#cbd5e1] flex items-center space-x-1.5 transition-colors"
                     >
                       <HelpCircle className="w-4 h-4" />
                       <span>{showHint ? 'Hide Hint' : 'Show Hint'}</span>
@@ -600,7 +600,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                   <div className="flex items-center space-x-3">
                     <div className="text-3xl p-2 bg-[#eef3fc] rounded-xl">🔍</div>
                     <div>
-                      <h3 className="text-xl font-black text-white">Free Camera Exploration</h3>
+                      <h3 className="text-xl font-black text-[#002045]">Free Camera Exploration</h3>
                       <p className="text-sm text-[#475569]">Point your camera at anything in your room — tea cup, picture frame, chair, plant, book — and tap Capture!</p>
                     </div>
                   </div>
@@ -609,7 +609,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                       playGentleClick();
                       speakText('Point your camera at anything in your room and tap Capture to let Gemini Vision identify it and share memories.', true);
                     }}
-                    className="p-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-white rounded-xl border border-[#c8d8f8]"
+                    className="p-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-[#002045] rounded-xl border border-[#c8d8f8]"
                     title="Audio Guidance"
                   >
                     <Volume2 className="w-5 h-5" />
@@ -645,7 +645,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                           <button
                             id="retry-camera-btn"
                             onClick={() => startCamera(cameraFacing)}
-                            className="px-4 py-2 bg-[#d7e2ff] text-white rounded-xl font-bold text-xs hover:bg-white flex items-center space-x-1.5"
+                            className="px-4 py-2 bg-[#d7e2ff] text-[#002045] rounded-xl font-bold text-xs hover:bg-white flex items-center space-x-1.5"
                           >
                             <RefreshCw className="w-4 h-4" />
                             <span>Retry Camera</span>
@@ -734,7 +734,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
               {!capturedImage ? (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
                   <div className="text-xs text-[#556987] font-semibold flex items-center space-x-1.5">
-                    <Eye className="w-4 h-4 text-white" />
+                    <Eye className="w-4 h-4 text-[#002045]" />
                     <span>Position the object in center lighting and click the large capture button.</span>
                   </div>
 
@@ -763,7 +763,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                           <span className="text-xs font-bold uppercase tracking-wider text-[#556987]">
                             AI Recognition Result • {analysisResult.source === 'gemini' ? 'Gemini 3.8 Flash' : 'Vision System'}
                           </span>
-                          <h4 className="text-2xl font-black text-white">{analysisResult.identifiedObject}</h4>
+                          <h4 className="text-2xl font-black text-[#002045]">{analysisResult.identifiedObject}</h4>
                         </div>
                       </div>
 
@@ -775,7 +775,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                     </div>
 
                     <div className="p-4 bg-[#f8fafd] rounded-xl border border-[#e2eafc] space-y-2">
-                      <p className="text-sm text-white font-medium leading-relaxed">
+                      <p className="text-sm text-[#002045] font-medium leading-relaxed">
                         {analysisResult.friendlyDescription}
                       </p>
                       {analysisResult.memoryPrompt && (
@@ -796,7 +796,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                           const readStr = `${analysisResult.identifiedObject}. ${analysisResult.friendlyDescription}. Memory question: ${analysisResult.memoryPrompt}`;
                           speakText(readStr, true);
                         }}
-                        className="px-4 py-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-white rounded-xl text-xs font-bold flex items-center space-x-2 border border-[#c8d8f8]"
+                        className="px-4 py-2.5 bg-[#eef3fc] hover:bg-[#d0e0fc] text-[#002045] rounded-xl text-xs font-bold flex items-center space-x-2 border border-[#c8d8f8]"
                       >
                         <Volume2 className="w-4 h-4" />
                         <span>Listen Aloud</span>
@@ -806,7 +806,7 @@ export const LiveCameraSpotterGame: React.FC<LiveCameraSpotterGameProps> = ({
                         <button
                           id="retake-photo-btn"
                           onClick={handleRetake}
-                          className="px-4 py-2.5 bg-white border border-[#cbd5e1] text-white hover:bg-[#f1f5f9] rounded-xl text-xs font-bold flex items-center space-x-1.5"
+                          className="px-4 py-2.5 bg-white border border-[#cbd5e1] text-[#002045] hover:bg-[#f1f5f9] rounded-xl text-xs font-bold flex items-center space-x-1.5"
                         >
                           <RefreshCw className="w-4 h-4" />
                           <span>Retake Photo</span>

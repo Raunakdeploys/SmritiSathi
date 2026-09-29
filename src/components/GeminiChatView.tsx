@@ -597,13 +597,13 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
   }[fontSizeMode];
 
   return (
-    <div className="flex-1 flex flex-col 2xl:flex-row bg-[#020d1c] h-[calc(100dvh-72px)] sm:h-[calc(100vh-72px)] overflow-hidden w-full min-w-0 max-w-full relative">
+    <div className="flex-1 flex flex-col 2xl:flex-row bg-[#F8F9FA] h-[calc(100dvh-72px)] sm:h-[calc(100vh-72px)] overflow-hidden w-full min-w-0 max-w-full relative">
       {/* =========================================================================
           MAIN CHAT PANE (Adaptive for Phone, Tablet, and PC)
          ========================================================================= */}
-      <div className="flex-1 flex flex-col h-full min-w-0 max-w-full bg-[#020d1c] relative overflow-hidden">
+      <div className="flex-1 flex flex-col h-full min-w-0 max-w-full bg-[#F8F9FA] relative overflow-hidden">
         {/* TOP APP BAR & STATUS BAR */}
-        <header className="bg-[#0b1d3a]/95 backdrop-blur-md border-b border-blue-900/60 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 shrink-0 shadow-xs z-20 w-full min-w-0 max-w-full box-border overflow-hidden">
+        <header className="bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 shrink-0 shadow-xs z-20 w-full min-w-0 max-w-full box-border overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full min-w-0">
             {/* Top row on mobile / Left section on desktop */}
             <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0 flex-1">
@@ -618,7 +618,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     <h1 className="font-black text-sm sm:text-base text-[#002045] truncate leading-tight">
                       {currentConfig.name}
                     </h1>
-                    <span className="hidden lg:inline-flex text-[10px] font-extrabold px-1.5 py-0.2 rounded-full border border-blue-900/60 bg-[#00142b] text-blue-300 whitespace-nowrap shrink-0">
+                    <span className="hidden lg:inline-flex text-[10px] font-extrabold px-1.5 py-0.2 rounded-full border border-slate-200 bg-slate-50 text-slate-600 whitespace-nowrap shrink-0">
                       gemini-3.1-flash-lite
                     </span>
                   </div>
@@ -664,13 +664,13 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
             {/* Bottom row on mobile / Right section on desktop */}
             <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 shrink-0 min-w-0 flex-wrap">
               {/* Persona Switcher Tabs */}
-              <div className="flex items-center bg-[#f1f5f9] p-0.5 rounded-xl border border-blue-900/60 shrink-0">
+              <div className="flex items-center bg-[#f1f5f9] p-0.5 rounded-xl border border-[#e2e8f0] shrink-0">
                 <button
                   id="tab-role-companion"
                   onClick={() => handleSelectRole('companion')}
                   className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'companion'
-                      ? 'bg-[#0b1d3a] text-[#002045] shadow-xs border border-[#cbd5e1]'
+                      ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
                       : 'text-[#64748b] hover:text-[#002045]'
                   }`}
                   title="Saathi Memory Companion"
@@ -684,7 +684,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   onClick={() => handleSelectRole('quick')}
                   className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'quick'
-                      ? 'bg-[#0b1d3a] text-[#002045] shadow-xs border border-[#cbd5e1]'
+                      ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
                       : 'text-[#64748b] hover:text-[#002045]'
                   }`}
                   title="Quick Anchor"
@@ -698,7 +698,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   onClick={() => handleSelectRole('complex')}
                   className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'complex'
-                      ? 'bg-[#0b1d3a] text-[#002045] shadow-xs border border-[#cbd5e1]'
+                      ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
                       : 'text-[#64748b] hover:text-[#002045]'
                   }`}
                   title="Dr. Smriti Clinical Specialist"
@@ -744,7 +744,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                       : 'border-[#cbd5e1] hover:border-[#002045] bg-[#f8fafc] text-[#002045]'
                   }`}
                 >
-                  <Compass className={`w-3.5 h-3.5 ${showStationDrawer ? 'text-[#FF6321]' : 'text-blue-300'}`} />
+                  <Compass className={`w-3.5 h-3.5 ${showStationDrawer ? 'text-[#FF6321]' : 'text-slate-600'}`} />
                   <span className="hidden xl:inline">Station</span>
                 </button>
 
@@ -753,7 +753,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   id="btn-clear-chat-history"
                   onClick={handleClearChat}
                   title="Clear chat conversation"
-                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-blue-950 transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -782,7 +782,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     Session preserved
                   </span>
                 </div>
-                <p className="text-blue-300 text-xs mt-0.5 leading-relaxed">
+                <p className="text-slate-600 text-xs mt-0.5 leading-relaxed">
                   {currentConfig.tagline}. Everything you ask is answered with thoughtful care.
                 </p>
               </div>
@@ -835,7 +835,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                           ? 'bg-gradient-to-r from-[#002045] to-[#12396b] text-white rounded-tr-xs font-medium shadow-sm'
                           : msg.error
                           ? 'bg-rose-50 border-2 border-rose-300 text-rose-900 rounded-tl-xs'
-                          : 'bg-[#0b1d3a] border border-blue-900/60 text-[#0f172a] rounded-tl-xs font-normal shadow-xs'
+                          : 'bg-white border border-[#e2e8f0] text-[#0f172a] rounded-tl-xs font-normal shadow-xs'
                       }`}
                     >
                       <div className="whitespace-pre-wrap select-text">{msg.text}</div>
@@ -866,7 +866,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                                   href={source.uri}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#0b1d3a] hover:bg-sky-100 text-sky-800 hover:text-sky-950 border border-sky-200 text-[11px] font-semibold transition-all shadow-2xs max-w-full truncate"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-sky-100 text-sky-800 hover:text-sky-950 border border-sky-200 text-[11px] font-semibold transition-all shadow-2xs max-w-full truncate"
                                   title={source.title || source.uri}
                                 >
                                   <span className="truncate max-w-[180px] sm:max-w-xs">{source.title || hostName}</span>
@@ -889,7 +889,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer active:scale-95 min-h-[32px] ${
                                 isCurrentlySpeaking
                                   ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-300'
-                                  : 'bg-blue-950 hover:bg-slate-200 text-[#002045]'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-[#002045]'
                               }`}
                               title="Listen aloud with gentle voice readout"
                             >
@@ -917,7 +917,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                             <button
                               type="button"
                               onClick={() => handleCopy(msg.text, msg.id)}
-                              className="p-1.5 rounded-lg hover:bg-blue-950 text-slate-500 hover:text-white transition-colors cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
+                              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                               title="Copy response"
                             >
                               {copiedId === msg.id ? (
@@ -977,7 +977,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 >
                   <Bot className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
                 </div>
-                <div className="bg-[#0b1d3a] border border-blue-900/60 p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs flex items-center gap-3">
+                <div className="bg-white border border-[#e2e8f0] p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs flex items-center gap-3">
                   <div className="flex gap-1.5">
                     <div
                       className="w-2 h-2 rounded-full bg-[#002045] animate-bounce"
@@ -1005,7 +1005,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
         {/* QUICK SUGGESTIONS CAROUSEL */}
         {showPromptsDrawer && (
-          <div className="px-3 sm:px-6 py-2 bg-[#0b1d3a]/95 border-t border-[#f1f5f9] shrink-0">
+          <div className="px-3 sm:px-6 py-2 bg-white/95 border-t border-[#f1f5f9] shrink-0">
             <div className="max-w-3xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
               <span className="text-[10px] sm:text-[11px] font-extrabold uppercase text-[#94a3b8] tracking-wider shrink-0 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[#FF6321]" /> Suggested:
@@ -1026,7 +1026,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
         )}
 
         {/* BOTTOM MESSAGE INPUT BAR (Pinned & Responsive) */}
-        <div className="p-2.5 sm:p-4 bg-[#0b1d3a] border-t border-blue-900/60 shrink-0 shadow-lg z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="p-2.5 sm:p-4 bg-white border-t border-[#e2e8f0] shrink-0 shadow-lg z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="max-w-3xl mx-auto">
             {/* Active Voice Listening Banner */}
             {isListening && (
@@ -1125,11 +1125,11 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           onClick={() => setShowStationDrawer(false)}
         >
           <div
-            className="w-full max-w-sm sm:max-w-md bg-[#0b1d3a] h-full flex flex-col shadow-2xl overflow-y-auto"
+            className="w-full max-w-sm sm:max-w-md bg-white h-full flex flex-col shadow-2xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
-            <div className="p-4 sm:p-5 border-b border-blue-900/60 bg-[#020d1c] flex items-center justify-between shrink-0">
+            <div className="p-4 sm:p-5 border-b border-[#e2e8f0] bg-[#F8F9FA] flex items-center justify-between shrink-0">
               <div>
                 <h2 className="font-extrabold text-base text-[#002045] flex items-center gap-1.5">
                   <Compass className="w-4 h-4 text-[#FF6321]" /> Memory Station
@@ -1141,7 +1141,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               <button
                 type="button"
                 onClick={() => setShowStationDrawer(false)}
-                className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
+                className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
                 aria-label="Close Memory Station"
               >
                 <X className="w-5 h-5" />
@@ -1155,7 +1155,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   <span className="flex items-center gap-1 font-bold">
                     <Clock className="w-3.5 h-3.5 text-blue-300" /> Temporal Anchor
                   </span>
-                  <span className="text-[10px] uppercase font-bold bg-[#0b1d3a]/10 px-2 py-0.5 rounded">
+                  <span className="text-[10px] uppercase font-bold bg-white/10 px-2 py-0.5 rounded">
                     Live
                   </span>
                 </div>
@@ -1191,7 +1191,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                       className={`w-full p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
                         isSelected
                           ? 'border-[#002045] bg-[#002045]/5 shadow-xs ring-1 ring-[#002045]'
-                          : 'border-blue-900/60 bg-[#0b1d3a] hover:bg-[#00142b]'
+                          : 'border-[#e2e8f0] bg-white hover:bg-slate-50'
                       }`}
                     >
                       <div
@@ -1220,7 +1220,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               </div>
 
               {/* Voice Assistance Auto-Readout Switch */}
-              <div className="p-4 rounded-xl border border-blue-900/60 bg-[#00142b] space-y-3">
+              <div className="p-4 rounded-xl border border-[#e2e8f0] bg-slate-50 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Volume2 className="w-4 h-4 text-[#002045]" />
@@ -1235,7 +1235,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                       onChange={(e) => setAutoSpeakReplies(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#0b1d3a] after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002045]"></div>
+                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002045]"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-[#64748b]">
@@ -1245,7 +1245,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
               {/* Quick Memory Bank Navigation Buttons */}
               {onNavigateTab && (
-                <div className="space-y-2 pt-2 border-t border-blue-900/60">
+                <div className="space-y-2 pt-2 border-t border-[#e2e8f0]">
                   <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
                     Elder Training Activities
                   </h3>
@@ -1256,7 +1256,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                         setShowStationDrawer(false);
                         onNavigateTab('reality-quest');
                       }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                     >
                       RealityQuest
                     </button>
@@ -1266,7 +1266,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                         setShowStationDrawer(false);
                         onNavigateTab('games');
                       }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                     >
                       Mind Games
                     </button>
@@ -1276,7 +1276,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                         setShowStationDrawer(false);
                         onNavigateTab('carecompass');
                       }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                     >
                       CareCompass
                     </button>
@@ -1286,7 +1286,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                         setShowStationDrawer(false);
                         onNavigateTab('history');
                       }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                     >
                       Activity Logs
                     </button>
@@ -1301,9 +1301,9 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
       {/* =========================================================================
           PERSISTENT DESKTOP WORKSTATION SIDEBAR (Visible only on 2xl screens >= 1536px)
          ========================================================================= */}
-      <aside className="hidden 2xl:flex w-80 flex-col border-l border-blue-900/60 bg-[#0b1d3a] h-full shrink-0 overflow-y-auto">
+      <aside className="hidden 2xl:flex w-80 flex-col border-l border-[#e2e8f0] bg-white h-full shrink-0 overflow-y-auto">
         {/* Sidebar Header */}
-        <div className="p-5 border-b border-blue-900/60 bg-[#020d1c]">
+        <div className="p-5 border-b border-[#e2e8f0] bg-[#F8F9FA]">
           <div className="flex items-center justify-between mb-1">
             <h2 className="font-extrabold text-sm text-[#002045] uppercase tracking-wider flex items-center gap-1.5">
               <Compass className="w-4 h-4 text-[#FF6321]" /> Memory Station
@@ -1324,7 +1324,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               <span className="flex items-center gap-1 font-bold">
                 <Clock className="w-3.5 h-3.5 text-blue-300" /> Temporal Anchor
               </span>
-              <span className="text-[10px] uppercase font-bold bg-[#0b1d3a]/10 px-2 py-0.5 rounded">
+              <span className="text-[10px] uppercase font-bold bg-white/10 px-2 py-0.5 rounded">
                 Live
               </span>
             </div>
@@ -1357,7 +1357,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   className={`w-full p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
                     isSelected
                       ? 'border-[#002045] bg-[#002045]/5 shadow-xs ring-1 ring-[#002045]'
-                      : 'border-blue-900/60 bg-[#0b1d3a] hover:bg-[#00142b]'
+                      : 'border-[#e2e8f0] bg-white hover:bg-slate-50'
                   }`}
                 >
                   <div
@@ -1386,7 +1386,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           </div>
 
           {/* Voice Assistance Auto-Readout Switch */}
-          <div className="p-4 rounded-xl border border-blue-900/60 bg-[#00142b] space-y-3">
+          <div className="p-4 rounded-xl border border-[#e2e8f0] bg-slate-50 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Volume2 className="w-4 h-4 text-[#002045]" />
@@ -1401,7 +1401,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   onChange={(e) => setAutoSpeakReplies(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#0b1d3a] after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002045]"></div>
+                <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002045]"></div>
               </label>
             </div>
             <p className="text-[11px] text-[#64748b]">
@@ -1411,7 +1411,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
 
           {/* Quick Memory Bank Navigation Buttons */}
           {onNavigateTab && (
-            <div className="space-y-2 pt-2 border-t border-blue-900/60">
+            <div className="space-y-2 pt-2 border-t border-[#e2e8f0]">
               <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
                 Elder Training Activities
               </h3>
@@ -1419,28 +1419,28 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 <button
                   type="button"
                   onClick={() => onNavigateTab('reality-quest')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                 >
                   RealityQuest
                 </button>
                 <button
                   type="button"
                   onClick={() => onNavigateTab('games')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                 >
                   Mind Games
                 </button>
                 <button
                   type="button"
                   onClick={() => onNavigateTab('carecompass')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                 >
                   CareCompass
                 </button>
                 <button
                   type="button"
                   onClick={() => onNavigateTab('history')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-[#0b1d3a] text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
                 >
                   Activity Logs
                 </button>
@@ -1450,7 +1450,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
         </div>
 
         {/* Footer info */}
-        <div className="p-4 border-t border-blue-900/60 text-center text-[11px] text-[#94a3b8]">
+        <div className="p-4 border-t border-[#e2e8f0] text-center text-[11px] text-[#94a3b8]">
           SmritiSaathi Cognitive Engine · Unified gemini-3.1-flash-lite
         </div>
       </aside>

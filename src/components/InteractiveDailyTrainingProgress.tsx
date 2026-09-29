@@ -183,9 +183,9 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
       subtitle: 'FaceBond & LifeThread Milestones',
       score: memoryPct,
       color: '#EA580C',
-      bgColor: 'bg-[#182138]',
-      borderColor: 'border-orange-500/40',
-      barColor: 'bg-orange-500',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+      barColor: 'bg-orange-600',
       gameId: 'facebond',
       rationale: 'Stimulates temporal lobe reminiscence and family identity recognition.',
     },
@@ -194,10 +194,10 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
       title: 'Spatial Orientation & GPS',
       subtitle: 'WayBack Landmark Navigation',
       score: spatialPct,
-      color: '#38bdf8',
-      bgColor: 'bg-[#0f1d33]',
-      borderColor: 'border-sky-500/40',
-      barColor: 'bg-sky-400',
+      color: '#0F172A',
+      bgColor: 'bg-slate-50',
+      borderColor: 'border-slate-300',
+      barColor: 'bg-[#0F172A]',
       gameId: 'wayback',
       rationale: 'Reinforces hippocampal spatial mapping and local neighborhood wayfinding.',
     },
@@ -206,10 +206,10 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
       title: 'Executive Routine & Daily Living',
       subtitle: 'DailyRoutine & TimeSense Sequencing',
       score: planningPct,
-      color: '#38bdf8',
-      bgColor: 'bg-[#0e2738]',
-      borderColor: 'border-blue-500/40',
-      barColor: 'bg-sky-500',
+      color: '#0284C7',
+      bgColor: 'bg-sky-50',
+      borderColor: 'border-sky-200',
+      barColor: 'bg-sky-600',
       gameId: 'dailyroutine',
       rationale: 'Enhances frontal lobe executive planning for medicine and daily habits.',
     },
@@ -218,10 +218,10 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
       title: 'Attention & Visual Focus',
       subtitle: 'Shape Sorter & Pattern Sorting',
       score: attentionPct,
-      color: '#10b981',
-      bgColor: 'bg-[#0c262a]',
-      borderColor: 'border-emerald-500/40',
-      barColor: 'bg-emerald-400',
+      color: '#059669',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      barColor: 'bg-emerald-600',
       gameId: 'shape-sorter',
       rationale: 'Sharpens parietal visual discrimination and active reaction speed.',
     },
@@ -241,23 +241,23 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
   return (
     <div
       id="card-daily-progress"
-      className="bg-[#0b1d3a] p-5 sm:p-7 rounded-2xl border-2 border-blue-900/60 shadow-lg transition-all space-y-6 text-white"
+      className="bg-[#f9f9ff] p-5 sm:p-7 rounded-2xl border-2 border-[#c4c6cf] shadow-sm transition-all space-y-6"
     >
       {/* Header Section with Live Status & Mode Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-blue-900/50">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#d5e2e9]">
         <div>
           <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-sky-500 text-[#002045] flex items-center justify-center shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-[#002045] text-white flex items-center justify-center shadow-xs">
               <Brain className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-extrabold text-[22px] sm:text-[24px] text-white leading-snug">
+              <h2 className="font-extrabold text-[22px] sm:text-[24px] text-[#002045] leading-snug">
                 Daily Cognitive Training Progress
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="text-xs font-semibold text-blue-200">
-                  Stability Index: <strong className="text-sky-300 font-extrabold">{averageScore}%</strong> • Level Active
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-xs font-semibold text-[#43474e]">
+                  Stability Index: <strong className="text-[#002045] font-extrabold">{averageScore}%</strong> • Level Active
                 </span>
               </div>
             </div>
@@ -270,9 +270,9 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
             id="btn-voice-read-progress"
             onClick={handleReadStatus}
             title="Listen to cognitive summary"
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-sky-200 bg-blue-900/60 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer border border-blue-700/60"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-[#002045] bg-[#e7eeff] hover:bg-[#d6e3ff] rounded-xl transition-colors cursor-pointer"
           >
-            <Volume2 className="w-4 h-4 text-sky-300" />
+            <Volume2 className="w-4 h-4 text-[#002045]" />
             <span className="hidden sm:inline">Voice Summary</span>
           </button>
 
@@ -282,24 +282,24 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
               playGentleClick();
               onStartDailyTraining();
             }}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-black text-[#002045] bg-white hover:bg-sky-50 active:scale-95 rounded-xl transition-all shadow-md cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-[#002045] hover:bg-[#1a365d] active:scale-95 rounded-xl transition-all shadow-xs cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <Sparkles className="w-4 h-4 text-amber-300" />
             <span>Full Workout</span>
           </button>
         </div>
       </div>
 
       {/* Premium Interactive Progress Hero Bar */}
-      <div className="bg-[#07152b] p-5 rounded-2xl border border-blue-900/60 shadow-sm space-y-4">
+      <div className="bg-gradient-to-br from-[#ffffff] to-[#f4f7fb] p-5 rounded-2xl border border-[#d2ddee] shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-900/70 text-sky-300 rounded-xl shadow-xs border border-blue-700/50">
+            <div className="p-2 bg-[#002045] text-white rounded-xl shadow-xs">
               <Activity className="w-4 h-4 text-sky-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-sky-200">
+                <span className="text-xs font-black uppercase tracking-wider text-[#002045]">
                   {selectedMetric === 'overall'
                     ? 'Combined Cognitive Stability Index'
                     : selectedMetric === 'memory'
@@ -310,12 +310,12 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                     ? 'Executive Function & Routine'
                     : 'Attention & Visual Focus'}
                 </span>
-                <span className="text-[11px] font-extrabold bg-emerald-950 text-emerald-300 border border-emerald-700/60 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Trophy className="w-3 h-3 text-emerald-400" />
+                <span className="text-[11px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Trophy className="w-3 h-3 text-emerald-600" />
                   {selectedMetric === 'overall' && averageScore >= 80 ? 'Optimal Baseline' : 'Good Focus'}
                 </span>
               </div>
-              <p className="text-xs text-blue-200/80 mt-0.5">
+              <p className="text-xs text-[#526071] mt-0.5">
                 {selectedMetric === 'overall'
                   ? 'Real-time multi-domain score dynamically weighted across daily mental drills.'
                   : selectedMetric === 'memory'
@@ -330,7 +330,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
           </div>
 
           <div className="flex items-baseline gap-1.5 self-end sm:self-auto">
-            <span className="text-3xl font-black text-white tracking-tight">
+            <span className="text-3xl font-black text-[#002045] tracking-tight">
               {selectedMetric === 'overall'
                 ? averageScore
                 : selectedMetric === 'memory'
@@ -342,13 +342,13 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 : attentionPct}
               %
             </span>
-            <span className="text-xs font-bold text-blue-300">/ 100%</span>
+            <span className="text-xs font-bold text-[#627285]">/ 100%</span>
           </div>
         </div>
 
         {/* Dynamic Interactive Segmented Progress Bar */}
         <div className="space-y-2">
-          <div className="relative w-full bg-blue-950 h-4 rounded-full overflow-hidden p-0.5 shadow-inner flex border border-blue-900/60">
+          <div className="relative w-full bg-[#e3ebf6] h-4 rounded-full overflow-hidden p-0.5 shadow-inner flex">
             {selectedMetric === 'overall' ? (
               <>
                 <div
@@ -412,8 +412,8 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 }}
                 className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                   selectedMetric === 'overall'
-                    ? 'bg-sky-500 text-[#002045] font-black shadow-xs'
-                    : 'bg-blue-950/70 text-blue-200 hover:bg-blue-900 border border-blue-800/60'
+                    ? 'bg-[#002045] text-white shadow-xs'
+                    : 'bg-[#eef2f9] text-[#43474e] hover:bg-[#e2e8f0]'
                 }`}
               >
                 Combined ({averageScore}%)
@@ -425,11 +425,11 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 }}
                 className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   selectedMetric === 'memory'
-                    ? 'bg-orange-500 text-white font-black shadow-xs'
-                    : 'bg-blue-950/70 text-orange-300 hover:bg-blue-900 border border-orange-500/30'
+                    ? 'bg-orange-600 text-white shadow-xs'
+                    : 'bg-orange-50 text-orange-800 hover:bg-orange-100 border border-orange-200'
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-orange-400" />
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
                 Memory {memoryPct}%
               </button>
               <button
@@ -439,11 +439,11 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 }}
                 className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   selectedMetric === 'spatial'
-                    ? 'bg-sky-400 text-[#002045] font-black shadow-xs'
-                    : 'bg-blue-950/70 text-sky-300 hover:bg-blue-900 border border-sky-500/30'
+                    ? 'bg-[#0F172A] text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-300'
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-sky-400" />
+                <span className="w-2 h-2 rounded-full bg-[#0F172A]" />
                 Spatial {spatialPct}%
               </button>
               <button
@@ -453,11 +453,11 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 }}
                 className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   selectedMetric === 'planning'
-                    ? 'bg-sky-500 text-[#002045] font-black shadow-xs'
-                    : 'bg-blue-950/70 text-blue-200 hover:bg-blue-900 border border-blue-500/30'
+                    ? 'bg-sky-600 text-white shadow-xs'
+                    : 'bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200'
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-sky-400" />
+                <span className="w-2 h-2 rounded-full bg-sky-500" />
                 Planning {planningPct}%
               </button>
               <button
@@ -467,16 +467,16 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 }}
                 className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   selectedMetric === 'attention'
-                    ? 'bg-emerald-500 text-[#002045] font-black shadow-xs'
-                    : 'bg-blue-950/70 text-emerald-300 hover:bg-blue-900 border border-emerald-500/30'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 Attention {attentionPct}%
               </button>
             </div>
 
-            <span className="text-[11px] text-blue-300 font-medium hidden md:inline">
+            <span className="text-[11px] text-[#64748b] font-medium hidden md:inline">
               Click any pillar to inspect focus
             </span>
           </div>
@@ -484,7 +484,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
       </div>
 
       {/* Interactive Tabs */}
-      <div className="flex items-center p-1 bg-[#07152b] rounded-xl border border-blue-900/60 text-sm font-bold">
+      <div className="flex items-center p-1 bg-[#eef2f9] rounded-xl border border-[#d5e2e9] text-sm font-bold">
         <button
           id="tab-domain-drills"
           onClick={() => {
@@ -493,8 +493,8 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
           }}
           className={`flex-1 py-2.5 px-3 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === 'domains'
-              ? 'bg-white text-[#002045] shadow-sm font-extrabold'
-              : 'text-blue-200 hover:text-white'
+              ? 'bg-white text-[#002045] shadow-xs font-extrabold'
+              : 'text-[#43474e] hover:text-[#002045]'
           }`}
         >
           <Brain className="w-4 h-4" />
@@ -509,13 +509,13 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
           }}
           className={`flex-1 py-2.5 px-3 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === 'checklist'
-              ? 'bg-white text-[#002045] shadow-sm font-extrabold'
-              : 'text-blue-200 hover:text-white'
+              ? 'bg-white text-[#002045] shadow-xs font-extrabold'
+              : 'text-[#43474e] hover:text-[#002045]'
           }`}
         >
           <CheckCircle2 className="w-4 h-4" />
           <span>Routine Checklist</span>
-          <span className="bg-amber-400 text-[#002045] text-xs px-2 py-0.5 rounded-full font-black">
+          <span className="bg-[#ffdeaa] text-[#2d1d00] text-xs px-2 py-0.5 rounded-full font-black">
             {checklist.filter((i) => i.completed).length}/{checklist.length}
           </span>
         </button>
@@ -528,8 +528,8 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
           }}
           className={`flex-1 py-2.5 px-3 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === 'trajectory'
-              ? 'bg-white text-[#002045] shadow-sm font-extrabold'
-              : 'text-blue-200 hover:text-white'
+              ? 'bg-white text-[#002045] shadow-xs font-extrabold'
+              : 'text-[#43474e] hover:text-[#002045]'
           }`}
         >
           <Calendar className="w-4 h-4" />
@@ -540,7 +540,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
       {/* TAB 1: COGNITIVE PILLARS & INTERACTIVE MINI DRILLS */}
       {activeTab === 'domains' && (
         <div className="space-y-4 animate-fadeIn">
-          <p className="text-sm text-blue-200 font-medium">
+          <p className="text-sm text-[#43474e] font-medium">
             Tap any cognitive domain to reveal its clinical target, play an instant 30-second mini-drill, or launch the complete training game:
           </p>
 
@@ -556,7 +556,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                   key={dom.key}
                   id={`domain-card-${dom.key}`}
                   className={`rounded-xl border transition-all ${
-                    isExpanded ? `${dom.borderColor} ${dom.bgColor} shadow-md` : 'border-blue-900/50 bg-[#07152b] hover:border-blue-700'
+                    isExpanded ? `${dom.borderColor} ${dom.bgColor} shadow-sm` : 'border-[#d5e2e9] bg-white hover:border-[#adc7f7]'
                   }`}
                 >
                   {/* Domain Header Row */}
@@ -569,7 +569,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                   >
                     <div className="flex-1 pr-4">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-extrabold text-[17px] sm:text-[18px] text-white flex items-center gap-2">
+                        <span className="font-extrabold text-[17px] sm:text-[18px] text-[#002045] flex items-center gap-2">
                           <span
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: dom.color }}
@@ -577,17 +577,17 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                           {dom.title}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-[18px] text-sky-300">
+                          <span className="font-extrabold text-[18px] text-[#002045]">
                             {dom.score}%
                           </span>
-                          <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-950 border border-blue-800 text-blue-200">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-white border border-[#c4c6cf] text-[#43474e]">
                             {dom.score >= 80 ? 'Optimal' : dom.score >= 65 ? 'Stable' : 'Needs Practice'}
                           </span>
                         </div>
                       </div>
 
                       {/* Smooth Progress Bar */}
-                      <div className="w-full bg-blue-950 h-3.5 rounded-full overflow-hidden border border-blue-900/60">
+                      <div className="w-full bg-[#d5e2e9] h-3.5 rounded-full overflow-hidden">
                         <div
                           className={`h-3.5 rounded-full transition-all duration-700 ease-out ${dom.barColor}`}
                           style={{ width: `${Math.min(100, Math.max(10, dom.score))}%` }}
@@ -595,34 +595,34 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                       </div>
                     </div>
 
-                    <div className="text-sky-300 p-1 rounded-lg hover:bg-white/10">
+                    <div className="text-[#002045] p-1 rounded-lg hover:bg-black/5">
                       {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </div>
                   </div>
 
                   {/* Expanded Interactive Mini-Drill Accordion */}
                   {isExpanded && (
-                    <div className="px-4 pb-4 pt-1 border-t border-blue-900/50 space-y-3">
-                      <p className="text-xs text-blue-200/80 italic">
+                    <div className="px-4 pb-4 pt-1 border-t border-black/5 space-y-3">
+                      <p className="text-xs text-[#43474e] italic">
                         {dom.rationale}
                       </p>
 
                       {/* Mini Drill Box */}
                       {drill && (
-                        <div className="bg-[#07152b] p-3.5 rounded-xl border border-blue-900/60 space-y-2.5">
+                        <div className="bg-white p-3.5 rounded-xl border border-[#d5e2e9] space-y-2.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                              <Zap className="w-3.5 h-3.5 text-amber-400" />
+                            <span className="text-xs font-black uppercase tracking-wider text-[#002045] flex items-center gap-1">
+                              <Zap className="w-3.5 h-3.5 text-amber-500" />
                               Instant 30-Sec Cognitive Drill (+25 pts)
                             </span>
                             {isDrillSolved && (
-                              <span className="text-xs font-extrabold text-emerald-300 bg-emerald-950/80 border border-emerald-700/60 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Solved!
+                              <span className="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> Solved!
                               </span>
                             )}
                           </div>
 
-                          <p className="font-bold text-[15px] text-white">
+                          <p className="font-bold text-[15px] text-[#002045]">
                             {drill.question}
                           </p>
 
@@ -631,13 +631,13 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                             {drill.options.map((opt, idx) => {
                               const isSelected = selectedAnswer === idx;
                               const isCorrect = idx === drill.correctIndex;
-                              let btnStyle = 'border-blue-900/60 bg-[#0b1d3a] text-blue-100 hover:bg-[#122e5c]';
+                              let btnStyle = 'border-[#d5e2e9] bg-[#f9f9ff] text-[#002045] hover:bg-[#e7eeff]';
 
                               if (selectedAnswer !== null && selectedAnswer !== undefined) {
                                 if (isCorrect) {
-                                  btnStyle = 'border-emerald-500 bg-emerald-950/80 text-emerald-200 font-bold';
+                                  btnStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold';
                                 } else if (isSelected) {
-                                  btnStyle = 'border-rose-500 bg-rose-950/80 text-rose-200';
+                                  btnStyle = 'border-rose-300 bg-rose-50 text-rose-800';
                                 }
                               }
 
@@ -651,7 +651,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                                 >
                                   <span>{opt}</span>
                                   {selectedAnswer !== null && selectedAnswer !== undefined && isCorrect && (
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 ml-1" />
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-1" />
                                   )}
                                 </button>
                               );
@@ -660,7 +660,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
 
                           {/* Explanation if answered */}
                           {selectedAnswer !== null && selectedAnswer !== undefined && (
-                            <p className="text-xs text-blue-200 pt-1">
+                            <p className="text-xs text-[#43474e] pt-1">
                               💡 <strong>Explanation:</strong> {drill.explanation}
                             </p>
                           )}
@@ -669,7 +669,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
 
                       {/* Game Launch Shortcut */}
                       <div className="flex items-center justify-between pt-1">
-                        <span className="text-xs font-semibold text-blue-200">
+                        <span className="text-xs font-semibold text-[#43474e]">
                           Ready for comprehensive training?
                         </span>
                         <button
@@ -678,7 +678,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                             playGentleClick();
                             onPlayGame(dom.gameId);
                           }}
-                          className="px-3.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-[#002045] text-xs font-black flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-lg bg-[#002045] hover:bg-[#1a365d] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
                         >
                           <Play className="w-3 h-3 fill-current" />
                           <span>Launch {dom.subtitle.split(' ')[0]}</span>
@@ -697,10 +697,10 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
       {activeTab === 'checklist' && (
         <div className="space-y-4 animate-fadeIn">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-blue-200 font-medium">
+            <p className="text-sm text-[#43474e] font-medium">
               Complete these micro-drills to anchor orientation and boost daily mind points:
             </p>
-            <span className="text-xs font-extrabold text-sky-200 bg-blue-900/60 border border-blue-700/60 px-2.5 py-1 rounded-lg">
+            <span className="text-xs font-extrabold text-[#002045] bg-[#e7eeff] px-2.5 py-1 rounded-lg">
               Daily Goal: {checklist.filter((i) => i.completed).length === checklist.length ? '100% Complete! 🎉' : 'In Progress'}
             </span>
           </div>
@@ -713,23 +713,23 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 onClick={() => handleToggleChecklist(item.id)}
                 className={`p-3.5 rounded-xl border-2 transition-all flex items-center justify-between cursor-pointer select-none ${
                   item.completed
-                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
-                    : 'bg-[#07152b] border-blue-900/60 hover:border-sky-500 text-white'
+                    ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
+                    : 'bg-white border-[#d5e2e9] hover:border-[#002045] text-[#002045]'
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <div
                     className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${
-                      item.completed ? 'bg-emerald-500 text-white' : 'border-2 border-blue-700 bg-blue-950'
+                      item.completed ? 'bg-emerald-600 text-white' : 'border-2 border-[#c4c6cf]'
                     }`}
                   >
                     {item.completed && <CheckCircle2 className="w-4 h-4" />}
                   </div>
                   <div>
-                    <p className={`font-bold text-[16px] ${item.completed ? 'line-through text-slate-400' : 'text-white'}`}>
+                    <p className={`font-bold text-[16px] ${item.completed ? 'line-through text-slate-500' : 'text-[#002045]'}`}>
                       {item.label}
                     </p>
-                    <span className="text-xs text-blue-300 font-medium">
+                    <span className="text-xs text-[#43474e] font-medium">
                       Cognitive Domain: {item.domain}
                     </span>
                   </div>
@@ -737,7 +737,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
 
                 <div className="text-right">
                   <span className={`text-xs font-extrabold px-2.5 py-1 rounded-full ${
-                    item.completed ? 'bg-emerald-950 text-emerald-300 border border-emerald-700/60' : 'bg-amber-400 text-[#002045]'
+                    item.completed ? 'bg-emerald-200 text-emerald-900' : 'bg-[#ffdeaa] text-[#2d1d00]'
                   }`}>
                     +{item.points} pts
                   </span>
@@ -747,12 +747,12 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
           </div>
 
           {/* Celebration Footer */}
-          <div className="bg-[#182035] p-4 rounded-xl border border-orange-500/40 flex items-center justify-between">
+          <div className="bg-[#fff7ed] p-4 rounded-xl border border-[#ffedd5] flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Award className="w-6 h-6 text-orange-400" />
+              <Award className="w-6 h-6 text-[#EA580C]" />
               <div>
-                <h4 className="font-extrabold text-[15px] text-white">Streak Multiplier Active</h4>
-                <p className="text-xs text-orange-200">
+                <h4 className="font-extrabold text-[15px] text-[#0F172A]">Streak Multiplier Active</h4>
+                <p className="text-xs text-[#9A3412]">
                   Completing today preserves your <strong>{user?.currentStreak || user?.dailyStreak || 6}-day streak</strong>.
                 </p>
               </div>
@@ -763,7 +763,7 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
                 playGentleClick();
                 onStartDailyTraining();
               }}
-              className="px-3 py-2 bg-white text-[#002045] text-xs font-black rounded-lg hover:bg-sky-50 transition-colors cursor-pointer shadow-sm"
+              className="px-3 py-2 bg-[#002045] text-white text-xs font-bold rounded-lg hover:bg-[#1a365d] transition-colors cursor-pointer"
             >
               Start Guided Drill
             </button>
@@ -776,50 +776,50 @@ export const InteractiveDailyTrainingProgress: React.FC<InteractiveDailyTraining
         <div className="space-y-4 animate-fadeIn">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="font-bold text-[17px] text-white">7-Day Cognitive Stability Trend</h3>
-              <p className="text-xs text-blue-200">Normalized composite score across all four active domains</p>
+              <h3 className="font-bold text-[17px] text-[#002045]">7-Day Cognitive Stability Trend</h3>
+              <p className="text-xs text-[#43474e]">Normalized composite score across all four active domains</p>
             </div>
-            <span className="text-xs font-extrabold text-emerald-300 bg-emerald-950/80 border border-emerald-700/60 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">
               ↑ 8% Higher vs Last Week
             </span>
           </div>
 
           {/* Interactive Bar Visualization */}
-          <div className="bg-[#07152b] p-5 rounded-xl border border-blue-900/60 space-y-4">
+          <div className="bg-white p-5 rounded-xl border border-[#d5e2e9] space-y-4">
             <div className="h-40 flex items-end justify-between gap-2 pt-6 px-2">
               {weeklyData.map((d, index) => (
                 <div key={index} className="flex-1 flex flex-col items-center gap-2 group relative">
                   {/* Tooltip on hover */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-sky-400 text-[#002045] text-[11px] font-black py-0.5 px-1.5 rounded pointer-events-none whitespace-nowrap z-10 shadow-md">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-[#002045] text-white text-[11px] font-bold py-0.5 px-1.5 rounded pointer-events-none whitespace-nowrap z-10">
                     {d.score}% ({d.sessions} drills)
                   </div>
 
                   {/* Bar */}
-                  <div className="w-full bg-blue-950 rounded-t-lg flex items-end h-32 overflow-hidden border-t border-x border-blue-900/40">
+                  <div className="w-full bg-[#f0f3ff] rounded-t-lg flex items-end h-32 overflow-hidden">
                     <div
                       className={`w-full rounded-t-lg transition-all duration-700 ease-out group-hover:brightness-110 ${
-                        d.isToday ? 'bg-sky-400' : 'bg-blue-600'
+                        d.isToday ? 'bg-[#002045]' : 'bg-[#708db7]'
                       }`}
                       style={{ height: `${d.score}%` }}
                     ></div>
                   </div>
 
                   {/* Day Label */}
-                  <span className={`text-xs font-bold ${d.isToday ? 'text-sky-300 font-black underline' : 'text-blue-300'}`}>
+                  <span className={`text-xs font-bold ${d.isToday ? 'text-[#002045] font-black underline' : 'text-[#43474e]'}`}>
                     {d.day}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-3 border-t border-blue-900/50 flex flex-wrap items-center justify-between text-xs text-blue-200">
+            <div className="pt-3 border-t border-[#eef2f9] flex flex-wrap items-center justify-between text-xs text-[#43474e]">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-sky-400"></span>
+                <span className="w-3 h-3 rounded-sm bg-[#002045]"></span>
                 <span>Today's Score ({averageScore}%)</span>
-                <span className="w-3 h-3 rounded-sm bg-blue-600 ml-2"></span>
+                <span className="w-3 h-3 rounded-sm bg-[#708db7] ml-2"></span>
                 <span>Prior Days (Avg 82%)</span>
               </div>
-              <span className="font-semibold text-sky-300">
+              <span className="font-semibold text-[#002045]">
                 Consistency: High (All 7 days logged)
               </span>
             </div>

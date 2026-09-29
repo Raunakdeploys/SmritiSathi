@@ -255,7 +255,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
       <div
         id="facebond-game-card"
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#0b1d3a] text-white w-full max-w-4xl rounded-3xl shadow-2xl border-3 border-[#0F172A]/20 overflow-hidden flex flex-col max-h-[94vh] my-auto"
+        className="bg-[#F8F9FA] text-[#0F172A] w-full max-w-4xl rounded-3xl shadow-2xl border-3 border-[#0F172A]/20 overflow-hidden flex flex-col max-h-[94vh] my-auto"
       >
         {/* Top Header */}
         <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white px-5 sm:px-7 py-4 flex items-center justify-between shadow-md border-b-3 border-[#FF6321]">
@@ -301,7 +301,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
           )}
 
           {/* Level Switcher */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-blue-900/60 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
             <div className="flex items-center space-x-2">
               <span className="text-xs font-black uppercase text-slate-500">
                 Cognitive Depth:
@@ -319,7 +319,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
                     className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
                       level === item.lvl
                         ? 'bg-[#FF6321] text-white shadow-xs'
-                        : 'bg-blue-950 text-slate-700 hover:bg-slate-200'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
                     {item.label}
@@ -336,7 +336,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
                     true
                   );
                 }}
-                className="flex items-center space-x-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-blue-950 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                className="flex items-center space-x-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
               >
                 <Volume2 className="w-4 h-4 text-[#FF6321]" />
                 <span>Read Aloud</span>
@@ -365,7 +365,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
           {/* Interactive Photo & Kinship Card Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
             {/* Left: Photo Portrait with Zoom & Voice Greeting */}
-            <div className="md:col-span-5 bg-white p-4 rounded-3xl border-2 border-blue-900/60 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
+            <div className="md:col-span-5 bg-white p-4 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
               <div className="relative group w-full max-w-[240px] aspect-square rounded-2xl overflow-hidden shadow-md border-4 border-[#F8F9FA] mb-3">
                 <img
                   src={currentQ.targetMember.photoUrl}
@@ -389,7 +389,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
                 <span className="bg-orange-100 text-[#9A3412] text-xs font-black px-3 py-1 rounded-full border border-orange-200">
                   {currentQ.targetMember.relation}
                 </span>
-                <span className="bg-blue-950 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                <span className="bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-full">
                   Age {currentQ.targetMember.age}
                 </span>
               </div>
@@ -410,11 +410,11 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
 
             {/* Right: Question & Multiple Choice Options */}
             <div className="md:col-span-7 space-y-4">
-              <div className="bg-white p-5 rounded-3xl border-2 border-blue-900/60 shadow-sm space-y-3">
+              <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm space-y-3">
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                   {level === 1 ? 'Facial Identity' : level === 2 ? 'Family Kinship' : 'Shared Recollection'}
                 </span>
-                <h3 className="text-base sm:text-xl font-black text-white">
+                <h3 className="text-base sm:text-xl font-black text-[#0F172A]">
                   {currentQ.prompt}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 font-medium">
@@ -432,7 +432,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
                         className={`w-full p-4 rounded-2xl font-bold text-sm sm:text-base text-left transition-all border-2 flex items-center justify-between cursor-pointer ${
                           isSelected
                             ? 'bg-[#0F172A] text-white border-[#FF6321] shadow-md transform scale-[1.01]'
-                            : 'bg-[#0b1d3a] hover:bg-blue-950 text-slate-800 border-blue-900/60 hover:border-blue-800'
+                            : 'bg-[#F8F9FA] hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-300'
                         }`}
                       >
                         <span className="font-extrabold">{opt}</span>
@@ -457,10 +457,10 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
         </div>
 
         {/* Footer Navigation */}
-        <div className="bg-blue-950 px-5 sm:px-7 py-4 border-t border-blue-900/60 flex items-center justify-between gap-3">
+        <div className="bg-slate-100 px-5 sm:px-7 py-4 border-t border-slate-200 flex items-center justify-between gap-3">
           <button
             onClick={generateQuestions}
-            className="text-slate-700 hover:text-white font-black text-xs sm:text-sm flex items-center space-x-1.5 py-2.5 px-4 rounded-xl border border-blue-800 bg-white hover:bg-[#00142b] cursor-pointer"
+            className="text-slate-700 hover:text-[#0F172A] font-black text-xs sm:text-sm flex items-center space-x-1.5 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Restart Exercise</span>

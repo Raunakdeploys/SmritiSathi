@@ -280,25 +280,25 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
   return (
     <main
       id="reality-quest-view-main"
-      className="flex-1 p-4 sm:p-6 md:p-10 bg-[#020d1c] text-white w-full min-w-0 max-w-full overflow-x-hidden box-border"
+      className="flex-1 p-4 sm:p-6 md:p-10 bg-[#F8F9FA] text-[#0F172A] overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Ribbon */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-blue-900/60 pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-200 pb-5">
           <div className="flex items-center space-x-3.5">
             <div className="p-3 bg-[#0F172A] text-white rounded-2xl shadow-md">
               <Compass className="w-7 h-7 text-[#FF6321]" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-black text-white">
+                <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
                   RealityQuest
                 </h1>
                 <span className="bg-[#10B981] text-white text-xs font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
                   Daily Temporal Anchoring
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-blue-200 font-medium mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
                 Anchor calendar consciousness, seasonal grounding, and sensory awareness
               </p>
             </div>
@@ -307,7 +307,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={() => speakText(`${currentQ.prompt}. ${currentQ.subPrompt}`, true)}
-              className="bg-white hover:bg-blue-950 text-white border-2 border-blue-800 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs cursor-pointer"
+              className="bg-white hover:bg-slate-100 text-slate-800 border-2 border-slate-300 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs cursor-pointer"
             >
               <Volume2 className="w-4 h-4 text-[#FF6321]" />
               <span>Hear Question</span>
@@ -324,27 +324,27 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
         )}
 
         {/* Quest Card Container */}
-        <div className="bg-[#0b1d3a] rounded-3xl border-2 border-blue-900/70 shadow-2xl p-5 sm:p-8 space-y-6 text-white">
+        <div className="bg-white rounded-3xl border-3 border-[#0F172A]/15 shadow-xl p-5 sm:p-8 space-y-6">
           {/* Progress Tracker */}
-          <div className="flex items-center justify-between text-xs sm:text-sm font-black text-blue-200">
+          <div className="flex items-center justify-between text-xs sm:text-sm font-black text-slate-600">
             <span className="bg-orange-100 text-[#9A3412] px-3 py-1 rounded-full border border-orange-200 uppercase tracking-wider text-xs">
               {currentQ.category} Pillar
             </span>
-            <span className="text-blue-300">
+            <span className="text-slate-500">
               Checkpoint {currentStep + 1} of {questions.length}
             </span>
           </div>
 
           {/* Question Title */}
           <div className="flex items-start space-x-3.5 pt-1">
-            <div className="p-3 bg-blue-950 text-white rounded-2xl border border-blue-900/60 flex-shrink-0 mt-1">
+            <div className="p-3 bg-slate-100 text-[#0F172A] rounded-2xl border border-slate-200 flex-shrink-0 mt-1">
               <IconComp className="w-7 h-7 text-[#FF6321]" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-2xl font-black text-white leading-snug">
+              <h2 className="text-lg sm:text-2xl font-black text-[#0F172A] leading-snug">
                 {currentQ.prompt}
               </h2>
-              <p className="text-xs sm:text-sm text-blue-200 font-medium mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
                 {currentQ.subPrompt}
               </p>
             </div>
@@ -457,7 +457,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
                 option === currentQ.correctAnswer || currentQ.category === 'Environmental';
 
               let btnStyle =
-                'bg-[#F8F9FA] hover:bg-blue-950 text-white border-2 border-blue-900/60 hover:border-blue-800';
+                'bg-[#F8F9FA] hover:bg-slate-100 text-slate-800 border-2 border-slate-200 hover:border-slate-300';
               if (isSelected && !isAnswerSubmitted) {
                 btnStyle = 'bg-[#0F172A] text-white border-2 border-[#FF6321] shadow-md';
               } else if (isAnswerSubmitted) {
@@ -467,7 +467,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
                 } else if (isSelected && !isCorrect) {
                   btnStyle = 'bg-rose-50 text-rose-950 border-2 border-rose-400 font-extrabold';
                 } else {
-                  btnStyle = 'bg-[#00142b]/60 text-blue-400/60 opacity-60 border-blue-900/40';
+                  btnStyle = 'bg-slate-50 text-slate-400 opacity-60 border-slate-200';
                 }
               }
 
@@ -504,7 +504,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
               onClick={() => {
                 if (currentQ.clue) speakText(`Clue: ${currentQ.clue}`, true);
               }}
-              className="text-blue-200 hover:text-white font-bold text-xs sm:text-sm flex items-center space-x-1 cursor-pointer py-2 px-3 rounded-xl hover:bg-blue-950"
+              className="text-slate-600 hover:text-slate-900 font-bold text-xs sm:text-sm flex items-center space-x-1 cursor-pointer py-2 px-3 rounded-xl hover:bg-slate-100"
             >
               <Sparkles className="w-4 h-4 text-[#FF6321]" />
               <span>Need a Hint?</span>

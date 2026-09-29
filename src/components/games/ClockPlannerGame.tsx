@@ -463,12 +463,12 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#001026]/85 p-2 sm:p-4 backdrop-blur-md overflow-y-auto"
       onMouseUp={handleClockMouseUp}
     >
-      <div className="bg-[#f8fafd] text-white w-full max-w-5xl rounded-3xl shadow-2xl border-3 border-[#002b5c]/30 overflow-hidden flex flex-col max-h-[96vh] my-auto">
+      <div className="bg-[#f8fafd] text-[#002045] w-full max-w-5xl rounded-3xl shadow-2xl border-3 border-[#002b5c]/30 overflow-hidden flex flex-col max-h-[96vh] my-auto">
         {/* Eye-Catching Header Banner with High Contrast & Senior Comfort Toggles */}
         <div className="bg-gradient-to-r from-[#00193d] via-[#00285a] to-[#00193d] text-white px-4 sm:px-7 py-3.5 flex flex-wrap items-center justify-between gap-3 shadow-lg border-b-3 border-[#f59e0b]">
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="p-2.5 sm:p-3 bg-gradient-to-br from-[#fef3c7] to-[#fde68a] text-white rounded-2xl flex items-center justify-center shadow-md border-2 border-[#f59e0b] flex-shrink-0">
-              <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            <div className="p-2.5 sm:p-3 bg-gradient-to-br from-[#fef3c7] to-[#fde68a] text-[#002045] rounded-2xl flex items-center justify-center shadow-md border-2 border-[#f59e0b] flex-shrink-0">
+              <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-[#002045]" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -518,10 +518,10 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                   speakText(currentConfig.reasoningStory.promptText, true);
                 }
               }}
-              className="p-2.5 bg-[#fef3c7] hover:bg-[#fde68a] text-white rounded-xl font-bold shadow-md transition-all flex items-center space-x-1 border border-[#f59e0b]"
+              className="p-2.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#002045] rounded-xl font-bold shadow-md transition-all flex items-center space-x-1 border border-[#f59e0b]"
               title="Read instruction aloud"
             >
-              <Volume2 className="w-5 h-5 text-white" />
+              <Volume2 className="w-5 h-5 text-[#002045]" />
               <span className="hidden sm:inline text-xs font-black">Read Aloud</span>
             </button>
 
@@ -544,7 +544,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
           <div className="bg-[#e9f0fc] px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between border-b-2 border-[#cbdcf8] gap-2">
             {/* Level Quick Selectors 1 to 10 */}
             <div className="flex items-center space-x-1.5 overflow-x-auto max-w-full py-0.5 scrollbar-thin">
-              <span className="text-xs font-black text-white uppercase tracking-wide mr-1 hidden sm:inline">
+              <span className="text-xs font-black text-[#002045] uppercase tracking-wide mr-1 hidden sm:inline">
                 Levels:
               </span>
               {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as TimeSenseLevelKey[]).map((lvl) => {
@@ -560,7 +560,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                     className={`min-w-[36px] h-8 px-2.5 text-xs sm:text-sm font-black rounded-xl transition-all whitespace-nowrap border ${
                       isCurrent
                         ? 'bg-[#002045] text-[#fef3c7] border-[#f59e0b] shadow-md scale-105'
-                        : 'bg-white text-white border-[#cbdcf8] hover:bg-[#dbeafe]'
+                        : 'bg-white text-[#002045] border-[#cbdcf8] hover:bg-[#dbeafe]'
                     }`}
                   >
                     L{lvl}
@@ -570,17 +570,17 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
             </div>
 
             {/* Metric Pillar Stats & Re-Roll Button */}
-            <div className="flex items-center space-x-2 text-xs sm:text-sm font-bold text-white">
+            <div className="flex items-center space-x-2 text-xs sm:text-sm font-bold text-[#002045]">
               <button
                 id="timesense-reroll-btn"
                 onClick={() => {
                   playGentleClick();
                   loadLevel(activeLevelKey, true);
                 }}
-                className="flex items-center space-x-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-white px-3 py-1.5 rounded-xl border-2 border-[#f59e0b] transition-all shadow-xs"
+                className="flex items-center space-x-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#002045] px-3 py-1.5 rounded-xl border-2 border-[#f59e0b] transition-all shadow-xs"
                 title="Generate a new randomized puzzle for this level"
               >
-                <Shuffle className="w-4 h-4 text-white" />
+                <Shuffle className="w-4 h-4 text-[#002045]" />
                 <span className="font-black">Shuffle</span>
               </button>
 
@@ -624,11 +624,11 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
           {isFinished ? (
             /* Completion Screen */
             <div className="text-center py-6 flex flex-col items-center space-y-6 max-w-lg mx-auto">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#fef3c7] to-[#fde68a] text-white rounded-full flex items-center justify-center shadow-xl border-4 border-[#f59e0b] animate-bounce">
-                <Trophy className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 bg-gradient-to-br from-[#fef3c7] to-[#fde68a] text-[#002045] rounded-full flex items-center justify-center shadow-xl border-4 border-[#f59e0b] animate-bounce">
+                <Trophy className="w-12 h-12 text-[#002045]" />
               </div>
               <div>
-                <h3 className="text-2xl sm:text-3xl font-black text-white">
+                <h3 className="text-2xl sm:text-3xl font-black text-[#002045]">
                   Time & Planning Mastery Achieved!
                 </h3>
                 <p className="text-[#3b5998] text-base mt-2 leading-relaxed">
@@ -642,7 +642,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                   <span className="text-sm font-bold text-[#556987]">
                     Temporal Cognition Score
                   </span>
-                  <span className="text-2xl font-black text-white">{roundScore} pts</span>
+                  <span className="text-2xl font-black text-[#002045]">{roundScore} pts</span>
                 </div>
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="p-3 bg-[#eef5fc] rounded-2xl border border-[#cbdcf8]">
@@ -651,13 +651,13 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                   </div>
                   <div className="p-3 bg-[#eef5fc] rounded-2xl border border-[#cbdcf8]">
                     <p className="text-xs text-[#556987] font-bold">Independence (25%)</p>
-                    <p className="text-lg font-black text-white">
+                    <p className="text-lg font-black text-[#002045]">
                       {hintsUsedCount === 0 ? 'High' : 'Assisted'}
                     </p>
                   </div>
                   <div className="p-3 bg-[#eef5fc] rounded-2xl border border-[#cbdcf8]">
                     <p className="text-xs text-[#556987] font-bold">Time (15%)</p>
-                    <p className="text-lg font-black text-white">{secondsElapsed}s</p>
+                    <p className="text-lg font-black text-[#002045]">{secondsElapsed}s</p>
                   </div>
                 </div>
               </div>
@@ -689,10 +689,10 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                           speakText(currentConfig.reasoningStory?.promptText || '', true);
                         }
                       }}
-                      className="px-3 py-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-white rounded-xl font-black text-xs flex items-center space-x-1.5 shadow-xs border border-[#f59e0b] transition-transform active:scale-95"
+                      className="px-3 py-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#002045] rounded-xl font-black text-xs flex items-center space-x-1.5 shadow-xs border border-[#f59e0b] transition-transform active:scale-95"
                       title="Read instruction aloud"
                     >
-                      <Volume2 className="w-4 h-4 text-white" />
+                      <Volume2 className="w-4 h-4 text-[#002045]" />
                       <span>Hear Prompt</span>
                     </button>
                   </div>
@@ -715,16 +715,16 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                             speakText(currentConfig.spokenAudioText, true);
                           }
                         }}
-                        className="w-full py-3.5 bg-gradient-to-r from-[#fef3c7] to-[#fde68a] text-white rounded-xl text-sm font-black hover:from-white hover:to-[#fef3c7] transition-all shadow-md flex items-center justify-center space-x-2 border-2 border-[#f59e0b]"
+                        className="w-full py-3.5 bg-gradient-to-r from-[#fef3c7] to-[#fde68a] text-[#002045] rounded-xl text-sm font-black hover:from-white hover:to-[#fef3c7] transition-all shadow-md flex items-center justify-center space-x-2 border-2 border-[#f59e0b]"
                       >
-                        <Volume2 className="w-5 h-5 text-white" />
+                        <Volume2 className="w-5 h-5 text-[#002045]" />
                         <span>🔊 Tap to Play Voice Prompt</span>
                       </button>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       <h3
-                        className={`font-black text-white leading-snug ${
+                        className={`font-black text-[#002045] leading-snug ${
                           isLargeTextMode ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'
                         }`}
                       >
@@ -751,7 +751,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                   {/* Episodic Daily Schedule Events List (L9, L10) */}
                   {currentConfig.scheduleEvents && (
                     <div className="space-y-2.5 pt-2 border-t-2 border-[#e9f0fc]">
-                      <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wide flex items-center space-x-1.5">
+                      <span className="text-xs sm:text-sm font-black text-[#002045] uppercase tracking-wide flex items-center space-x-1.5">
                         <Calendar className="w-4 h-4 text-[#2563eb]" />
                         <span>Daily Routine Timeline:</span>
                       </span>
@@ -762,10 +762,10 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                             className="p-3 bg-[#f8fafd] rounded-2xl border-2 border-[#cbdcf8] flex items-center justify-between text-xs sm:text-sm"
                           >
                             <div className="flex items-center space-x-2.5">
-                              <span className="material-symbols-outlined text-[24px] text-white">
+                              <span className="material-symbols-outlined text-[24px] text-[#002045]">
                                 {evt.icon}
                               </span>
-                              <span className="font-extrabold text-white">{evt.title}</span>
+                              <span className="font-extrabold text-[#002045]">{evt.title}</span>
                             </div>
                             <span className="font-black text-[#1e3a8a] bg-[#dbeafe] px-2.5 py-1 rounded-lg border border-[#bfdbfe]">
                               {evt.time}
@@ -779,7 +779,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                   {/* Schedule Multi-Choice Question (L9, L10) */}
                   {currentConfig.scheduleQuestion && (
                     <div className="p-4 bg-[#eef5fc] rounded-2xl border-2 border-[#cbdcf8] space-y-3">
-                      <p className={`font-black text-white ${isLargeTextMode ? 'text-base' : 'text-sm'}`}>
+                      <p className={`font-black text-[#002045] ${isLargeTextMode ? 'text-base' : 'text-sm'}`}>
                         {currentConfig.scheduleQuestion.questionText}
                       </p>
                       <div className="space-y-2">
@@ -793,7 +793,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                             className={`w-full text-left p-3 rounded-xl text-xs sm:text-sm font-bold transition-all border-2 ${
                               selectedScheduleAnswer === opt.id
                                 ? 'bg-[#002045] text-white border-[#f59e0b] shadow-md scale-[1.01]'
-                                : 'bg-white text-white border-[#cbdcf8] hover:bg-[#dbeafe]'
+                                : 'bg-white text-[#002045] border-[#cbdcf8] hover:bg-[#dbeafe]'
                             }`}
                           >
                             {opt.label}
@@ -808,7 +808,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                 {currentConfig.needsNumberPlacement && !isInspectionActive && (
                   <div className="bg-white p-5 rounded-3xl border-3 border-[#002045] shadow-md space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                      <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#002045]">
                         🧩 Missing Clock Digits ({availableNumbersPool.length} Left)
                       </span>
                       <span className="text-xs text-[#556987] font-bold">
@@ -826,7 +826,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                           className={`w-11 h-11 rounded-2xl font-black text-base transition-all border-3 ${
                             selectedPoolNumber === num
                               ? 'bg-[#002045] text-[#fef3c7] border-[#f59e0b] shadow-lg scale-115'
-                              : 'bg-[#eef5fc] text-white border-[#cbdcf8] hover:bg-[#dbeafe]'
+                              : 'bg-[#eef5fc] text-[#002045] border-[#cbdcf8] hover:bg-[#dbeafe]'
                           }`}
                         >
                           {num}
@@ -879,7 +879,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                               top: `${topPercent}%`,
                               transform: 'translate(-50%, -50%)',
                             }}
-                            className="absolute text-sm sm:text-base font-black text-white pointer-events-none select-none"
+                            className="absolute text-sm sm:text-base font-black text-[#002045] pointer-events-none select-none"
                           >
                             {num}
                           </span>
@@ -919,7 +919,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                   <div className="flex flex-col items-center space-y-3 w-full">
                     {/* Visual Hand Distinction Legend (Crucial for Elderly Ease) */}
                     <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm font-black bg-white px-4 py-2 rounded-2xl border-2 border-[#cbdcf8] shadow-xs text-center">
-                      <div className="flex items-center space-x-1.5 text-white">
+                      <div className="flex items-center space-x-1.5 text-[#002045]">
                         <span className="w-3.5 h-3.5 rounded-full bg-[#002045] border-2 border-[#f59e0b] inline-block shadow-xs"></span>
                         <span>Short Blue = Hour</span>
                       </div>
@@ -1020,7 +1020,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                             className={`absolute w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm md:text-base font-black flex items-center justify-center transition-all z-10 ${
                               isCurrentHour
                                 ? 'bg-[#002045] text-[#fef3c7] border-2 border-[#f59e0b] shadow-md scale-115 ring-2 ring-[#f59e0b]/50'
-                                : 'text-white hover:bg-[#dbeafe] hover:scale-105'
+                                : 'text-[#002045] hover:bg-[#dbeafe] hover:scale-105'
                             }`}
                           >
                             {slotNum}
@@ -1148,7 +1148,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
 
                   {/* High-Visibility Minute Adjustment Section */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-extrabold text-white">
+                    <div className="flex items-center justify-between text-xs font-extrabold text-[#002045]">
                       <span>Adjust Minutes:</span>
                       <span className="text-[#2563eb]">Quick jumps & fine-tuning</span>
                     </div>
@@ -1158,28 +1158,28 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                       <button
                         onClick={() => adjustMinute(-15)}
                         disabled={isInspectionActive}
-                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-white text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
+                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-[#002045] text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
                       >
                         -15m
                       </button>
                       <button
                         onClick={() => adjustMinute(-5)}
                         disabled={isInspectionActive}
-                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-white text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
+                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-[#002045] text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
                       >
                         -5m
                       </button>
                       <button
                         onClick={() => adjustMinute(5)}
                         disabled={isInspectionActive}
-                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-white text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
+                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-[#002045] text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
                       >
                         +5m
                       </button>
                       <button
                         onClick={() => adjustMinute(15)}
                         disabled={isInspectionActive}
-                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-white text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
+                        className="py-2.5 bg-[#eef5fc] hover:bg-[#dbeafe] text-[#002045] text-xs sm:text-sm font-black rounded-xl border-2 border-[#cbdcf8] disabled:opacity-40 transition-colors shadow-xs"
                       >
                         +15m
                       </button>
@@ -1213,7 +1213,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                   <div className="space-y-1.5 pt-2 border-t-2 border-[#e9f0fc]">
                     <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
                       <span className="text-[#556987] flex items-center space-x-1.5">
-                        <Sliders className="w-4 h-4 text-white" />
+                        <Sliders className="w-4 h-4 text-[#002045]" />
                         <span>Continuous Minute Slider:</span>
                       </span>
                       <span className="font-mono font-black text-[#e11d48] bg-rose-100 px-2.5 py-0.5 rounded-lg text-xs sm:text-sm border border-rose-300">
@@ -1258,7 +1258,7 @@ export const ClockPlannerGame: React.FC<ClockPlannerGameProps> = ({
                           className={`px-2.5 py-1 rounded-lg text-xs font-mono font-black transition-all border-2 ${
                             userMinute === m
                               ? 'bg-[#002045] text-[#fef3c7] border-[#f59e0b] shadow-xs'
-                              : 'bg-[#f8fafd] text-white border-[#cbdcf8] hover:bg-[#dbeafe]'
+                              : 'bg-[#f8fafd] text-[#002045] border-[#cbdcf8] hover:bg-[#dbeafe]'
                           }`}
                         >
                           :{String(m).padStart(2, '0')}

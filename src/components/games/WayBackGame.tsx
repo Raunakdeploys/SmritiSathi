@@ -396,7 +396,7 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
       <div
         id="wayback-game-card"
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#0b1d3a] text-white w-full max-w-4xl rounded-3xl shadow-2xl border-3 border-[#0F172A]/20 overflow-hidden flex flex-col max-h-[94vh] my-auto"
+        className="bg-[#F8F9FA] text-[#0F172A] w-full max-w-4xl rounded-3xl shadow-2xl border-3 border-[#0F172A]/20 overflow-hidden flex flex-col max-h-[94vh] my-auto"
       >
         {/* Top App Bar with High-Contrast Warm Accent */}
         <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white px-5 sm:px-7 py-4 flex items-center justify-between shadow-md border-b-3 border-[#FF6321]">
@@ -434,7 +434,7 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
         </div>
 
         {/* Tab Switcher: Mode A (Route Walk) vs Mode B (Live GPS Assessment) */}
-        <div className="bg-slate-200/80 p-2 flex items-center justify-center gap-2 border-b border-blue-800">
+        <div className="bg-slate-200/80 p-2 flex items-center justify-center gap-2 border-b border-slate-300">
           <button
             onClick={() => {
               setActiveTab('neighborhood');
@@ -487,7 +487,7 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
           ) : (
             <>
               {/* Route Difficulty Level Selector */}
-              <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-3.5 rounded-2xl border border-blue-900/60 shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
                 <div className="flex items-center space-x-2">
                   <span className="text-xs font-black uppercase text-slate-500">
                     Select Route:
@@ -505,7 +505,7 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
                         className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
                           level === lvl
                             ? 'bg-[#FF6321] text-white shadow-xs'
-                            : 'bg-blue-950 text-slate-700 hover:bg-slate-200'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                         }`}
                       >
                         L{lvl}: {ROUTE_LEVELS[lvl - 1].title}
@@ -522,7 +522,7 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
                         : `Question ${currentQIndex + 1}: ${currentQ.prompt}. Options: ${filteredOptions.join(', ')}`;
                     speakText(speech, true);
                   }}
-                  className="flex items-center space-x-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-blue-950 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                  className="flex items-center space-x-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
                 >
                   <Volume2 className="w-4 h-4 text-[#FF6321]" />
                   <span>Read Screen Aloud</span>
@@ -561,19 +561,19 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
                     {currentRoute.landmarks.map((landmark, idx) => (
                       <div
                         key={landmark.id}
-                        className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-blue-900/60 shadow-xs flex flex-col justify-between hover:border-[#FF6321] transition-all relative overflow-hidden"
+                        className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between hover:border-[#FF6321] transition-all relative overflow-hidden"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <span className="w-7 h-7 rounded-full bg-[#0F172A] text-white font-black text-xs flex items-center justify-center shadow-xs">
                             {idx + 1}
                           </span>
-                          <div className="p-2 bg-[#00142b] rounded-xl border border-blue-900/60">
+                          <div className="p-2 bg-slate-50 rounded-xl border border-slate-200">
                             {renderIcon(landmark.iconName)}
                           </div>
                         </div>
 
                         <div>
-                          <h4 className="font-black text-base text-white">
+                          <h4 className="font-black text-base text-[#0F172A]">
                             {landmark.name}
                           </h4>
                           <p className="text-xs text-slate-500 font-medium mt-1 line-clamp-2">
@@ -628,19 +628,19 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
                   </div>
 
                   {/* Active Question Card */}
-                  <div className="bg-white p-5 sm:p-6 rounded-3xl border-2 border-blue-900/60 shadow-md space-y-4">
+                  <div className="bg-white p-5 sm:p-6 rounded-3xl border-2 border-slate-200 shadow-md space-y-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                           Route Sequence Recall
                         </span>
-                        <h3 className="text-base sm:text-xl font-black text-white">
+                        <h3 className="text-base sm:text-xl font-black text-[#0F172A]">
                           {currentQ.prompt}
                         </h3>
                       </div>
                       <button
                         onClick={() => speakText(currentQ.prompt, true)}
-                        className="p-2 text-slate-500 hover:text-white rounded-xl hover:bg-blue-950"
+                        className="p-2 text-slate-500 hover:text-[#0F172A] rounded-xl hover:bg-slate-100"
                         title="Hear question aloud"
                       >
                         <Volume2 className="w-5 h-5 text-[#FF6321]" />
@@ -658,7 +658,7 @@ export const WayBackGame: React.FC<WayBackGameProps> = ({
                             className={`w-full p-4 rounded-2xl font-bold text-sm sm:text-base text-left transition-all border-2 flex items-center justify-between cursor-pointer ${
                               isSelected
                                 ? 'bg-[#0F172A] text-white border-[#FF6321] shadow-md transform scale-[1.01]'
-                                : 'bg-[#0b1d3a] hover:bg-blue-950 text-slate-800 border-blue-900/60 hover:border-blue-800'
+                                : 'bg-[#F8F9FA] hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-300'
                             }`}
                           >
                             <span>{opt}</span>

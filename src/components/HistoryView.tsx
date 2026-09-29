@@ -28,21 +28,21 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   );
 
   return (
-    <main id="history-view-main" className="flex-1 p-4 sm:p-6 md:p-12 bg-[#030e21] text-white w-full min-w-0 max-w-full overflow-x-hidden box-border">
+    <main id="history-view-main" className="flex-1 p-4 sm:p-6 md:p-12 bg-[#ffffff] overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <button
             onClick={onBackToDashboard}
-            className="inline-flex items-center text-sky-300 hover:text-white font-bold text-base hover:underline mb-2 cursor-pointer transition-colors"
+            className="inline-flex items-center text-[#002045] font-bold text-base hover:underline mb-2 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px] mr-1">arrow_back</span>
             Back to Dashboard
           </button>
-          <h1 className="font-extrabold text-[28px] md:text-[34px] leading-tight text-white">
+          <h1 className="font-extrabold text-[28px] md:text-[34px] leading-tight text-[#002045]">
             Training Activity History
           </h1>
-          <p className="font-normal text-[18px] text-blue-200">
+          <p className="font-normal text-[18px] text-[#43474e]">
             Comprehensive timeline of your cognitive sessions and brain stimulation milestones.
           </p>
         </div>
@@ -50,17 +50,17 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-[#0b1d3a] p-5 rounded-2xl border border-blue-900/60 shadow-md">
-          <span className="text-sm font-bold text-blue-200">Total Sessions Completed</span>
-          <p className="font-extrabold text-[32px] text-white mt-1">{user?.totalSessions || activities.length}</p>
+        <div className="bg-[#f0f3ff] p-5 rounded-2xl border border-[#d9e3f9]">
+          <span className="text-sm font-bold text-[#43474e]">Total Sessions Completed</span>
+          <p className="font-extrabold text-[32px] text-[#002045] mt-1">{user?.totalSessions || activities.length}</p>
         </div>
-        <div className="bg-[#12284c] p-5 rounded-2xl border border-amber-400/40 shadow-md">
-          <span className="text-sm font-bold text-amber-200">Total Points Earned</span>
-          <p className="font-extrabold text-[32px] text-amber-400 mt-1">{totalPointsEarned.toLocaleString()} pts</p>
+        <div className="bg-[#ffdeaa] p-5 rounded-2xl border border-[#f8bc4b]">
+          <span className="text-sm font-bold text-[#271900]">Total Points Earned</span>
+          <p className="font-extrabold text-[32px] text-[#2d1d00] mt-1">{totalPointsEarned.toLocaleString()} pts</p>
         </div>
-        <div className="bg-[#0b2738] p-5 rounded-2xl border border-emerald-500/40 shadow-md">
-          <span className="text-sm font-bold text-emerald-300">Average Accuracy</span>
-          <p className="font-extrabold text-[32px] text-emerald-400 mt-1">{avgAccuracy}%</p>
+        <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-200">
+          <span className="text-sm font-bold text-emerald-800">Average Accuracy</span>
+          <p className="font-extrabold text-[32px] text-emerald-900 mt-1">{avgAccuracy}%</p>
         </div>
       </div>
 
@@ -75,8 +75,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             }}
             className={`px-5 py-2.5 rounded-full text-[16px] font-bold cursor-pointer transition-all ${
               filterCategory === cat
-                ? 'bg-white text-[#002045] font-black shadow-md'
-                : 'bg-[#07152b] text-blue-200 hover:bg-blue-900/60 hover:text-white border border-blue-900/60'
+                ? 'bg-[#002045] text-white shadow-xs'
+                : 'bg-[#f0f3ff] text-[#43474e] hover:bg-[#d9e3f9] border border-[#c4c6cf]'
             }`}
           >
             {cat}
@@ -87,35 +87,35 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       {/* Activity Timeline */}
       <div className="space-y-4">
         {filtered.length === 0 ? (
-          <div className="text-center py-12 bg-[#0b1d3a] rounded-2xl border border-blue-900/60">
-            <p className="text-[18px] text-blue-200">No activities found in this category yet.</p>
+          <div className="text-center py-12 bg-[#f9f9ff] rounded-2xl border border-[#c4c6cf]">
+            <p className="text-[18px] text-[#43474e]">No activities found in this category yet.</p>
           </div>
         ) : (
           filtered.map((item) => (
             <div
               key={item.id}
-              className="p-5 bg-[#0b1d3a] rounded-2xl border-2 border-blue-900/60 hover:border-sky-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all shadow-md text-white"
+              className="p-5 bg-[#f9f9ff] rounded-2xl border-2 border-[#c4c6cf] hover:border-[#002045] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all"
             >
               <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 rounded-2xl bg-blue-900/70 text-sky-300 border border-blue-700/60 flex items-center justify-center flex-shrink-0 shadow-xs">
+                <div className="w-14 h-14 rounded-2xl bg-[#d6e3ff] text-[#002045] flex items-center justify-center flex-shrink-0 shadow-xs">
                   <span className="material-symbols-outlined text-[30px]">{item.icon}</span>
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h3 className="font-bold text-[20px] text-white">{item.title}</h3>
-                    <span className="bg-blue-950 text-sky-300 border border-blue-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+                    <h3 className="font-bold text-[20px] text-[#002045]">{item.title}</h3>
+                    <span className="bg-[#d9e3f9] text-[#002045] text-xs font-extrabold px-2.5 py-0.5 rounded-full">
                       {item.category}
                     </span>
                   </div>
-                  <p className="text-sm text-blue-300 mt-0.5">
+                  <p className="text-sm text-[#43474e] mt-0.5">
                     {item.timestamp} • Duration: {item.durationMinutes} mins • Accuracy: {item.accuracy || 100}%
                   </p>
-                  {item.notes && <p className="text-sm text-blue-200 mt-1 italic">"{item.notes}"</p>}
+                  {item.notes && <p className="text-sm text-[#58646a] mt-1 italic">"{item.notes}"</p>}
                 </div>
               </div>
 
               <div className="flex items-center space-x-3 self-end sm:self-center">
-                <span className="font-extrabold text-[22px] text-sky-300 bg-blue-950 px-4 py-2 rounded-xl border border-blue-800">
+                <span className="font-extrabold text-[22px] text-[#002045] bg-[#d6e3ff] px-4 py-2 rounded-xl">
                   +{item.points} pts
                 </span>
               </div>

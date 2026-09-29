@@ -108,12 +108,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <main
       id="dashboard-canvas-main"
-      className="flex-1 p-3.5 sm:p-6 md:p-8 lg:p-10 bg-[#030e21] text-white space-y-6 md:space-y-8 w-full min-w-0 max-w-full overflow-x-hidden box-border"
+      className="flex-1 p-3.5 sm:p-6 md:p-8 lg:p-10 bg-[#f8faff] overflow-y-auto space-y-6 md:space-y-8 w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       {/* 1. Temporal Orientation & Calming Grounding Banner */}
       <section
         id="dashboard-orientation-banner"
-        className="bg-gradient-to-r from-[#001f3f] via-[#083366] to-[#0f4c81] rounded-3xl p-6 sm:p-8 text-white shadow-lg border-2 border-blue-900/60 relative overflow-hidden"
+        className="bg-gradient-to-r from-[#002045] via-[#083366] to-[#0f4c81] rounded-3xl p-6 sm:p-8 text-white shadow-md border-2 border-[#002045] relative overflow-hidden"
       >
         <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         
@@ -194,22 +194,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* 3. Cognitive Domain Health Breakdown Matrix */}
           <section
             id="cognitive-domains-matrix"
-            className="bg-[#0b1d3a] rounded-3xl p-6 sm:p-7 border border-blue-900/60 shadow-lg space-y-5 text-white"
+            className="bg-white rounded-3xl p-6 sm:p-7 border border-[#d6e3f8] shadow-xs space-y-5"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-900/50 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
               <div>
-                <h2 className="font-extrabold text-xl text-white flex items-center gap-2">
-                  <Brain className="w-6 h-6 text-sky-400" />
+                <h2 className="font-extrabold text-xl text-[#002045] flex items-center gap-2">
+                  <Brain className="w-6 h-6 text-sky-600" />
                   Cognitive Health Breakdown
                 </h2>
-                <p className="text-xs sm:text-sm text-blue-200 mt-0.5">
+                <p className="text-xs sm:text-sm text-[#43474e] mt-0.5">
                   Continuous multi-domain clinical score calibrated via daily reminiscence and spatial training.
                 </p>
               </div>
-              <div className="flex items-center gap-2 self-start sm:self-auto bg-blue-950/80 px-3 py-1.5 rounded-xl border border-blue-800">
-                <span className="text-xs font-bold text-sky-200">Overall Index:</span>
-                <span className="text-sm font-black text-sky-400">{overallIndex} / 100</span>
-                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700/60 font-bold px-1.5 py-0.5 rounded">
+              <div className="flex items-center gap-2 self-start sm:self-auto bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200">
+                <span className="text-xs font-bold text-sky-900">Overall Index:</span>
+                <span className="text-sm font-black text-sky-700">{overallIndex} / 100</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
                   {overallIndex >= 80 ? 'Optimal' : overallIndex >= 65 ? 'Stable' : 'Active'}
                 </span>
               </div>
@@ -223,7 +223,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   playGentleClick();
                   onPlayGame('facebond');
                 }}
-                className="bg-[#0d2347] hover:bg-[#122e5c] p-4.5 rounded-2xl border border-blue-800/60 transition-all cursor-pointer group space-y-3"
+                className="bg-[#f0f5ff] hover:bg-[#e4edff] p-4.5 rounded-2xl border border-[#adc7f7] transition-all cursor-pointer group space-y-3"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2.5">
@@ -231,25 +231,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <Heart className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-base text-white group-hover:text-indigo-300 transition-colors">
+                      <h3 className="font-bold text-base text-[#002045] group-hover:text-indigo-700 transition-colors">
                         Memory & Kinship
                       </h3>
-                      <p className="text-xs text-blue-200">Face & name recognition</p>
+                      <p className="text-xs text-[#43474e]">Face & name recognition</p>
                     </div>
                   </div>
-                  <span className="font-extrabold text-lg text-indigo-300">{memoryPct}%</span>
+                  <span className="font-extrabold text-lg text-indigo-700">{memoryPct}%</span>
                 </div>
 
-                <div className="w-full bg-blue-950 h-2.5 rounded-full overflow-hidden border border-blue-900/60">
+                <div className="w-full bg-indigo-100 h-2.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-indigo-500 h-full rounded-full transition-all duration-500"
+                    className="bg-indigo-600 h-full rounded-full transition-all duration-500"
                     style={{ width: `${memoryPct}%` }}
                   />
                 </div>
 
-                <div className="flex justify-between items-center text-xs pt-1 text-blue-200 font-medium">
+                <div className="flex justify-between items-center text-xs pt-1 text-indigo-900 font-medium">
                   <span>Level 2 • High Recall</span>
-                  <span className="flex items-center gap-1 text-sky-300 font-bold group-hover:underline">
+                  <span className="flex items-center gap-1 text-indigo-700 font-bold group-hover:underline">
                     Train Memory <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -262,7 +262,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   playGentleClick();
                   onPlayGame('shape-sorter');
                 }}
-                className="bg-[#14233e] hover:bg-[#1a2d50] p-4.5 rounded-2xl border border-amber-500/30 transition-all cursor-pointer group space-y-3"
+                className="bg-[#fffbeb] hover:bg-[#fef3c7] p-4.5 rounded-2xl border border-[#fde68a] transition-all cursor-pointer group space-y-3"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2.5">
@@ -270,25 +270,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <Sparkles className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-base text-white group-hover:text-amber-300 transition-colors">
+                      <h3 className="font-bold text-base text-[#002045] group-hover:text-amber-700 transition-colors">
                         Visual Attention
                       </h3>
-                      <p className="text-xs text-amber-200/80">Shape & color focus</p>
+                      <p className="text-xs text-[#43474e]">Shape & color focus</p>
                     </div>
                   </div>
-                  <span className="font-extrabold text-lg text-amber-300">{attentionPct}%</span>
+                  <span className="font-extrabold text-lg text-amber-700">{attentionPct}%</span>
                 </div>
 
-                <div className="w-full bg-blue-950 h-2.5 rounded-full overflow-hidden border border-blue-900/60">
+                <div className="w-full bg-amber-100 h-2.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-amber-400 h-full rounded-full transition-all duration-500"
+                    className="bg-amber-500 h-full rounded-full transition-all duration-500"
                     style={{ width: `${attentionPct}%` }}
                   />
                 </div>
 
-                <div className="flex justify-between items-center text-xs pt-1 text-amber-200/90 font-medium">
+                <div className="flex justify-between items-center text-xs pt-1 text-amber-900 font-medium">
                   <span>Level 2 • Steady Focus</span>
-                  <span className="flex items-center gap-1 text-amber-300 font-bold group-hover:underline">
+                  <span className="flex items-center gap-1 text-amber-700 font-bold group-hover:underline">
                     Train Focus <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -301,7 +301,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   playGentleClick();
                   onPlayGame('dailyroutine');
                 }}
-                className="bg-[#0b2738] hover:bg-[#10334a] p-4.5 rounded-2xl border border-emerald-500/30 transition-all cursor-pointer group space-y-3"
+                className="bg-[#ecfdf5] hover:bg-[#d1fae5] p-4.5 rounded-2xl border border-[#a7f3d0] transition-all cursor-pointer group space-y-3"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2.5">
@@ -309,25 +309,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-base text-white group-hover:text-emerald-300 transition-colors">
+                      <h3 className="font-bold text-base text-[#002045] group-hover:text-emerald-700 transition-colors">
                         Executive Planning
                       </h3>
-                      <p className="text-xs text-emerald-200/80">Daily routine sequencing</p>
+                      <p className="text-xs text-[#43474e]">Daily routine sequencing</p>
                     </div>
                   </div>
-                  <span className="font-extrabold text-lg text-emerald-300">{planningPct}%</span>
+                  <span className="font-extrabold text-lg text-emerald-700">{planningPct}%</span>
                 </div>
 
-                <div className="w-full bg-blue-950 h-2.5 rounded-full overflow-hidden border border-blue-900/60">
+                <div className="w-full bg-emerald-100 h-2.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                    className="bg-emerald-600 h-full rounded-full transition-all duration-500"
                     style={{ width: `${planningPct}%` }}
                   />
                 </div>
 
-                <div className="flex justify-between items-center text-xs pt-1 text-emerald-200/90 font-medium">
+                <div className="flex justify-between items-center text-xs pt-1 text-emerald-900 font-medium">
                   <span>Level 1 • Adaptive Support</span>
-                  <span className="flex items-center gap-1 text-emerald-300 font-bold group-hover:underline">
+                  <span className="flex items-center gap-1 text-emerald-700 font-bold group-hover:underline">
                     Plan Routine <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -340,7 +340,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   playGentleClick();
                   onPlayGame('wayback');
                 }}
-                className="bg-[#241c30] hover:bg-[#302540] p-4.5 rounded-2xl border border-orange-500/30 transition-all cursor-pointer group space-y-3"
+                className="bg-[#fff7ed] hover:bg-[#ffedd5] p-4.5 rounded-2xl border border-[#fed7aa] transition-all cursor-pointer group space-y-3"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2.5">
@@ -348,25 +348,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <Navigation className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-base text-white group-hover:text-orange-300 transition-colors">
+                      <h3 className="font-bold text-base text-[#002045] group-hover:text-[#FF6321] transition-colors">
                         Spatial Orientation
                       </h3>
-                      <p className="text-xs text-orange-200/80">Landmark & route recall</p>
+                      <p className="text-xs text-[#43474e]">Landmark & route recall</p>
                     </div>
                   </div>
-                  <span className="font-extrabold text-lg text-orange-300">{spatialPct}%</span>
+                  <span className="font-extrabold text-lg text-[#FF6321]">{spatialPct}%</span>
                 </div>
 
-                <div className="w-full bg-blue-950 h-2.5 rounded-full overflow-hidden border border-blue-900/60">
+                <div className="w-full bg-orange-100 h-2.5 rounded-full overflow-hidden">
                   <div
                     className="bg-[#FF6321] h-full rounded-full transition-all duration-500"
                     style={{ width: `${spatialPct}%` }}
                   />
                 </div>
 
-                <div className="flex justify-between items-center text-xs pt-1 text-orange-200/90 font-medium">
+                <div className="flex justify-between items-center text-xs pt-1 text-orange-900 font-medium">
                   <span>Level 2 • Landmarks Mastered</span>
-                  <span className="flex items-center gap-1 text-orange-300 font-bold group-hover:underline">
+                  <span className="flex items-center gap-1 text-[#FF6321] font-bold group-hover:underline">
                     Navigate <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -383,14 +383,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 playGentleClick();
                 onPlayGame('wayback');
               }}
-              className="bg-[#1a2035] p-6 rounded-2xl border-2 border-orange-500/40 hover:border-orange-400 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[180px] group cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg"
+              className="bg-[#fff7ed] p-6 rounded-2xl border-2 border-[#ffedd5] hover:border-[#FF6321] shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[180px] group cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md"
             >
               <div className="relative z-10 flex justify-between items-start">
                 <div>
                   <span className="bg-[#FF6321] text-white font-black px-3 py-0.5 rounded-full text-[12px] uppercase tracking-wider inline-block mb-2 shadow-xs">
                     Spatial Core • Live GPS
                   </span>
-                  <h3 className="font-extrabold text-[22px] text-white group-hover:text-orange-300 transition-colors">
+                  <h3 className="font-extrabold text-[22px] text-[#0F172A] group-hover:text-[#FF6321] transition-colors">
                     WayBack Route Navigation
                   </h3>
                 </div>
@@ -400,7 +400,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
 
               <div className="relative z-10 mt-3">
-                <p className="font-bold text-[16px] text-orange-200 flex items-center">
+                <p className="font-bold text-[16px] text-[#9A3412] flex items-center">
                   <span className="material-symbols-outlined mr-2 text-[18px]">near_me</span>
                   Temple & Market Landmarks • 4 mins
                 </p>
@@ -414,24 +414,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 playGentleClick();
                 onPlayGame('lifethread');
               }}
-              className="bg-[#0b1d3a] p-6 rounded-2xl border-2 border-blue-900/60 hover:border-sky-500 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[180px] group cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg"
+              className="bg-[#f8fafc] p-6 rounded-2xl border-2 border-[#cbd5e1] hover:border-[#0F172A] shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[180px] group cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md"
             >
               <div className="relative z-10 flex justify-between items-start">
                 <div>
-                  <span className="bg-sky-600 text-white font-black px-3 py-0.5 rounded-full text-[12px] uppercase tracking-wider inline-block mb-2 shadow-xs">
+                  <span className="bg-[#0F172A] text-[#FFF7ED] font-black px-3 py-0.5 rounded-full text-[12px] uppercase tracking-wider inline-block mb-2 shadow-xs">
                     Reminiscence Therapy
                   </span>
-                  <h3 className="font-extrabold text-[22px] text-white group-hover:text-sky-300 transition-colors">
+                  <h3 className="font-extrabold text-[22px] text-[#0F172A] group-hover:text-[#FF6321] transition-colors">
                     LifeThread Milestones
                   </h3>
                 </div>
-                <span className="material-symbols-outlined text-white bg-sky-600 p-2.5 rounded-full group-hover:scale-110 transition-all text-[24px] shadow-xs">
+                <span className="material-symbols-outlined text-white bg-[#0F172A] p-2.5 rounded-full group-hover:scale-110 transition-all text-[24px] shadow-xs">
                   timeline
                 </span>
               </div>
 
               <div className="relative z-10 mt-3">
-                <p className="font-bold text-[16px] text-sky-200 flex items-center">
+                <p className="font-bold text-[16px] text-[#475569] flex items-center">
                   <span className="material-symbols-outlined mr-2 text-[18px]">history_edu</span>
                   Chronological Life Journey • 5 mins
                 </p>
@@ -445,20 +445,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Mind Points Summary Card */}
           <div
             id="card-mind-points-summary"
-            className="bg-gradient-to-br from-[#0c234a] via-[#103166] to-[#18468b] p-6 sm:p-7 rounded-3xl border-2 border-amber-400/40 text-center shadow-lg flex flex-col items-center justify-between text-white"
+            className="bg-gradient-to-br from-[#ffdeaa] to-[#fcd34d] p-6 sm:p-7 rounded-3xl border border-[#f8bc4b] text-center shadow-xs flex flex-col items-center justify-between"
           >
             <div>
               <span
-                className="material-symbols-outlined filled-icon text-amber-400 mb-2 inline-block animate-pulse"
+                className="material-symbols-outlined filled-icon text-[#2d1d00] mb-2 inline-block animate-pulse"
                 style={{ fontSize: '48px' }}
               >
                 stars
               </span>
-              <h3 className="font-bold text-[18px] text-amber-200 mb-1">Total Mind Points</h3>
-              <p className="font-extrabold text-[44px] md:text-[48px] leading-tight text-white tracking-tight my-2">
+              <h3 className="font-bold text-[18px] text-[#271900] mb-1">Total Mind Points</h3>
+              <p className="font-extrabold text-[44px] md:text-[48px] leading-tight text-[#2d1d00] tracking-tight my-2">
                 {mindPoints}
               </p>
-              <p className="text-xs text-blue-200 font-semibold">
+              <p className="text-xs text-[#593b00] font-semibold">
                 Earned from daily cognitive games & orientation recall
               </p>
             </div>
@@ -469,9 +469,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 playGentleClick();
                 onOpenRewards();
               }}
-              className="mt-5 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-[#002045] px-6 py-3.5 rounded-2xl font-extrabold text-[17px] w-full min-h-[54px] focus:outline-none focus:ring-4 focus:ring-amber-300 cursor-pointer shadow-md transition-all flex items-center justify-center gap-2"
+              className="mt-5 bg-[#2d1d00] hover:bg-[#493100] active:bg-[#1a1100] text-white px-6 py-3.5 rounded-2xl font-extrabold text-[17px] w-full min-h-[54px] focus:outline-none focus:ring-4 focus:ring-[#2d1d00] cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2"
             >
-              <Award className="w-5 h-5 text-[#002045]" />
+              <Award className="w-5 h-5 text-amber-300" />
               <span>Redeem Rewards</span>
             </button>
           </div>
@@ -479,43 +479,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Caregiver & Safe Zone Status Widget */}
           <div
             id="card-caregiver-anchor-status"
-            className="bg-[#0b1d3a] p-6 rounded-3xl border border-blue-900/60 shadow-lg space-y-4 text-white"
+            className="bg-white p-6 rounded-3xl border border-[#d6e3f8] shadow-xs space-y-4"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-sky-200 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-black uppercase tracking-wider text-[#002045] flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 Caregiver Anchor
               </span>
-              <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-700/60">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                 Live Standby
               </span>
             </div>
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm text-[#002045]">
               <div className="flex justify-between items-center">
-                <span className="text-blue-200 flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-sky-400" />
+                <span className="text-[#43474e] flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-sky-600" />
                   Primary Contact:
                 </span>
-                <span className="font-extrabold text-white">
+                <span className="font-extrabold text-[#002045]">
                   {config?.caregiverName || 'Rohan Sharma (Son)'}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-blue-200 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-[#43474e] flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-[#FF6321]" />
                   Base Location:
                 </span>
-                <span className="font-bold text-white">
+                <span className="font-bold text-[#002045]">
                   {config?.anchorName || 'Home Sweet Home'}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Safe Zone Radius:</span>
-                <span className="font-bold text-emerald-400">100m • Inside Safe Area</span>
+                <span className="text-[#43474e]">Safe Zone Radius:</span>
+                <span className="font-bold text-emerald-700">100m • Inside Safe Area</span>
               </div>
             </div>
 
@@ -526,9 +526,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   playGentleClick();
                   onOpenCareCompass();
                 }}
-                className="w-full py-3 bg-[#132c52] hover:bg-[#1b3d73] text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-blue-700/60 transition-all cursor-pointer shadow-xs"
+                className="w-full py-3 bg-[#f0f5ff] hover:bg-[#e0ecff] text-[#002045] rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-[#adc7f7] transition-all cursor-pointer"
               >
-                <Compass className="w-4 h-4 text-sky-400" />
+                <Compass className="w-4 h-4 text-sky-600" />
                 <span>Open CareCompass Radar</span>
               </button>
             )}
@@ -542,14 +542,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 playGentleClick();
                 onPlayGame('facebond');
               }}
-              className="bg-[#0c2438] p-5 rounded-3xl border border-emerald-500/40 space-y-3 cursor-pointer hover:shadow-md transition-all group"
+              className="bg-[#f0fdf4] p-5 rounded-3xl border border-[#bbf7d0] space-y-3 cursor-pointer hover:shadow-sm transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-rose-400" />
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-rose-500" />
                   Family Memory Spotlight
                 </span>
-                <span className="text-xs font-bold text-emerald-300 group-hover:underline flex items-center gap-0.5">
+                <span className="text-xs font-bold text-emerald-700 group-hover:underline flex items-center gap-0.5">
                   Reminisce <ChevronRight className="w-3 h-3" />
                 </span>
               </div>
@@ -558,15 +558,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <img
                   src={spotlightMember.photoUrl}
                   alt={spotlightMember.name}
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-400 shadow-xs"
+                  className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-300 shadow-xs"
                 />
                 <div>
-                  <h4 className="font-extrabold text-base text-white group-hover:text-emerald-300 transition-colors">
+                  <h4 className="font-extrabold text-base text-[#002045] group-hover:text-emerald-700 transition-colors">
                     {spotlightMember.name}
                   </h4>
-                  <p className="text-xs text-emerald-300 font-semibold">{spotlightMember.relation}</p>
+                  <p className="text-xs text-emerald-800 font-semibold">{spotlightMember.relation}</p>
                   {spotlightMember.keyMemories?.[0] && (
-                    <p className="text-[11px] text-blue-200 line-clamp-1 mt-0.5">
+                    <p className="text-[11px] text-[#43474e] line-clamp-1 mt-0.5">
                       "{spotlightMember.keyMemories[0]}"
                     </p>
                   )}
@@ -578,11 +578,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Recent Activity List */}
           <div
             id="card-recent-activity"
-            className="bg-[#0b1d3a] p-6 rounded-3xl border border-blue-900/60 shadow-lg flex flex-col justify-between text-white"
+            className="bg-white p-6 rounded-3xl border border-[#d6e3f8] shadow-xs flex flex-col justify-between"
           >
             <div>
-              <h3 className="font-bold text-[20px] text-white mb-4 flex items-center">
-                <History className="w-5 h-5 mr-2.5 text-sky-400" />
+              <h3 className="font-bold text-[20px] text-[#002045] mb-4 flex items-center">
+                <History className="w-5 h-5 mr-2.5 text-[#002045]" />
                 Recent Cognitive Activities
               </h3>
 
@@ -590,18 +590,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {recentActivities.map((act) => (
                   <li
                     key={act.id}
-                    className="flex justify-between items-center p-3 bg-[#07152b] rounded-2xl hover:bg-[#0d213f] transition-colors border border-blue-950"
+                    className="flex justify-between items-center p-3 bg-[#f8faff] rounded-2xl hover:bg-[#eef4ff] transition-colors border border-slate-100"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="bg-blue-900/70 text-sky-300 p-2 rounded-xl flex-shrink-0 flex items-center justify-center">
+                      <div className="bg-[#d6e3ff] text-[#002045] p-2 rounded-xl flex-shrink-0 flex items-center justify-center">
                         <span className="material-symbols-outlined text-[20px]">{act.icon}</span>
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-white leading-snug">{act.title}</p>
-                        <p className="font-normal text-xs text-blue-300">{act.timestamp}</p>
+                        <p className="font-bold text-sm text-[#121c2c] leading-snug">{act.title}</p>
+                        <p className="font-normal text-xs text-[#43474e]">{act.timestamp}</p>
                       </div>
                     </div>
-                    <span className="font-extrabold text-sm text-emerald-400 whitespace-nowrap">
+                    <span className="font-extrabold text-sm text-emerald-700 whitespace-nowrap">
                       +{act.points} pts
                     </span>
                   </li>
@@ -615,7 +615,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 playGentleClick();
                 onViewHistory();
               }}
-              className="w-full mt-4 py-3 text-sky-300 hover:text-white font-bold text-sm text-center hover:bg-blue-950/70 rounded-xl transition-colors min-h-[48px] focus:outline-none focus:ring-4 focus:ring-sky-500 cursor-pointer flex items-center justify-center gap-1 border border-blue-800/60"
+              className="w-full mt-4 py-3 text-[#002045] font-bold text-sm text-center hover:bg-[#eef4ff] rounded-xl transition-colors min-h-[48px] focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer flex items-center justify-center gap-1 border border-slate-200"
             >
               <span>View All Training Logs</span>
               <ChevronRight className="w-4 h-4" />
