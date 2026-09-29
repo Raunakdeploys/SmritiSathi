@@ -198,7 +198,7 @@ export const PatientMode: React.FC<PatientModeProps> = ({
     <main
       id="patient-mode-root"
       aria-label="Elder Safety Mode"
-      className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 flex flex-col justify-between select-none"
+      className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 flex flex-col justify-between select-none w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       {/* Top Reassurance Greeting Bar */}
       <header className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/90 border-2 border-emerald-500/60 p-4 sm:p-5 rounded-3xl shadow-xl">

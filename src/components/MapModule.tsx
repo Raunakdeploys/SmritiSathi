@@ -432,7 +432,7 @@ export const MapModule: React.FC<MapModuleProps> = ({
 
       {/* Address Search & Real-Time Geolocation Bar */}
       <div className="bg-slate-900/90 border-b border-slate-800/90 px-3.5 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs z-15">
-        <form onSubmit={handleSearchAddress} className="flex items-center gap-2 flex-1 min-w-[260px]">
+        <form onSubmit={handleSearchAddress} className="flex items-center gap-2 flex-1 min-w-0 w-full sm:w-auto sm:min-w-[220px]">
           <div className="relative flex-1">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input

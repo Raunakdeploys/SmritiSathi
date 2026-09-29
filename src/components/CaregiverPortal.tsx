@@ -187,7 +187,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   return (
     <main
       id="caregiver-clinical-portal-main"
-      className="flex-1 bg-[#F8F9FA] text-[#0F172A] p-4 sm:p-6 md:p-10 overflow-y-auto"
+      className="flex-1 bg-[#F8F9FA] text-[#0F172A] p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Top Header Card */}

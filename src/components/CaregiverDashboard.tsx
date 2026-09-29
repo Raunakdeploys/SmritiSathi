@@ -565,7 +565,7 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
     <main
       id="caregiver-command-center-root"
       aria-label="Caregiver Safety Dashboard"
-      className="min-h-screen bg-[#070D18] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6"
+      className="min-h-screen bg-[#070D18] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6 w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       {/* Top Header & Mode Switcher */}
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 p-5 rounded-3xl shadow-2xl backdrop-blur-md">

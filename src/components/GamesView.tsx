@@ -43,7 +43,7 @@ export const GamesView: React.FC<GamesViewProps> = ({
   };
 
   return (
-    <main id="games-view-main" className="flex-1 p-4 sm:p-6 md:p-12 bg-[#ffffff] overflow-y-auto">
+    <main id="games-view-main" className="flex-1 p-4 sm:p-6 md:p-12 bg-[#ffffff] overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border">
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-wrap items-center justify-between gap-4">

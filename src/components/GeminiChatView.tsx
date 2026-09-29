@@ -253,6 +253,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [showPromptsDrawer, setShowPromptsDrawer] = useState(true);
+  const [showStationDrawer, setShowStationDrawer] = useState(false);
   const [autoSpeakReplies, setAutoSpeakReplies] = useState<boolean>(() => {
     return user?.preferences?.voiceAssistance ?? true;
   });
@@ -596,117 +597,167 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
   }[fontSizeMode];
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row bg-[#F8F9FA] h-[calc(100dvh-72px)] sm:h-[calc(100vh-72px)] overflow-hidden relative">
+    <div className="flex-1 flex flex-col 2xl:flex-row bg-[#F8F9FA] h-[calc(100dvh-72px)] sm:h-[calc(100vh-72px)] overflow-hidden w-full min-w-0 max-w-full relative">
       {/* =========================================================================
           MAIN CHAT PANE (Adaptive for Phone, Tablet, and PC)
          ========================================================================= */}
-      <div className="flex-1 flex flex-col h-full min-w-0 bg-[#F8F9FA] relative">
+      <div className="flex-1 flex flex-col h-full min-w-0 max-w-full bg-[#F8F9FA] relative overflow-hidden">
         {/* TOP APP BAR & STATUS BAR */}
-        <header className="bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] px-3 sm:px-5 lg:px-6 py-2.5 sm:py-3 shrink-0 shadow-xs z-20">
-          <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {/* Left: Persona Avatar & Title */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div
-                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl ${currentConfig.avatarBg} flex items-center justify-center shrink-0 shadow-xs transition-transform`}
-              >
-                <currentConfig.icon className="w-5 h-5 sm:w-6 sm:h-6" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <h1 className="font-black text-sm sm:text-base lg:text-lg text-[#002045] truncate leading-tight">
-                    {currentConfig.name}
-                  </h1>
-                  <span className="hidden sm:inline-flex text-[10px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700 whitespace-nowrap">
-                    gemini-3.1-flash-lite
-                  </span>
+        <header className="bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 shrink-0 shadow-xs z-20 w-full min-w-0 max-w-full box-border overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full min-w-0">
+            {/* Top row on mobile / Left section on desktop */}
+            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${currentConfig.avatarBg} flex items-center justify-center shrink-0 shadow-xs`}
+                >
+                  <currentConfig.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <p className="text-[11px] sm:text-xs text-[#64748b] truncate max-w-[180px] sm:max-w-xs md:max-w-md font-medium">
-                  {currentConfig.tagline}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <h1 className="font-black text-sm sm:text-base text-[#002045] truncate leading-tight">
+                      {currentConfig.name}
+                    </h1>
+                    <span className="hidden lg:inline-flex text-[10px] font-extrabold px-1.5 py-0.2 rounded-full border border-slate-200 bg-slate-50 text-slate-600 whitespace-nowrap shrink-0">
+                      gemini-3.1-flash-lite
+                    </span>
+                  </div>
+                  <p className="hidden xl:block text-[11px] text-[#64748b] truncate max-w-xs font-medium">
+                    {currentConfig.tagline}
+                  </p>
+                </div>
+              </div>
+
+              {/* Mobile Right: Quick Actions */}
+              <div className="flex items-center gap-1.5 sm:hidden shrink-0">
+                <div
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-bold"
+                  title="Gemini Live AI Active"
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                  </span>
+                  <span>Live</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowStationDrawer(true)}
+                  title="Open Memory Station & Grounding Anchors"
+                  className="p-1.5 rounded-lg border border-[#cbd5e1] bg-[#f8fafc] text-xs font-bold text-[#002045] hover:bg-[#e2e8f0] cursor-pointer"
+                >
+                  <Compass className="w-3.5 h-3.5 text-[#FF6321]" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleClearChat}
+                  title="Clear chat conversation"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
-            {/* Right: Controls & Persona Switcher */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-              {/* Senior Font Size Switcher Toggle (Noticeable UX improvement) */}
-              <button
-                type="button"
-                onClick={handleToggleFontSize}
-                title={`Change font size (Current: ${fontSizeMode})`}
-                className="px-2 py-1 rounded-lg border border-[#cbd5e1] hover:border-[#002045] bg-[#f8fafc] text-xs font-black text-[#002045] transition-colors cursor-pointer flex items-center gap-0.5"
-              >
-                <Eye className="w-3 h-3 text-slate-500" />
-                <span>
-                  {fontSizeMode === 'normal' ? 'A' : fontSizeMode === 'large' ? 'A+' : 'A++'}
-                </span>
-              </button>
-
-              {/* Gemini Live AI Status Badge */}
-              <div
-                className="flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px] sm:text-xs font-bold"
-                title="Gemini 3.1 Flash Lite Live AI Active"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                <span className="hidden sm:inline">Gemini Live</span>
-              </div>
-
+            {/* Bottom row on mobile / Right section on desktop */}
+            <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 shrink-0 min-w-0 flex-wrap">
               {/* Persona Switcher Tabs */}
-              <div className="flex items-center bg-[#f1f5f9] p-0.5 sm:p-1 rounded-xl border border-[#e2e8f0]">
+              <div className="flex items-center bg-[#f1f5f9] p-0.5 rounded-xl border border-[#e2e8f0] shrink-0">
                 <button
                   id="tab-role-companion"
                   onClick={() => handleSelectRole('companion')}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'companion'
                       ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
                       : 'text-[#64748b] hover:text-[#002045]'
                   }`}
                   title="Saathi Memory Companion"
                 >
-                  <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                  <span className="hidden md:inline">Companion</span>
+                  <Heart className="w-3 h-3 text-rose-500 shrink-0" />
+                  <span>Companion</span>
                 </button>
 
                 <button
                   id="tab-role-quick"
                   onClick={() => handleSelectRole('quick')}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'quick'
                       ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
                       : 'text-[#64748b] hover:text-[#002045]'
                   }`}
                   title="Quick Anchor"
                 >
-                  <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span className="hidden md:inline">Quick</span>
+                  <Zap className="w-3 h-3 text-amber-500 shrink-0" />
+                  <span>Quick</span>
                 </button>
 
                 <button
                   id="tab-role-complex"
                   onClick={() => handleSelectRole('complex')}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'complex'
                       ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
                       : 'text-[#64748b] hover:text-[#002045]'
                   }`}
                   title="Dr. Smriti Clinical Specialist"
                 >
-                  <Stethoscope className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span className="hidden md:inline">Clinical</span>
+                  <Stethoscope className="w-3 h-3 text-blue-600 shrink-0" />
+                  <span>Clinical</span>
                 </button>
               </div>
 
-              {/* Clear History Button */}
-              <button
-                id="btn-clear-chat-history"
-                onClick={handleClearChat}
-                title="Clear chat conversation"
-                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {/* Desktop-only action buttons */}
+              <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                {/* Gemini Live AI Status Badge */}
+                <div
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px] font-bold"
+                  title="Gemini 3.1 Flash Lite Live AI Active"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  <span>Gemini Live</span>
+                </div>
+
+                {/* Senior Font Size Switcher Toggle */}
+                <button
+                  type="button"
+                  onClick={handleToggleFontSize}
+                  title={`Change font size (Current: ${fontSizeMode})`}
+                  className="px-2 py-1 rounded-lg border border-[#cbd5e1] hover:border-[#002045] bg-[#f8fafc] text-xs font-black text-[#002045] transition-colors cursor-pointer flex items-center gap-0.5"
+                >
+                  <Eye className="w-3 h-3 text-slate-500" />
+                  <span>{fontSizeMode === 'normal' ? 'A' : fontSizeMode === 'large' ? 'A+' : 'A++'}</span>
+                </button>
+
+                {/* Memory Station Drawer Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowStationDrawer(!showStationDrawer)}
+                  title="Open Memory Station & Anchors"
+                  className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    showStationDrawer
+                      ? 'bg-[#002045] text-white border-[#002045]'
+                      : 'border-[#cbd5e1] hover:border-[#002045] bg-[#f8fafc] text-[#002045]'
+                  }`}
+                >
+                  <Compass className={`w-3.5 h-3.5 ${showStationDrawer ? 'text-[#FF6321]' : 'text-slate-600'}`} />
+                  <span className="hidden xl:inline">Station</span>
+                </button>
+
+                {/* Clear History Button */}
+                <button
+                  id="btn-clear-chat-history"
+                  onClick={handleClearChat}
+                  title="Clear chat conversation"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -1032,7 +1083,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     : `Ask ${currentConfig.shortName} anything (science, songs, health, math)...`
                 }
                 disabled={loading}
-                className="flex-1 bg-transparent px-2 py-2.5 text-base sm:text-base text-[#0f172a] placeholder-[#94a3b8] font-medium resize-none max-h-32 focus:outline-none"
+                className="flex-1 min-w-0 bg-transparent px-2 py-2.5 text-base text-[#0f172a] placeholder-[#94a3b8] font-medium resize-none max-h-32 focus:outline-none"
               />
 
               {/* Submit Button */}
@@ -1063,9 +1114,194 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
       </div>
 
       {/* =========================================================================
-          DESKTOP WORKSTATION SIDEBAR (Visible on PC / lg screens >= 1024px)
+          RESPONSIVE MEMORY STATION DRAWER (For Phone, Tablet & Laptop screens < 2xl)
          ========================================================================= */}
-      <aside className="hidden lg:flex w-80 xl:w-96 flex-col border-l border-[#e2e8f0] bg-white h-full shrink-0 overflow-y-auto">
+      {showStationDrawer && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Memory Station & Grounding Anchors"
+          className="fixed inset-0 z-50 2xl:hidden flex justify-end bg-black/60 backdrop-blur-xs animate-fadeIn"
+          onClick={() => setShowStationDrawer(false)}
+        >
+          <div
+            className="w-full max-w-sm sm:max-w-md bg-white h-full flex flex-col shadow-2xl overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drawer Header */}
+            <div className="p-4 sm:p-5 border-b border-[#e2e8f0] bg-[#F8F9FA] flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="font-extrabold text-base text-[#002045] flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-[#FF6321]" /> Memory Station
+                </h2>
+                <p className="text-xs text-[#64748b]">
+                  Companion controls and grounding anchors.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowStationDrawer(false)}
+                className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
+                aria-label="Close Memory Station"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-5 flex-1">
+              {/* Real-time Temporal Anchor Widget */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#002045] to-[#1a365d] text-white shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-xs text-blue-200">
+                  <span className="flex items-center gap-1 font-bold">
+                    <Clock className="w-3.5 h-3.5 text-blue-300" /> Temporal Anchor
+                  </span>
+                  <span className="text-[10px] uppercase font-bold bg-white/10 px-2 py-0.5 rounded">
+                    Live
+                  </span>
+                </div>
+                <div className="text-2xl font-black font-mono tracking-wider">
+                  {currentTimeStr}
+                </div>
+                <div className="text-xs text-slate-200 font-medium">
+                  {currentDateStr}
+                </div>
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-100">
+                  <span>Patient: <strong>{patientName}</strong></span>
+                  <span>Caregiver: <strong>{caregiverName}</strong></span>
+                </div>
+              </div>
+
+              {/* Persona Switching Cards */}
+              <div className="space-y-2.5">
+                <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
+                  Select AI Persona
+                </h3>
+                {(Object.keys(ROLE_CONFIGS) as ChatRole[]).map((roleKey) => {
+                  const cfg = ROLE_CONFIGS[roleKey];
+                  const isSelected = activeRole === roleKey;
+
+                  return (
+                    <button
+                      key={roleKey}
+                      type="button"
+                      onClick={() => {
+                        handleSelectRole(roleKey);
+                        setShowStationDrawer(false);
+                      }}
+                      className={`w-full p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                        isSelected
+                          ? 'border-[#002045] bg-[#002045]/5 shadow-xs ring-1 ring-[#002045]'
+                          : 'border-[#e2e8f0] bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <div
+                        className={`w-9 h-9 rounded-xl ${cfg.avatarBg} flex items-center justify-center shrink-0 mt-0.5`}
+                      >
+                        <cfg.icon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-sm text-[#002045]">
+                            {cfg.shortName}
+                          </h4>
+                          {isSelected && (
+                            <span className="text-[10px] font-bold text-[#FF6321] uppercase">
+                              Selected
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#64748b] mt-0.5 line-clamp-2">
+                          {cfg.tagline}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Voice Assistance Auto-Readout Switch */}
+              <div className="p-4 rounded-xl border border-[#e2e8f0] bg-slate-50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="w-4 h-4 text-[#002045]" />
+                    <span className="text-xs font-bold text-[#002045]">
+                      Auto-Readout Replies
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoSpeakReplies}
+                      onChange={(e) => setAutoSpeakReplies(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002045]"></div>
+                  </label>
+                </div>
+                <p className="text-[11px] text-[#64748b]">
+                  Automatically speaks responses aloud at a gentle 0.9x speed suitable for seniors.
+                </p>
+              </div>
+
+              {/* Quick Memory Bank Navigation Buttons */}
+              {onNavigateTab && (
+                <div className="space-y-2 pt-2 border-t border-[#e2e8f0]">
+                  <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
+                    Elder Training Activities
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowStationDrawer(false);
+                        onNavigateTab('reality-quest');
+                      }}
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                    >
+                      RealityQuest
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowStationDrawer(false);
+                        onNavigateTab('games');
+                      }}
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                    >
+                      Mind Games
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowStationDrawer(false);
+                        onNavigateTab('carecompass');
+                      }}
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                    >
+                      CareCompass
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowStationDrawer(false);
+                        onNavigateTab('history');
+                      }}
+                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
+                    >
+                      Activity Logs
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          PERSISTENT DESKTOP WORKSTATION SIDEBAR (Visible only on 2xl screens >= 1536px)
+         ========================================================================= */}
+      <aside className="hidden 2xl:flex w-80 flex-col border-l border-[#e2e8f0] bg-white h-full shrink-0 overflow-y-auto">
         {/* Sidebar Header */}
         <div className="p-5 border-b border-[#e2e8f0] bg-[#F8F9FA]">
           <div className="flex items-center justify-between mb-1">
@@ -1085,8 +1321,8 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
           {/* Real-time Temporal Anchor Widget */}
           <div className="p-4 rounded-2xl bg-gradient-to-br from-[#002045] to-[#1a365d] text-white shadow-sm space-y-2">
             <div className="flex items-center justify-between text-xs text-blue-200">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" /> Temporal Anchor
+              <span className="flex items-center gap-1 font-bold">
+                <Clock className="w-3.5 h-3.5 text-blue-300" /> Temporal Anchor
               </span>
               <span className="text-[10px] uppercase font-bold bg-white/10 px-2 py-0.5 rounded">
                 Live

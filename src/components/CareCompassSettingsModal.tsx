@@ -36,31 +36,54 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
   const [searchQuery, setSearchQuery] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
-  const [isOpenWaTesting, setIsOpenWaTesting] = useState(false);
-  const [openWaTestFeedback, setOpenWaTestFeedback] = useState<string | null>(null);
+  const [selectedWaProvider, setSelectedWaProvider] = useState<'callmebot' | 'meta_cloud' | 'twilio' | 'openwa' | 'webhook'>('callmebot');
+  const [isWaTesting, setIsWaTesting] = useState(false);
+  const [waTestFeedback, setWaTestFeedback] = useState<{ success?: boolean; text: string; details?: string } | null>(null);
 
-  const handleTestOpenWa = async () => {
-    setIsOpenWaTesting(true);
-    setOpenWaTestFeedback(null);
+  const handleTestWhatsApp = async (provider: 'callmebot' | 'meta_cloud' | 'twilio' | 'openwa' | 'webhook') => {
+    setIsWaTesting(true);
+    setWaTestFeedback(null);
     try {
-      const res = await fetch('/api/openwa/test', {
+      let body: any = {
+        toPhone: formData.caregiverPhone,
+        providerPreference: provider,
+      };
+
+      if (provider === 'callmebot') {
+        body.apiKey = formData.callMeBotConfig?.apiKey;
+        body.toPhone = formData.callMeBotConfig?.phone || formData.caregiverPhone;
+      } else if (provider === 'meta_cloud') {
+        body.phoneNumberId = formData.metaWhatsAppConfig?.phoneNumberId;
+        body.accessToken = formData.metaWhatsAppConfig?.accessToken;
+        body.toPhone = formData.metaWhatsAppConfig?.recipientPhone || formData.caregiverPhone;
+      }
+
+      const res = await fetch('/api/whatsapp/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          toPhone: formData.caregiverPhone,
-          patientName: formData.patientName,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.success) {
-        setOpenWaTestFeedback(`✅ OpenWA alert sent to ${formData.caregiverPhone}`);
+        setWaTestFeedback({
+          success: true,
+          text: `✅ Alert automatically dispatched via ${data.result?.provider || provider}!`,
+          details: data.message || 'Check recipient WhatsApp handset.',
+        });
       } else {
-        setOpenWaTestFeedback(`⚠️ OpenWA response: ${data.error || 'Check gateway'}`);
+        setWaTestFeedback({
+          success: false,
+          text: `⚠️ Dispatch status: ${data.result?.status || 'FAILED'}`,
+          details: data.error || data.message || 'Check configuration and credentials.',
+        });
       }
     } catch (e: any) {
-      setOpenWaTestFeedback(`❌ OpenWA: ${e?.message || 'Connection failed'}`);
+      setWaTestFeedback({
+        success: false,
+        text: `❌ Connection error: ${e?.message || 'Server request failed'}`,
+      });
     } finally {
-      setIsOpenWaTesting(false);
+      setIsWaTesting(false);
     }
   };
 
@@ -494,73 +517,356 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
               </div>
             </label>
 
-            {/* OpenWA Gateway Configuration Box */}
-            <div className="mt-2 p-3 bg-slate-900 border border-emerald-500/40 rounded-xl space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-                  <Send className="w-3.5 h-3.5" />
-                  <span>OpenWA WhatsApp API Gateway (No wa.me links)</span>
-                </span>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/30">
-                  rmyndharis/OpenWA-plugins
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-300">
-                When a geofence breach occurs, SmritiSaathi dispatches the emergency coordinates, alert reason, and battery telemetry directly through OpenWA's REST API. No browser tabs or manual wa.me clicks are opened.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {/* Multi-Provider Automated WhatsApp Gateway Configuration */}
+            <div className="mt-3 p-4 bg-slate-900 border border-emerald-500/50 rounded-2xl space-y-3.5 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
                 <div>
-                  <label className="text-[10px] text-slate-400 block mb-1">OpenWA Gateway URL</label>
-                  <input
-                    type="text"
-                    value={formData.openWaConfig?.gatewayUrl || 'http://localhost:2785'}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        openWaConfig: {
-                          ...formData.openWaConfig,
-                          gatewayUrl: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="http://localhost:2785"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
-                  />
+                  <h4 className="text-xs sm:text-sm font-extrabold text-emerald-300 flex items-center gap-1.5">
+                    <Send className="w-4 h-4 text-emerald-400" />
+                    <span>Automated WhatsApp Dispatch Gateway (Zero wa.me Clicks)</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Messages are transmitted directly to the caregiver's WhatsApp from the cloud.
+                  </p>
                 </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 block mb-1">OpenWA API Key (Optional)</label>
-                  <input
-                    type="password"
-                    value={formData.openWaConfig?.apiKey || ''}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        openWaConfig: {
-                          ...formData.openWaConfig,
-                          apiKey: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="Optional API key"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
-                  />
-                </div>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30 self-start sm:self-auto">
+                  Live Dispatch
+                </span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800">
+              {/* Provider Selection Tabs */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
                 <button
                   type="button"
-                  onClick={handleTestOpenWa}
-                  disabled={isOpenWaTesting}
-                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  onClick={() => {
+                    setSelectedWaProvider('callmebot');
+                    setFormData((p) => ({ ...p, whatsappProvider: 'callmebot' }));
+                  }}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 text-center ${
+                    selectedWaProvider === 'callmebot'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
                 >
-                  <Send className="w-3 h-3" />
-                  <span>{isOpenWaTesting ? 'Sending OpenWA Test...' : 'Test OpenWA WhatsApp Alert'}</span>
+                  <span>CallMeBot</span>
+                  <span className="text-[9px] font-normal opacity-90">100% Free &amp; Fast</span>
                 </button>
-                {openWaTestFeedback && (
-                  <span className="text-[11px] font-mono text-emerald-300">
-                    {openWaTestFeedback}
-                  </span>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedWaProvider('meta_cloud');
+                    setFormData((p) => ({ ...p, whatsappProvider: 'meta_cloud' }));
+                  }}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 text-center ${
+                    selectedWaProvider === 'meta_cloud'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <span>WhatsApp Cloud</span>
+                  <span className="text-[9px] font-normal opacity-90">Meta Graph API</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedWaProvider('twilio');
+                    setFormData((p) => ({ ...p, whatsappProvider: 'twilio' }));
+                  }}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 text-center ${
+                    selectedWaProvider === 'twilio'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <span>Twilio</span>
+                  <span className="text-[9px] font-normal opacity-90">Twilio Sandbox</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedWaProvider('openwa');
+                    setFormData((p) => ({ ...p, whatsappProvider: 'openwa' }));
+                  }}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 text-center ${
+                    selectedWaProvider === 'openwa'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <span>OpenWA / Webhook</span>
+                  <span className="text-[9px] font-normal opacity-90">Self-Hosted</span>
+                </button>
+              </div>
+
+              {/* Provider 1: CallMeBot Free WhatsApp API (Recommended) */}
+              {selectedWaProvider === 'callmebot' && (
+                <div className="space-y-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 animate-fadeIn">
+                  <div className="bg-emerald-950/50 border border-emerald-500/40 p-3 rounded-xl space-y-1.5 text-xs text-emerald-200">
+                    <p className="font-bold flex items-center gap-1.5 text-emerald-300">
+                      <span>💡 30-Second Free Setup for Direct WhatsApp Delivery:</span>
+                    </p>
+                    <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-300">
+                      <li>
+                        Save phone <strong className="text-white font-mono">+34 941 86 20 28</strong> into your WhatsApp as <em>CallMeBot</em>, or tap:{' '}
+                        <a
+                          href="https://wa.me/34941862028?text=I%20allow%20callmebot%20to%20send%20me%20messages"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-emerald-400 underline font-bold"
+                        >
+                          Send WhatsApp Opt-In Message
+                        </a>
+                      </li>
+                      <li>Send the exact text: <code className="bg-slate-800 text-emerald-300 px-1.5 py-0.5 rounded font-mono">I allow callmebot to send me messages</code></li>
+                      <li>You will instantly receive your free <strong>API Key</strong> on WhatsApp! Paste it below.</li>
+                    </ol>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-[11px] text-slate-300 font-bold block mb-1">
+                        Recipient WhatsApp Phone (e.g. +919876543210)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.callMeBotConfig?.phone || formData.caregiverPhone}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            callMeBotConfig: {
+                              ...formData.callMeBotConfig,
+                              phone: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="+919876543210"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-300 font-bold block mb-1">
+                        CallMeBot Free API Key
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.callMeBotConfig?.apiKey || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            callMeBotConfig: {
+                              ...formData.callMeBotConfig,
+                              apiKey: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="e.g. 1234567"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Provider 2: Meta WhatsApp Cloud API */}
+              {selectedWaProvider === 'meta_cloud' && (
+                <div className="space-y-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 animate-fadeIn">
+                  <p className="text-xs text-slate-300">
+                    Send official WhatsApp messages through Meta Graph API v20.0 (First 1,000 conversations/month free on Meta Developers).
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-[11px] text-slate-300 font-bold block mb-1">
+                        Meta Phone Number ID
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.metaWhatsAppConfig?.phoneNumberId || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            metaWhatsAppConfig: {
+                              ...formData.metaWhatsAppConfig,
+                              phoneNumberId: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="e.g. 109283746592837"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-300 font-bold block mb-1">
+                        System User Access Token
+                      </label>
+                      <input
+                        type="password"
+                        value={formData.metaWhatsAppConfig?.accessToken || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            metaWhatsAppConfig: {
+                              ...formData.metaWhatsAppConfig,
+                              accessToken: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="EAABw..."
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Provider 3: Twilio WhatsApp */}
+              {selectedWaProvider === 'twilio' && (
+                <div className="space-y-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 animate-fadeIn">
+                  <p className="text-xs text-slate-300">
+                    Use Twilio WhatsApp sandbox or production number.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">Account SID</label>
+                      <input
+                        type="text"
+                        value={formData.twilioWhatsAppConfig?.accountSid || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            twilioWhatsAppConfig: {
+                              ...formData.twilioWhatsAppConfig,
+                              accountSid: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="AC..."
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">Auth Token</label>
+                      <input
+                        type="password"
+                        value={formData.twilioWhatsAppConfig?.authToken || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            twilioWhatsAppConfig: {
+                              ...formData.twilioWhatsAppConfig,
+                              authToken: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="Token"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">From Number</label>
+                      <input
+                        type="text"
+                        value={formData.twilioWhatsAppConfig?.fromNumber || '+14155238886'}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            twilioWhatsAppConfig: {
+                              ...formData.twilioWhatsAppConfig,
+                              fromNumber: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="+14155238886"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Provider 4: OpenWA Gateway & Webhook */}
+              {selectedWaProvider === 'openwa' && (
+                <div className="space-y-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 animate-fadeIn">
+                  <p className="text-xs text-slate-300">
+                    Connect to a local OpenWA/Baileys container (<code className="text-emerald-300 font-mono">rmyndharis/OpenWA-plugins</code>) or webhook endpoint.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">OpenWA Gateway URL</label>
+                      <input
+                        type="text"
+                        value={formData.openWaConfig?.gatewayUrl || 'http://localhost:2785'}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            openWaConfig: {
+                              ...formData.openWaConfig,
+                              gatewayUrl: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="http://localhost:2785"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">Custom Webhook URL (Optional)</label>
+                      <input
+                        type="text"
+                        value={formData.customWebhookConfig?.webhookUrl || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            customWebhookConfig: {
+                              ...formData.customWebhookConfig,
+                              webhookUrl: e.target.value,
+                              enabled: true,
+                            },
+                          })
+                        }
+                        placeholder="https://..."
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Bar & Live Test */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => handleTestWhatsApp(selectedWaProvider)}
+                  disabled={isWaTesting}
+                  className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all active:scale-95"
+                >
+                  <Send className="w-3.5 h-3.5 animate-pulse" />
+                  <span>{isWaTesting ? 'Transmitting Live Test...' : `Test Automated WhatsApp Dispatch (${selectedWaProvider})`}</span>
+                </button>
+
+                {waTestFeedback && (
+                  <div
+                    className={`p-2.5 rounded-xl text-xs font-bold border ${
+                      waTestFeedback.success
+                        ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200'
+                        : 'bg-rose-950/80 border-rose-500/50 text-rose-200'
+                    }`}
+                  >
+                    <div>{waTestFeedback.text}</div>
+                    {waTestFeedback.details && (
+                      <div className="text-[10px] opacity-85 font-normal mt-0.5">{waTestFeedback.details}</div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

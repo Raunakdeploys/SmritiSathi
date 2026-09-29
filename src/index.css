@@ -5,8 +5,28 @@
     --font-atkinson: 'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html,
   body {
     font-family: var(--font-atkinson);
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    min-height: 100vh;
+    box-sizing: border-box;
   }
 }
 
@@ -41,16 +61,16 @@
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f0f3ff;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #bcc8cf;
-  border-radius: 4px;
+  background: #cbd5e1;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #74777f;
+  background: #94a3b8;
 }

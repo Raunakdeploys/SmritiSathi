@@ -248,7 +248,7 @@ export type EmergencyDeliveryStatus = 'DELIVERED' | 'QUEUED' | 'PENDING_CONFIGUR
 export interface EmergencyServiceStatus {
   service: 'whatsapp' | 'voice_call';
   status: EmergencyDeliveryStatus;
-  provider: 'openwa' | 'twilio' | 'meta' | 'simulation_fallback';
+  provider: 'callmebot' | 'meta' | 'openwa' | 'twilio' | 'custom_webhook' | 'simulation_fallback';
   id?: string;
   error?: string;
   details?: string;
@@ -351,11 +351,34 @@ export interface CareCompassConfig {
   autoSirenOnBreach: boolean;
   autoWhatsAppOnBreach: boolean;
   googleMapsApiKey?: string;
+  whatsappProvider?: 'callmebot' | 'meta_cloud' | 'twilio' | 'openwa' | 'custom_webhook';
+  callMeBotConfig?: {
+    enabled?: boolean;
+    phone?: string;
+    apiKey?: string;
+  };
+  metaWhatsAppConfig?: {
+    enabled?: boolean;
+    phoneNumberId?: string;
+    accessToken?: string;
+    recipientPhone?: string;
+  };
+  twilioWhatsAppConfig?: {
+    enabled?: boolean;
+    accountSid?: string;
+    authToken?: string;
+    fromNumber?: string;
+  };
   openWaConfig?: {
     enabled?: boolean;
     gatewayUrl?: string; // e.g. 'http://localhost:2785' or 'http://localhost:8080'
     apiKey?: string;
     sessionId?: string; // default 'default'
+  };
+  customWebhookConfig?: {
+    enabled?: boolean;
+    webhookUrl?: string;
+    headersJson?: string;
   };
 }
 

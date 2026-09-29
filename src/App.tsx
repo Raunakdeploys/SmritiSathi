@@ -245,7 +245,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen flex bg-[#F8F9FA] text-[#0F172A] ${fontSizeClass}`}>
+    <div className={`min-h-screen bg-[#F8F9FA] text-[#0F172A] ${fontSizeClass} w-full max-w-full overflow-x-hidden relative`}>
       {/* Desktop Side Navigation Bar */}
       <Sidebar
         currentTab={currentTab}
@@ -337,8 +337,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Content Container */}
-      <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
+      {/* Main Content Container: exact fit for mobile and desktop without overflow */}
+      <div className="flex flex-col min-h-screen w-full md:pl-64 min-w-0 max-w-full overflow-x-hidden box-border">
         {/* Top App Bar Header */}
         <Header
           user={user}
@@ -349,7 +349,7 @@ export default function App() {
         />
 
         {/* View Switcher Container */}
-        <div className="flex-1 mt-[72px] flex flex-col">
+        <div className="flex-1 mt-[72px] flex flex-col w-full min-w-0 max-w-full overflow-x-hidden box-border">
           {currentTab === 'carecompass' && (
             <CaregiverDashboard
               telemetry={database.careCompass?.telemetry}

@@ -280,7 +280,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
   return (
     <main
       id="reality-quest-view-main"
-      className="flex-1 p-4 sm:p-6 md:p-10 bg-[#F8F9FA] text-[#0F172A] overflow-y-auto"
+      className="flex-1 p-4 sm:p-6 md:p-10 bg-[#F8F9FA] text-[#0F172A] overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Ribbon */}

@@ -108,7 +108,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <main
       id="dashboard-canvas-main"
-      className="flex-1 p-4 sm:p-6 md:p-10 lg:p-12 bg-[#f8faff] overflow-y-auto space-y-6 md:space-y-8"
+      className="flex-1 p-3.5 sm:p-6 md:p-8 lg:p-10 bg-[#f8faff] overflow-y-auto space-y-6 md:space-y-8 w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       {/* 1. Temporal Orientation & Calming Grounding Banner */}
       <section
@@ -180,9 +180,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </section>
 
       {/* 2. Bento Grid Primary Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full min-w-0">
         {/* Left 2 Columns: Training Progress & Cognitive Domains */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 w-full min-w-0">
           {/* Interactive Daily Training Progress Center */}
           <InteractiveDailyTrainingProgress
             user={user}
@@ -441,7 +441,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Right Column: Mind Points, Caregiver Anchor & Family Spotlight */}
-        <div className="space-y-6">
+        <div className="space-y-6 w-full min-w-0">
           {/* Mind Points Summary Card */}
           <div
             id="card-mind-points-summary"

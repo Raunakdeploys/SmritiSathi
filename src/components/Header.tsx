@@ -65,37 +65,37 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       id="top-app-bar"
-      className="bg-[#f9f9ff] fixed top-0 w-full md:w-[calc(100%-16rem)] md:left-64 border-b-2 border-[#c4c6cf] flex justify-between items-center px-4 sm:px-6 md:px-12 h-[72px] z-30 shadow-xs"
+      className="bg-[#f9f9ff] fixed top-0 left-0 md:left-64 right-0 border-b-2 border-[#c4c6cf] flex justify-between items-center px-3 sm:px-6 md:px-8 h-[72px] z-30 shadow-xs box-border overflow-hidden"
     >
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
         {/* Mobile menu trigger */}
         <button
           id="btn-mobile-menu-toggle"
           onClick={onOpenMobileMenu}
           aria-label="Open Navigation Menu"
-          className="md:hidden p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-lg min-h-[48px] min-w-[48px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045]"
+          className="md:hidden p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-lg min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045] shrink-0 cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[30px]">menu</span>
+          <span className="material-symbols-outlined text-[26px]">menu</span>
         </button>
 
         <h1
           id="app-main-title"
-          className="font-extrabold text-[26px] md:text-[32px] tracking-tight text-[#002045] select-none"
+          className="font-extrabold text-[18px] sm:text-[24px] md:text-[28px] tracking-tight text-[#002045] select-none truncate"
         >
           SmritiSaathi
         </h1>
       </div>
 
-      <div className="flex items-center space-x-2.5 sm:space-x-3 md:space-x-4">
+      <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
         {/* Audio narration button for accessible low-vision reading */}
         <button
           id="btn-read-aloud"
           onClick={handleReadAloud}
           title="Read screen aloud with voice guidance"
           aria-label="Read screen aloud"
-          className="p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer"
+          className="p-1.5 sm:p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer shrink-0"
         >
-          <span className="material-symbols-outlined text-[26px]">volume_up</span>
+          <span className="material-symbols-outlined text-[22px] sm:text-[26px]">volume_up</span>
         </button>
 
         {/* Mind Points Display (Clickable to redeem rewards) */}
@@ -103,30 +103,30 @@ export const Header: React.FC<HeaderProps> = ({
           id="header-mind-points-chip"
           onClick={onOpenRewards}
           title="Click to view and redeem Mind Points"
-          className="hidden xs:flex items-center bg-[#ffdeaa] hover:bg-[#f8bc4b] text-[#271900] px-3.5 py-2 rounded-full transition-all border border-[#f8bc4b] min-h-[44px] cursor-pointer shadow-xs active:scale-95"
+          className="hidden sm:flex items-center bg-[#ffdeaa] hover:bg-[#f8bc4b] text-[#271900] px-2.5 sm:px-3 py-1.5 rounded-full transition-all border border-[#f8bc4b] min-h-[38px] cursor-pointer shadow-xs active:scale-95 shrink-0"
         >
-          <span className="material-symbols-outlined mr-1.5 filled-icon text-[#2d1d00] text-[22px]">stars</span>
-          <span className="font-extrabold text-[17px]">{mindPointsFormatted}</span>
-          <span className="hidden sm:inline text-xs ml-1 text-[#5f4100] font-semibold">pts</span>
+          <span className="material-symbols-outlined mr-1 filled-icon text-[#2d1d00] text-[18px] sm:text-[20px]">stars</span>
+          <span className="font-extrabold text-[14px] sm:text-[16px]">{mindPointsFormatted}</span>
+          <span className="hidden md:inline text-xs ml-1 text-[#5f4100] font-semibold">pts</span>
         </button>
 
         {/* Google Sign In / Account Status */}
         {user?.isGoogleLinked ? (
-          <div className="flex items-center space-x-1.5 sm:space-x-2 bg-[#e7eeff] pl-2 pr-1.5 py-1 rounded-full border border-[#adc7f7]">
+          <div className="flex items-center space-x-1 sm:space-x-2 bg-[#e7eeff] pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-1 rounded-full border border-[#adc7f7]">
             <button
               id="btn-user-google-profile"
               onClick={onOpenProfile}
               title={`Connected with Google: ${user.email || user.name}`}
-              className="flex items-center space-x-2 cursor-pointer focus:outline-none"
+              className="flex items-center space-x-1.5 cursor-pointer focus:outline-none"
             >
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
-                  className="w-8 h-8 rounded-full border border-sky-400 object-cover"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-sky-400 object-cover"
                 />
               ) : (
-                <span className="material-symbols-outlined text-[26px] text-[#002045]">account_circle</span>
+                <span className="material-symbols-outlined text-[24px] sm:text-[26px] text-[#002045]">account_circle</span>
               )}
               <div className="hidden lg:block text-left pr-1">
                 <p className="text-xs font-extrabold text-[#002045] truncate max-w-[100px] leading-tight">
@@ -142,33 +142,32 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-header-signout"
               onClick={handleGoogleSignOut}
               title="Sign out of Google"
-              className="p-1.5 text-[#43474e] hover:text-rose-600 hover:bg-white/80 rounded-full transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 text-[#43474e] hover:text-rose-600 hover:bg-white/80 rounded-full transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         ) : (
-          <button
-            id="btn-header-google-signin"
-            onClick={onOpenProfile}
-            title="Sign in to backup your progress across devices"
-            className="flex items-center space-x-1.5 bg-white hover:bg-[#f0f3ff] text-[#002045] font-bold text-xs sm:text-sm px-3.5 py-2 rounded-full border-2 border-[#adc7f7] shadow-xs hover:border-[#002045] transition-all cursor-pointer min-h-[44px]"
-          >
-            <LogIn className="w-4 h-4 text-[#002045]" />
-            <span>Sign In</span>
-          </button>
-        )}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <button
+              id="btn-header-google-signin"
+              onClick={onOpenProfile}
+              title="Sign in to backup your progress across devices"
+              className="flex items-center space-x-1 bg-white hover:bg-[#f0f3ff] text-[#002045] font-bold text-xs px-2.5 sm:px-3 py-1.5 rounded-full border-2 border-[#adc7f7] shadow-xs hover:border-[#002045] transition-all cursor-pointer min-h-[38px] shrink-0"
+            >
+              <LogIn className="w-3.5 h-3.5 text-[#002045]" />
+              <span className="hidden xs:inline sm:inline">Sign In</span>
+            </button>
 
-        {/* Account Profile button for non-Google or direct modal access */}
-        {!user?.isGoogleLinked && (
-          <button
-            id="btn-user-account"
-            onClick={onOpenProfile}
-            aria-label={`Account profile for ${user?.name || 'Asha Devi'}`}
-            className="text-[#002045] hover:bg-[#dee8ff] transition-colors p-1.5 rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer"
-          >
-            <span className="material-symbols-outlined filled-icon text-[32px]">account_circle</span>
-          </button>
+            <button
+              id="btn-user-account"
+              onClick={onOpenProfile}
+              aria-label={`Account profile for ${user?.name || 'Asha Devi'}`}
+              className="text-[#002045] hover:bg-[#dee8ff] transition-colors p-1 rounded-full min-h-[38px] min-w-[38px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer shrink-0"
+            >
+              <span className="material-symbols-outlined filled-icon text-[26px] sm:text-[28px]">account_circle</span>
+            </button>
+          </div>
         )}
       </div>
 

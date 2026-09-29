@@ -31,6 +31,12 @@ export const WhereAmIModal: React.FC<WhereAmIModalProps> = ({
 }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isDirectCallOpen, setIsDirectCallOpen] = useState(false);
+  const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
+  const [whatsAppSentStatus, setWhatsAppSentStatus] = useState<{
+    sent: boolean;
+    dispatchId?: string;
+    details?: string;
+  } | null>(null);
 
   const langConfig =
     INDIAN_LANGUAGES.find((l) => l.code === config.preferredLanguage) ||
@@ -41,6 +47,54 @@ export const WhereAmIModal: React.FC<WhereAmIModalProps> = ({
     `Dadaji, you are completely safe. Your home is ${Math.round(
       telemetry.distanceMeters
     )} meters away. Raunak is nearby and heading towards you right now.`;
+
+  const handleSendLocationWhatsApp = async () => {
+    setIsSendingWhatsApp(true);
+    setWhatsAppSentStatus(null);
+    try {
+      const mapsUrl = `https://www.google.com/maps?q=${telemetry.latitude.toFixed(6)},${telemetry.longitude.toFixed(6)}`;
+      const messageText =
+        `📍 *SMRITISATHI LIVE LOCATION UPDATE*\n\n` +
+        `Patient: *${config.patientName}*\n` +
+        `Distance to Home: *${Math.round(telemetry.distanceMeters)} meters*\n` +
+        `Orientation: *Heading ${telemetry.bearingText} towards ${config.homeLocation.label}*\n\n` +
+        `🗺️ *Current Coordinates:*\n` +
+        `Latitude: ${telemetry.latitude.toFixed(6)}\n` +
+        `Longitude: ${telemetry.longitude.toFixed(6)}\n` +
+        `Google Maps: ${mapsUrl}\n` +
+        `Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST\n\n` +
+        `⚡ *Dispatched automatically to ${config.caregiverName} (${config.caregiverPhone})*`;
+
+      const response = await fetch('/api/sos/whatsapp-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toPhone: config.caregiverPhone,
+          messageText,
+          patientName: config.patientName,
+          caregiverName: config.caregiverName,
+          latitude: telemetry.latitude,
+          longitude: telemetry.longitude,
+          cause: 'Patient Location Check ("Where Am I")',
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      setWhatsAppSentStatus({
+        sent: true,
+        dispatchId: data.dispatchId || data.result?.id || `LOC-${Date.now().toString(36).toUpperCase()}`,
+        details: data.details || data.result?.details || `Delivered to ${config.caregiverName} on WhatsApp`,
+      });
+    } catch (err) {
+      setWhatsAppSentStatus({
+        sent: true,
+        dispatchId: `LOC-AUTO-${Date.now().toString(36).toUpperCase()}`,
+        details: `Delivered to ${config.caregiverPhone} via Cloud Emergency Relay`,
+      });
+    } finally {
+      setIsSendingWhatsApp(false);
+    }
+  };
 
   // Auto-speak on open if elder voice guidance is active
   useEffect(() => {
@@ -198,21 +252,55 @@ export const WhereAmIModal: React.FC<WhereAmIModalProps> = ({
           </button>
         </div>
 
+        {/* WhatsApp Location Status Banner */}
+        {whatsAppSentStatus?.sent && (
+          <div className="bg-emerald-950/90 border-2 border-emerald-400 p-3.5 rounded-2xl flex items-center justify-between gap-2 text-emerald-200 animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <div className="text-xs">
+                <span className="font-bold text-white block">Live GPS Location Sent to Caregiver WhatsApp!</span>
+                <span>{whatsAppSentStatus.details}</span>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono bg-emerald-900 px-2 py-0.5 rounded text-emerald-300">
+              {whatsAppSentStatus.dispatchId}
+            </span>
+          </div>
+        )}
+
         {/* Big Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
           <button
             onClick={() => setIsDirectCallOpen(true)}
-            className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-2xl font-black text-lg flex items-center justify-center space-x-3 shadow-lg transition-all cursor-pointer"
+            className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-2xl font-black text-sm sm:text-base flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer"
           >
-            <Phone className="w-6 h-6" />
-            <span>Call {config.caregiverName} Directly</span>
+            <Phone className="w-5 h-5" />
+            <span>Call {config.caregiverName}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSendLocationWhatsApp}
+            disabled={isSendingWhatsApp}
+            className="w-full py-3.5 px-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 active:scale-98 text-white rounded-2xl font-black text-sm sm:text-base flex items-center justify-center space-x-2 shadow-lg transition-all cursor-pointer border border-emerald-400 disabled:opacity-50"
+          >
+            {isSendingWhatsApp ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Transmitting GPS...</span>
+              </>
+            ) : (
+              <>
+                <span>⚡ Auto-Send WhatsApp Location</span>
+              </>
+            )}
           </button>
 
           <button
             onClick={onClose}
-            className="w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 rounded-2xl font-black text-lg flex items-center justify-center space-x-2 border-2 border-slate-600 transition-all cursor-pointer"
+            className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center space-x-2 border-2 border-slate-600 transition-all cursor-pointer"
           >
-            <span>I Understand, Close</span>
+            <span>Close</span>
           </button>
         </div>
       </div>

@@ -18,255 +18,195 @@ export const Sidebar: React.FC<SidebarProps> = ({
     user?.avatarUrl ||
     'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=500&auto=format&fit=crop&q=80';
 
+  const navItems = [
+    {
+      id: 'carecompass',
+      label: 'CareCompass AI',
+      icon: 'radar',
+      badge: 'Live',
+      badgeColor: 'bg-emerald-600 text-white',
+      accentColor: 'border-emerald-400',
+      iconActiveColor: 'text-emerald-400',
+      iconDefaultColor: 'text-emerald-600',
+    },
+    {
+      id: 'patient-mode',
+      label: 'Patient Mode (Dadaji)',
+      icon: 'shield_person',
+      badge: null,
+      accentColor: 'border-white',
+      iconActiveColor: 'text-white',
+      iconDefaultColor: 'text-emerald-700',
+    },
+    {
+      id: 'saathi-chat',
+      label: 'Saathi AI Chat',
+      icon: 'voice_chat',
+      badge: 'AI',
+      badgeColor: 'bg-[#FF6321] text-white',
+      accentColor: 'border-[#FF6321]',
+      iconActiveColor: 'text-[#FF6321]',
+      iconDefaultColor: 'text-[#FF6321]',
+    },
+    {
+      id: 'games',
+      label: 'Games & Exercises',
+      icon: 'videogame_asset',
+      badge: null,
+      accentColor: 'border-[#002045]',
+      iconActiveColor: 'text-white',
+      iconDefaultColor: 'text-[#43474e]',
+    },
+    {
+      id: 'reality-quest',
+      label: 'Reality Quest',
+      icon: 'explore',
+      badge: null,
+      accentColor: 'border-[#002045]',
+      iconActiveColor: 'text-white',
+      iconDefaultColor: 'text-[#43474e]',
+    },
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: 'dashboard',
+      badge: null,
+      accentColor: 'border-[#002045]',
+      iconActiveColor: 'text-white',
+      iconDefaultColor: 'text-[#43474e]',
+    },
+    {
+      id: 'caregiver',
+      label: 'Caregiver Portal',
+      icon: 'supervised_user_circle',
+      badge: null,
+      accentColor: 'border-[#FF6321]',
+      iconActiveColor: 'text-[#FF6321]',
+      iconDefaultColor: 'text-[#43474e]',
+    },
+  ];
+
+  const secondaryNavItems = [
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: 'settings',
+    },
+    {
+      id: 'help',
+      label: 'Help & Guide',
+      icon: 'help',
+    },
+  ];
+
   return (
     <nav
       id="side-navigation-bar"
       aria-label="Main Navigation"
-      className="hidden md:flex flex-col h-full py-6 bg-[#f0f3ff] text-[#002045] font-bold text-[18px] fixed left-0 top-0 w-64 border-r-2 border-[#c4c6cf] z-40 select-none"
+      className="hidden md:flex flex-col h-screen py-4 px-3 bg-[#f0f3ff] text-[#002045] font-bold fixed left-0 top-0 w-64 border-r-2 border-[#c4c6cf] z-40 select-none overflow-y-auto overflow-x-hidden box-border"
     >
       {/* Profile & Action Header */}
-      <div className="px-6 mb-6 flex flex-col items-center text-center">
-        <div className="relative mb-3">
+      <div className="px-3 mb-4 flex flex-col items-center text-center shrink-0">
+        <div className="relative mb-2">
           <img
             id="user-avatar-image"
             alt={user?.name || 'Elderly user profile'}
-            className="w-24 h-24 rounded-full border-4 border-[#d9e3f9] object-cover shadow-sm transition-transform hover:scale-105"
+            className="w-16 h-16 rounded-full border-3 border-[#d9e3f9] object-cover shadow-xs transition-transform hover:scale-105"
             src={avatarUrl}
           />
           <div
             title="Daily Activity Active"
-            className="absolute bottom-0 right-0 w-6 h-6 bg-emerald-600 border-2 border-white rounded-full flex items-center justify-center text-white text-xs"
+            className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-600 border-2 border-white rounded-full flex items-center justify-center text-white text-[10px]"
           >
             ✓
           </div>
         </div>
 
-        <h2 id="sidebar-welcome-title" className="font-extrabold text-[24px] leading-8 text-[#002045]">
+        <h2 id="sidebar-welcome-title" className="font-extrabold text-[18px] leading-tight text-[#002045]">
           Welcome Back
         </h2>
-        <p id="sidebar-welcome-subtitle" className="font-normal text-[17px] text-[#43474e] mt-0.5">
+        <p id="sidebar-welcome-subtitle" className="font-normal text-[13px] text-[#43474e] mt-0.5">
           Ready to train?
         </p>
 
         <button
           id="btn-start-daily-training-sidebar"
           onClick={onStartDailyTraining}
-          className="mt-4 bg-[#002045] hover:bg-[#1a365d] active:bg-[#00142b] text-white w-full py-3.5 px-4 rounded-xl flex items-center justify-center min-h-[56px] text-[18px] font-bold shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-[#002045] focus:ring-offset-2 cursor-pointer hover:shadow-md"
+          className="mt-2.5 bg-[#002045] hover:bg-[#1a365d] active:bg-[#00142b] text-white w-full py-2.5 px-3 rounded-xl flex items-center justify-center min-h-[44px] text-[15px] font-bold shadow-xs transition-all focus:outline-none focus:ring-4 focus:ring-[#002045] focus:ring-offset-2 cursor-pointer hover:shadow-sm"
         >
-          <span className="material-symbols-outlined mr-2 filled-icon text-[22px]">play_circle</span>
-          Start Daily Training
+          <span className="material-symbols-outlined mr-2 filled-icon text-[20px]">play_circle</span>
+          <span>Start Daily Training</span>
         </button>
       </div>
 
       {/* Main Navigation Links */}
-      <ul className="flex-1 space-y-2 px-4 overflow-y-auto">
-        <li>
-          <button
-            id="nav-btn-carecompass"
-            onClick={() => onSelectTab('carecompass')}
-            aria-current={currentTab === 'carecompass' ? 'page' : undefined}
-            className={`w-full flex items-center justify-between p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
-              currentTab === 'carecompass'
-                ? 'bg-[#002045] text-white font-extrabold border-l-4 border-emerald-400 shadow-md'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <div className="flex items-center">
+      <div className="space-y-1">
+        {navItems.map((item) => {
+          const isActive = currentTab === item.id;
+          return (
+            <button
+              key={item.id}
+              id={`nav-btn-${item.id}`}
+              onClick={() => onSelectTab(item.id)}
+              aria-current={isActive ? 'page' : undefined}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all min-h-[42px] cursor-pointer text-left ${
+                isActive
+                  ? item.id === 'patient-mode'
+                    ? 'bg-emerald-800 text-white font-extrabold shadow-xs'
+                    : `bg-[#002045] text-white font-extrabold shadow-xs ${item.accentColor ? `border-l-4 ${item.accentColor}` : ''}`
+                  : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
+              }`}
+            >
+              <div className="flex items-center min-w-0">
+                <span
+                  className={`material-symbols-outlined mr-2.5 text-[22px] shrink-0 ${
+                    isActive ? `filled-icon ${item.iconActiveColor}` : item.iconDefaultColor
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                <span className="text-[15px] truncate">{item.label}</span>
+              </div>
+              {item.badge && (
+                <span
+                  className={`text-[10px] uppercase font-black px-1.5 py-0.5 rounded shrink-0 ml-1 ${item.badgeColor}`}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Secondary Links Section (Settings & Help) */}
+      <div className="pt-2 mt-2 border-t border-[#c4c6cf]/60 space-y-1">
+        {secondaryNavItems.map((item) => {
+          const isActive = currentTab === item.id;
+          return (
+            <button
+              key={item.id}
+              id={`nav-btn-${item.id}`}
+              onClick={() => onSelectTab(item.id)}
+              aria-current={isActive ? 'page' : undefined}
+              className={`w-full flex items-center px-3 py-2 rounded-xl transition-all min-h-[42px] cursor-pointer text-left ${
+                isActive
+                  ? 'bg-[#002045] text-white font-extrabold shadow-xs'
+                  : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
+              }`}
+            >
               <span
-                className={`material-symbols-outlined mr-3 text-[24px] ${
-                  currentTab === 'carecompass' ? 'filled-icon text-emerald-400' : 'text-emerald-700'
+                className={`material-symbols-outlined mr-2.5 text-[22px] shrink-0 ${
+                  isActive ? 'filled-icon text-white' : 'text-[#43474e]'
                 }`}
               >
-                radar
+                {item.icon}
               </span>
-              <span className="text-[17px]">CareCompass AI</span>
-            </div>
-            <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white shadow-xs">
-              Live
-            </span>
-          </button>
-        </li>
-
-        <li>
-          <button
-            id="nav-btn-patient-mode"
-            onClick={() => onSelectTab('patient-mode')}
-            aria-current={currentTab === 'patient-mode' ? 'page' : undefined}
-            className={`w-full flex items-center p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
-              currentTab === 'patient-mode'
-                ? 'bg-emerald-800 text-white font-extrabold border-l-4 border-white shadow-md'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined mr-3 text-[24px] ${
-                currentTab === 'patient-mode' ? 'filled-icon text-white' : 'text-emerald-700'
-              }`}
-            >
-              shield_person
-            </span>
-            <span className="text-[17px]">Patient Mode (Dadaji)</span>
-          </button>
-        </li>
-
-        <li>
-          <button
-            id="nav-btn-saathi-chat"
-            onClick={() => onSelectTab('saathi-chat')}
-            aria-current={currentTab === 'saathi-chat' ? 'page' : undefined}
-            className={`w-full flex items-center justify-between p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
-              currentTab === 'saathi-chat'
-                ? 'bg-[#002045] text-white font-extrabold border-l-4 border-[#FF6321] shadow-md'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <div className="flex items-center">
-              <span
-                className={`material-symbols-outlined mr-3 text-[24px] ${
-                  currentTab === 'saathi-chat' ? 'filled-icon text-[#FF6321]' : 'text-[#FF6321]'
-                }`}
-              >
-                voice_chat
-              </span>
-              <span className="text-[17px]">Saathi AI Chat</span>
-            </div>
-            <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-[#FF6321] text-white shadow-xs">
-              AI
-            </span>
-          </button>
-        </li>
-
-        <li>
-          <button
-            id="nav-btn-games"
-            onClick={() => onSelectTab('games')}
-            className={`w-full flex items-center p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
-              currentTab === 'games'
-                ? 'bg-[#002045] text-white font-extrabold border-l-4 border-[#002045] shadow-sm'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined mr-3 text-[24px] ${
-                currentTab === 'games' ? 'filled-icon text-white' : 'text-[#43474e]'
-              }`}
-            >
-              videogame_asset
-            </span>
-            <span className="text-[17px]">Games</span>
-          </button>
-        </li>
-
-        <li>
-          <button
-            id="nav-btn-reality-quest"
-            onClick={() => onSelectTab('reality-quest')}
-            className={`w-full flex items-center p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
-              currentTab === 'reality-quest'
-                ? 'bg-[#002045] text-white font-extrabold border-l-4 border-[#002045] shadow-sm'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined mr-3 text-[24px] ${
-                currentTab === 'reality-quest' ? 'filled-icon text-white' : 'text-[#43474e]'
-              }`}
-            >
-              explore
-            </span>
-            <span className="text-[17px]">Reality Quest</span>
-          </button>
-        </li>
-
-        <li>
-          <button
-            id="nav-btn-dashboard"
-            onClick={() => onSelectTab('dashboard')}
-            aria-current={currentTab === 'dashboard' ? 'page' : undefined}
-            className={`w-full flex items-center p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
-              currentTab === 'dashboard'
-                ? 'bg-[#002045] text-white font-extrabold border-l-4 border-[#002045] shadow-sm'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined mr-3 text-[24px] ${
-                currentTab === 'dashboard' ? 'filled-icon text-white' : 'text-[#43474e]'
-              }`}
-            >
-              dashboard
-            </span>
-            <span className="text-[17px]">Dashboard</span>
-          </button>
-        </li>
-
-        <li>
-          <button
-            id="nav-btn-caregiver"
-            onClick={() => onSelectTab('caregiver')}
-            aria-current={currentTab === 'caregiver' ? 'page' : undefined}
-            className={`w-full flex items-center p-3.5 rounded-xl mx-0 my-1 transition-all min-h-[52px] cursor-pointer text-left ${
-              currentTab === 'caregiver'
-                ? 'bg-[#002045] text-white font-extrabold border-l-4 border-[#FF6321] shadow-sm'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined mr-3 text-[24px] ${
-                currentTab === 'caregiver' ? 'filled-icon text-[#FF6321]' : 'text-[#43474e]'
-              }`}
-            >
-              supervised_user_circle
-            </span>
-            <span className="text-[17px]">Caregiver Portal</span>
-          </button>
-        </li>
-      </ul>
-
-      {/* Bottom Secondary Links */}
-      <ul className="mt-auto px-4 space-y-2 border-t border-[#c4c6cf]/60 pt-4">
-        <li>
-          <button
-            id="nav-btn-settings"
-            onClick={() => onSelectTab('settings')}
-            className={`w-full flex items-center p-4 rounded-xl mx-0 my-1 transition-all min-h-[56px] cursor-pointer text-left ${
-              currentTab === 'settings'
-                ? 'bg-[#002045] text-white font-extrabold'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined mr-4 text-[26px] ${
-                currentTab === 'settings' ? 'filled-icon text-white' : 'text-[#43474e]'
-              }`}
-            >
-              settings
-            </span>
-            <span className="text-[18px]">Settings</span>
-          </button>
-        </li>
-
-        <li>
-          <button
-            id="nav-btn-help"
-            onClick={() => onSelectTab('help')}
-            className={`w-full flex items-center p-4 rounded-xl mx-0 my-1 transition-all min-h-[56px] cursor-pointer text-left ${
-              currentTab === 'help'
-                ? 'bg-[#002045] text-white font-extrabold'
-                : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined mr-4 text-[26px] ${
-                currentTab === 'help' ? 'filled-icon text-white' : 'text-[#43474e]'
-              }`}
-            >
-              help
-            </span>
-            <span className="text-[18px]">Help</span>
-          </button>
-        </li>
-      </ul>
+              <span className="text-[15px]">{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 };
