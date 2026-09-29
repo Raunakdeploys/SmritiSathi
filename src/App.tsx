@@ -234,18 +234,18 @@ export default function App() {
 
   if (loadingAuth) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#002045] flex items-center justify-center shadow-lg mb-4 animate-pulse">
+      <div className="min-h-screen bg-[#020d1c] flex flex-col items-center justify-center p-6 text-center text-white">
+        <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg mb-4 animate-pulse">
           <span className="material-symbols-outlined text-white text-[36px]">psychology</span>
         </div>
-        <h1 className="font-extrabold text-[24px] text-[#002045] tracking-tight mb-2">SmritiSaathi</h1>
-        <p className="text-sm font-semibold text-[#43474e]">Restoring your secure cognitive session...</p>
+        <h1 className="font-extrabold text-[24px] text-white tracking-tight mb-2">SmritiSaathi</h1>
+        <p className="text-sm font-semibold text-blue-200">Restoring your secure cognitive session...</p>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-[#F8F9FA] text-[#0F172A] ${fontSizeClass} w-full max-w-full overflow-x-hidden relative`}>
+    <div className={`min-h-screen bg-[#020d1c] text-slate-100 ${fontSizeClass} w-full max-w-full overflow-x-hidden relative`}>
       {/* Desktop Side Navigation Bar */}
       <Sidebar
         currentTab={currentTab}
@@ -260,32 +260,32 @@ export default function App() {
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 md:hidden flex animate-fadeIn"
+          className="fixed inset-0 bg-black/70 z-50 md:hidden flex animate-fadeIn"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="w-72 bg-[#f0f3ff] h-full p-6 flex flex-col justify-between shadow-2xl"
+            className="w-72 bg-[#00142b] border-r border-blue-900/80 text-white h-full p-6 flex flex-col justify-between shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="font-extrabold text-[22px] text-[#002045]">SmritiSaathi</h2>
+                <h2 className="font-extrabold text-[22px] text-white">SmritiSaathi</h2>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 text-[#43474e] rounded-full hover:bg-[#d9e3f9]"
+                  className="p-2 text-slate-400 rounded-full hover:bg-white/10"
                 >
                   <span className="material-symbols-outlined text-[26px]">close</span>
                 </button>
               </div>
 
-              <div className="flex items-center space-x-3 mb-6 p-3 bg-white rounded-xl border border-[#d9e3f9]">
+              <div className="flex items-center space-x-3 mb-6 p-3 bg-[#002045] rounded-xl border border-blue-800">
                 <img
                   src={user?.avatarUrl}
                   alt={user?.name || 'Asha Devi'}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#d9e3f9]"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-sky-400"
                 />
                 <div>
-                  <p className="font-bold text-base text-[#002045]">{user?.name || 'Asha Devi'}</p>
+                  <p className="font-bold text-base text-white">{user?.name || 'Asha Devi'}</p>
                   <p className="text-xs text-[#FF6321] font-extrabold">
                     {user?.totalMindPoints || user?.mindPoints || 240} Mind Points
                   </p>
@@ -312,8 +312,8 @@ export default function App() {
                       }}
                       className={`w-full text-left p-3.5 rounded-xl font-bold text-base flex items-center ${
                         currentTab === item.id
-                          ? 'bg-[#002045] text-white'
-                          : 'text-[#43474e] hover:bg-[#d9e3f9]'
+                          ? 'bg-white text-[#002045] shadow-md'
+                          : 'text-slate-300 hover:bg-white/10 hover:text-white'
                       }`}
                     >
                       <span className="material-symbols-outlined mr-3 text-[22px]">{item.icon}</span>
@@ -329,7 +329,7 @@ export default function App() {
                 setIsMobileMenuOpen(false);
                 setIsDailyTrainingOpen(true);
               }}
-              className="bg-[#FF6321] hover:bg-[#EA580C] text-white py-3.5 rounded-xl font-bold text-base w-full shadow-sm cursor-pointer transition-colors"
+              className="bg-white hover:bg-slate-100 text-[#002045] py-3.5 rounded-xl font-black text-base w-full shadow-md cursor-pointer transition-colors"
             >
               Start Daily Training
             </button>
@@ -338,7 +338,7 @@ export default function App() {
       )}
 
       {/* Main Content Container: exact fit for mobile and desktop without overflow */}
-      <div className="flex flex-col min-h-screen w-full md:pl-64 min-w-0 max-w-full overflow-x-hidden box-border">
+      <div className="flex flex-col min-h-screen w-full md:pl-64 min-w-0 max-w-full overflow-x-hidden box-border bg-[#020d1c]">
         {/* Top App Bar Header */}
         <Header
           user={user}
@@ -349,7 +349,7 @@ export default function App() {
         />
 
         {/* View Switcher Container */}
-        <div className="flex-1 mt-[72px] flex flex-col w-full min-w-0 max-w-full overflow-x-hidden box-border">
+        <div className="flex-1 mt-[72px] flex flex-col w-full min-w-0 max-w-full overflow-x-hidden box-border bg-[#020d1c] text-slate-100">
           {currentTab === 'carecompass' && (
             <CaregiverDashboard
               telemetry={database.careCompass?.telemetry}
@@ -496,62 +496,62 @@ export default function App() {
 
           {/* Real Production-Grade Footer with Legal, Helplines & Address */}
           {currentTab !== 'patient-mode' && currentTab !== 'saathi-chat' && (
-            <footer className="mt-12 border-t border-slate-200 bg-white/80 backdrop-blur-xs py-8 px-4 sm:px-8 text-xs text-slate-600">
+            <footer className="mt-12 border-t border-blue-900/60 bg-[#00142b]/95 backdrop-blur-xs py-8 px-4 sm:px-8 text-xs text-slate-300">
               <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
                 {/* Brand & Address */}
                 <div className="text-center md:text-left space-y-1">
                   <div className="flex items-center justify-center md:justify-start gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-[#002045] flex items-center justify-center text-white font-bold text-xs">
+                    <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
                       स
                     </div>
-                    <span className="font-extrabold text-[#002045] text-sm tracking-tight">SmritiSaathi</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                    <span className="font-extrabold text-white text-sm tracking-tight">SmritiSaathi</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 font-bold border border-emerald-500/40">
                       DPDP Safe · AI Grounded
                     </span>
                   </div>
-                  <p className="text-slate-500 text-[11px]">
+                  <p className="text-slate-400 text-[11px]">
                     Cognitive Wellness &amp; Assistive Tech Labs · Bengaluru, Karnataka 560038, India
                   </p>
-                  <p className="text-slate-400 text-[10px]">
+                  <p className="text-slate-500 text-[10px]">
                     © 2026 SmritiSaathi. Designed with dignity for seniors and family caregivers.
                   </p>
                 </div>
 
                 {/* Emergency Hotline Badge */}
-                <div className="flex items-center gap-3 bg-orange-50/80 border border-orange-200 px-4 py-2.5 rounded-2xl">
+                <div className="flex items-center gap-3 bg-blue-950/80 border border-blue-800 px-4 py-2.5 rounded-2xl">
                   <div className="w-8 h-8 rounded-xl bg-[#FF6321] text-white flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-[18px]">phone_in_talk</span>
                   </div>
                   <div className="text-left">
-                    <p className="font-extrabold text-[#002045] text-xs">National Elder Helpline</p>
-                    <p className="text-orange-900 font-bold text-xs">
-                      Toll-Free: <a href="tel:14567" className="underline hover:text-orange-700">14567</a> · Emergency: <a href="tel:112" className="underline hover:text-orange-700">112</a>
+                    <p className="font-extrabold text-white text-xs">National Elder Helpline</p>
+                    <p className="text-orange-300 font-bold text-xs">
+                      Toll-Free: <a href="tel:14567" className="underline hover:text-white">14567</a> · Emergency: <a href="tel:112" className="underline hover:text-white">112</a>
                     </p>
                   </div>
                 </div>
 
                 {/* Legal & Policy Modals Links */}
-                <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-slate-600">
+                <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-slate-300">
                   <button
                     type="button"
                     onClick={() => setLegalModalType('privacy')}
-                    className="hover:text-[#002045] hover:underline cursor-pointer"
+                    className="hover:text-white hover:underline cursor-pointer"
                   >
                     Privacy Policy
                   </button>
-                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-600">·</span>
                   <button
                     type="button"
                     onClick={() => setLegalModalType('terms')}
-                    className="hover:text-[#002045] hover:underline cursor-pointer"
+                    className="hover:text-white hover:underline cursor-pointer"
                   >
                     Terms &amp; Clinical Use
                   </button>
-                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-600">·</span>
                   <button
                     type="button"
                     onClick={() => setLegalModalType('contact')}
-                    className="hover:text-[#002045] hover:underline cursor-pointer"
+                    className="hover:text-white hover:underline cursor-pointer"
                   >
                     Contact &amp; Support
                   </button>

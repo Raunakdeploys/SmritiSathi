@@ -56,17 +56,17 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
       aria-modal="true"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
     >
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-[#0b1d3a] text-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-blue-900/60 overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-[#00142b]/70">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#002045]/10 text-[#002045] flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-xl bg-[#002045]/10 text-white flex items-center justify-center font-bold">
               {type === 'privacy' && <ShieldCheck className="w-5 h-5 text-emerald-600" />}
               {type === 'terms' && <FileText className="w-5 h-5 text-blue-600" />}
               {type === 'contact' && <Mail className="w-5 h-5 text-[#FF6321]" />}
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-[#002045]">
+              <h2 className="text-base sm:text-lg font-bold text-white">
                 {type === 'privacy' && 'Privacy Policy & Data Dignity'}
                 {type === 'terms' && 'Terms of Service & Clinical Disclaimer'}
                 {type === 'contact' && 'Contact Support & Emergency Helplines'}
@@ -77,7 +77,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-blue-950 transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
@@ -99,7 +99,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
               </div>
 
               <div>
-                <h4 className="font-bold text-[#002045] mb-1">1. Information We Collect</h4>
+                <h4 className="font-bold text-white mb-1">1. Information We Collect</h4>
                 <p className="text-xs text-slate-600">
                   • Cognitive scores &amp; activity history to calculate memory trends.<br />
                   • Live Geofence coordinates (optional) only when Caregiver Wandering Mode is activated.<br />
@@ -108,14 +108,14 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
               </div>
 
               <div>
-                <h4 className="font-bold text-[#002045] mb-1">2. AI &amp; Voice Audio Processing</h4>
+                <h4 className="font-bold text-white mb-1">2. AI &amp; Voice Audio Processing</h4>
                 <p className="text-xs text-slate-600">
                   Conversations with Saathi AI companion are processed in real time via secure Google Gemini GenAI APIs with Google Search grounding for facts. Voice readouts are synthesized on-device or via secure text-to-speech models.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-bold text-[#002045] mb-1">3. Data Deletion &amp; Export</h4>
+                <h4 className="font-bold text-white mb-1">3. Data Deletion &amp; Export</h4>
                 <p className="text-xs text-slate-600">
                   Caregivers have full authority to export clinical session history or wipe all profile data instantly from Settings at any time.
                 </p>
@@ -136,21 +136,21 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
               </div>
 
               <div>
-                <h4 className="font-bold text-[#002045] mb-1">1. Platform Scope</h4>
+                <h4 className="font-bold text-white mb-1">1. Platform Scope</h4>
                 <p className="text-xs text-slate-600">
                   SmritiSaathi provides reminiscence therapy, memory stimulation games, and wandering risk assistance. It is designed to assist family caregivers and senior citizens.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-bold text-[#002045] mb-1">2. Emergency Situations</h4>
+                <h4 className="font-bold text-white mb-1">2. Emergency Situations</h4>
                 <p className="text-xs text-slate-600">
                   In acute medical or psychiatric emergencies, immediate physical assistance must be sought via national emergency lines (112 / 14567) or local hospitals.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-bold text-[#002045] mb-1">3. Caregiver Responsibility</h4>
+                <h4 className="font-bold text-white mb-1">3. Caregiver Responsibility</h4>
                 <p className="text-xs text-slate-600">
                   Caregivers remain responsible for monitoring senior physical health, prescription intake schedules, and physical living safety.
                 </p>
@@ -165,7 +165,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
                   <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#002045]">Thank You for Reaching Out!</h3>
+                  <h3 className="text-lg font-bold text-white">Thank You for Reaching Out!</h3>
                   <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto">
                     Your support inquiry has been received by the SmritiSaathi Care Team. A dedicated caregiver specialist will contact you within 24 hours.
                   </p>
@@ -200,7 +200,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
                   </div>
 
                   {/* Physical Address & Operational Hub */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-[#00142b] border border-blue-900/60 text-xs">
                     <div className="flex items-start gap-2">
                       <Building2 className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
                       <div>
@@ -231,7 +231,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
                           value={contactName}
                           onChange={(e) => setContactName(e.target.value)}
                           placeholder="e.g. Rohan Sharma"
-                          className={`w-full px-3 py-2 text-xs rounded-xl border ${formErrors.name ? 'border-rose-500 bg-rose-50' : 'border-slate-300'} focus:outline-none focus:ring-2 focus:ring-[#002045]`}
+                          className={`w-full px-3 py-2 text-xs rounded-xl border ${formErrors.name ? 'border-rose-500 bg-rose-50' : 'border-blue-800'} focus:outline-none focus:ring-2 focus:ring-[#002045]`}
                         />
                         {formErrors.name && <p className="text-[11px] text-rose-600 mt-0.5">{formErrors.name}</p>}
                       </div>
@@ -243,7 +243,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
                           value={contactEmail}
                           onChange={(e) => setContactEmail(e.target.value)}
                           placeholder="caregiver@example.com"
-                          className={`w-full px-3 py-2 text-xs rounded-xl border ${formErrors.email ? 'border-rose-500 bg-rose-50' : 'border-slate-300'} focus:outline-none focus:ring-2 focus:ring-[#002045]`}
+                          className={`w-full px-3 py-2 text-xs rounded-xl border ${formErrors.email ? 'border-rose-500 bg-rose-50' : 'border-blue-800'} focus:outline-none focus:ring-2 focus:ring-[#002045]`}
                         />
                         {formErrors.email && <p className="text-[11px] text-rose-600 mt-0.5">{formErrors.email}</p>}
                       </div>
@@ -254,7 +254,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
                       <select
                         value={contactTopic}
                         onChange={(e) => setContactTopic(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#002045]"
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-blue-800 focus:outline-none focus:ring-2 focus:ring-[#002045]"
                       >
                         <option value="caregiver_support">Family Caregiver Onboarding</option>
                         <option value="geofence_assistance">GPS Geofence &amp; Safety Setup</option>
@@ -270,7 +270,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
                         value={contactMessage}
                         onChange={(e) => setContactMessage(e.target.value)}
                         placeholder="How can we help your family with dementia or cognitive care?"
-                        className={`w-full px-3 py-2 text-xs rounded-xl border ${formErrors.message ? 'border-rose-500 bg-rose-50' : 'border-slate-300'} focus:outline-none focus:ring-2 focus:ring-[#002045]`}
+                        className={`w-full px-3 py-2 text-xs rounded-xl border ${formErrors.message ? 'border-rose-500 bg-rose-50' : 'border-blue-800'} focus:outline-none focus:ring-2 focus:ring-[#002045]`}
                       />
                       {formErrors.message && <p className="text-[11px] text-rose-600 mt-0.5">{formErrors.message}</p>}
                     </div>
@@ -279,7 +279,7 @@ export function LegalModals({ type, onClose }: LegalModalProps) {
                       <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-blue-950 transition-colors cursor-pointer"
                       >
                         Cancel
                       </button>

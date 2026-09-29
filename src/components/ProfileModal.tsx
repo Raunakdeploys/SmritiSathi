@@ -175,11 +175,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             <img
               src={user?.avatarUrl}
               alt={user?.name || 'Asha Devi'}
-              className="w-14 h-14 rounded-full border-2 border-[#d9e3f9] object-cover shrink-0"
+              className="w-14 h-14 rounded-full border-2 border-blue-800 object-cover shrink-0"
             />
             <div>
-              <h2 className="font-extrabold text-[20px] text-[#002045]">{user?.name || 'Asha Devi'}</h2>
-              <p className="text-xs text-[#43474e]">Age {user?.age || 72} • Cognitive Companion</p>
+              <h2 className="font-extrabold text-[20px] text-white">{user?.name || 'Asha Devi'}</h2>
+              <p className="text-xs text-blue-200">Age {user?.age || 72} • Cognitive Companion</p>
               {user?.email && (
                 <p className="text-xs text-[#0284C7] font-semibold truncate max-w-[220px]">
                   {user.email}
@@ -190,16 +190,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           <button
             id="btn-close-profile-modal"
             onClick={onClose}
-            className="p-1.5 text-[#43474e] hover:bg-[#f0f3ff] rounded-full cursor-pointer"
+            className="p-1.5 text-blue-200 hover:bg-[#f0f3ff] rounded-full cursor-pointer"
           >
             <span className="material-symbols-outlined text-[24px]">close</span>
           </button>
         </div>
 
         {/* Authentication Card */}
-        <div className="p-4 rounded-xl border border-[#adc7f7] bg-[#f0f5ff] space-y-3">
+        <div className="p-4 rounded-xl border border-blue-700 bg-[#00142b] space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider text-[#002045] flex items-center gap-1.5">
+            <span className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5">
               <Cloud className="w-3.5 h-3.5 text-sky-600" />
               Cloud Sync & Authentication
             </span>
@@ -221,7 +221,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
           {user?.isGoogleLinked ? (
             <div className="space-y-2">
-              <p className="text-xs text-[#43474e]">
+              <p className="text-xs text-blue-200">
                 Connected as <strong>{user.email || user.name}</strong>. Cognitive progress and CareCompass safety alerts are syncing with Firestore.
               </p>
               <button
@@ -246,7 +246,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     setAuthError(null);
                   }}
                   className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    authMode === 'instant' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                    authMode === 'instant' ? 'bg-white text-white shadow-xs' : 'text-[#5b687a] hover:text-white'
                   }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -260,7 +260,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     setAuthError(null);
                   }}
                   className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    authMode === 'email' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                    authMode === 'email' ? 'bg-white text-white shadow-xs' : 'text-[#5b687a] hover:text-white'
                   }`}
                 >
                   <Mail className="w-3.5 h-3.5" />
@@ -274,7 +274,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     setAuthError(null);
                   }}
                   className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    authMode === 'google' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                    authMode === 'google' ? 'bg-white text-white shadow-xs' : 'text-[#5b687a] hover:text-white'
                   }`}
                 >
                   <LogIn className="w-3.5 h-3.5" />
@@ -285,7 +285,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               {/* Tab 1: 1-Click Access (Recommended Default) */}
               {authMode === 'instant' && (
                 <div className="space-y-2.5">
-                  <p className="text-xs text-[#43474e]">
+                  <p className="text-xs text-blue-200">
                     Instant cloud sync for caregivers and family. No passwords, client IDs, or external accounts needed.
                   </p>
                   <button
@@ -304,8 +304,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               {authMode === 'email' && (
                 <form onSubmit={handleEmailAuth} className="space-y-2.5">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-[#002045] flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-[#002045]" />
+                    <label className="text-[11px] font-bold text-white flex items-center gap-1">
+                      <Mail className="w-3 h-3 text-white" />
                       Caregiver Email
                     </label>
                     <input
@@ -314,12 +314,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="caregiver@gmail.com"
-                      className="w-full px-3 py-2 bg-white border border-[#b8c8dd] rounded-lg text-xs font-medium text-[#002045] focus:outline-none focus:ring-2 focus:ring-[#002045]"
+                      className="w-full px-3 py-2 bg-white border border-[#b8c8dd] rounded-lg text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-[#002045]"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-[#002045] flex items-center gap-1">
-                      <KeyRound className="w-3 h-3 text-[#002045]" />
+                    <label className="text-[11px] font-bold text-white flex items-center gap-1">
+                      <KeyRound className="w-3 h-3 text-white" />
                       Password
                     </label>
                     <input
@@ -328,7 +328,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 bg-white border border-[#b8c8dd] rounded-lg text-xs font-medium text-[#002045] focus:outline-none focus:ring-2 focus:ring-[#002045]"
+                      className="w-full px-3 py-2 bg-white border border-[#b8c8dd] rounded-lg text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-[#002045]"
                     />
                   </div>
 
@@ -346,7 +346,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         setIsRegistering(!isRegistering);
                         setAuthError(null);
                       }}
-                      className="px-3 py-2 rounded-lg border border-[#adc7f7] bg-white text-[#002045] text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                      className="px-3 py-2 rounded-lg border border-blue-700 bg-white text-white text-xs font-bold hover:bg-[#00142b] cursor-pointer"
                     >
                       {isRegistering ? 'Have an account?' : 'Register'}
                     </button>
@@ -357,7 +357,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               {/* Tab 3: Google Account */}
               {authMode === 'google' && (
                 <div className="space-y-3">
-                  <p className="text-xs text-[#43474e]">
+                  <p className="text-xs text-blue-200">
                     One-tap sign-in with your Google account. Automatically activates cloud synchronization.
                   </p>
 
@@ -375,9 +375,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       type="button"
                       disabled={loadingGoogle}
                       onClick={handleGoogleSignIn}
-                      className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
+                      className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-[#00142b] border-2 border-[#002045] text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
                     >
-                      <LogIn className="w-4 h-4 text-[#002045]" />
+                      <LogIn className="w-4 h-4 text-white" />
                       <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google'}</span>
                     </button>
                   )}
@@ -406,22 +406,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         </div>
 
         {/* User Stats Overview */}
-        <div className="bg-[#f9f9ff] p-4 rounded-xl border border-[#d5e2e9] space-y-2 text-sm">
+        <div className="bg-[#0b1d3a] p-4 rounded-xl border border-[#d5e2e9] space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Mind Points Balance:</span>
+            <span className="text-blue-200">Mind Points Balance:</span>
             <span className="font-extrabold text-[#2d1d00]">{(user?.mindPoints || user?.totalMindPoints || 1240).toLocaleString()} pts</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Daily Training Streak:</span>
-            <span className="font-bold text-[#002045]">🔥 {user?.currentStreak || user?.dailyStreak || 5} Days</span>
+            <span className="text-blue-200">Daily Training Streak:</span>
+            <span className="font-bold text-white">🔥 {user?.currentStreak || user?.dailyStreak || 5} Days</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Total Completed Sessions:</span>
-            <span className="font-bold text-[#002045]">{user?.totalSessions || 38}</span>
+            <span className="text-blue-200">Total Completed Sessions:</span>
+            <span className="font-bold text-white">{user?.totalSessions || 38}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Family Caregiver:</span>
-            <span className="font-bold text-[#002045]">{user?.caregiverName || 'Rohan Sharma'}</span>
+            <span className="text-blue-200">Family Caregiver:</span>
+            <span className="font-bold text-white">{user?.caregiverName || 'Rohan Sharma'}</span>
           </div>
         </div>
 
@@ -439,7 +439,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           <button
             id="btn-profile-close-action"
             onClick={onClose}
-            className="px-5 py-3 border border-[#c4c6cf] text-[#43474e] hover:bg-slate-50 rounded-xl font-bold text-base cursor-pointer"
+            className="px-5 py-3 border border-blue-800 text-blue-200 hover:bg-[#00142b] rounded-xl font-bold text-base cursor-pointer"
           >
             Close
           </button>

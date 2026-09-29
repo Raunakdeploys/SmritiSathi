@@ -78,7 +78,7 @@ export const GameResultsModal: React.FC<GameResultsModalProps> = ({
       <div
         id="game-results-modal-card"
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#F8F9FA] text-[#0F172A] w-full max-w-lg rounded-3xl shadow-2xl border-3 border-[#FF6321]/30 overflow-hidden flex flex-col my-auto"
+        className="bg-[#0b1d3a] text-white w-full max-w-lg rounded-3xl shadow-2xl border-3 border-[#FF6321]/30 overflow-hidden flex flex-col my-auto"
       >
         {/* Header Ribbon */}
         <div
@@ -134,7 +134,7 @@ export const GameResultsModal: React.FC<GameResultsModalProps> = ({
 
           {/* Primary Score & Mind Points Display */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col items-center justify-center text-center">
+            <div className="bg-white p-4 rounded-2xl border-2 border-blue-900/60 shadow-xs flex flex-col items-center justify-center text-center">
               <span className="text-xs font-black uppercase tracking-wider text-slate-500">
                 Cognitive Score
               </span>
@@ -166,7 +166,7 @@ export const GameResultsModal: React.FC<GameResultsModalProps> = ({
           </div>
 
           {/* Breakdown Pills */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2.5 text-xs sm:text-sm font-bold">
+          <div className="bg-white p-4 rounded-2xl border border-blue-900/60 space-y-2.5 text-xs sm:text-sm font-bold">
             <div className="flex items-center justify-between text-slate-600">
               <span>Base Exercise Reward</span>
               <span className="font-black text-slate-900">+{pointsEarned} pts</span>
@@ -189,7 +189,7 @@ export const GameResultsModal: React.FC<GameResultsModalProps> = ({
               const text = `You scored ${score} percent and earned ${totalEarned} Mind Points. Excellent progress today!`;
               speakText(text, true);
             }}
-            className="w-full flex items-center justify-center space-x-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 py-2.5 rounded-xl transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center space-x-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 bg-blue-950 hover:bg-slate-200 py-2.5 rounded-xl transition-colors cursor-pointer"
           >
             <Volume2 className="w-4 h-4 text-[#FF6321]" />
             <span>Hear Summary Aloud</span>
@@ -197,10 +197,10 @@ export const GameResultsModal: React.FC<GameResultsModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-slate-100 px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3">
+        <div className="bg-blue-950 px-6 py-4 border-t border-blue-900/60 flex items-center justify-between gap-3">
           <button
             onClick={onPlayAgain}
-            className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-300 py-3 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center space-x-2 shadow-xs transition-transform active:scale-95 cursor-pointer"
+            className="flex-1 bg-white hover:bg-[#00142b] text-slate-800 border-2 border-blue-800 py-3 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center space-x-2 shadow-xs transition-transform active:scale-95 cursor-pointer"
           >
             <RotateCcw className="w-5 h-5 text-slate-600" />
             <span>Play Again</span>

@@ -37,21 +37,21 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
             <span className="material-symbols-outlined filled-icon text-[50px]">verified</span>
           </div>
 
-          <h2 className="font-extrabold text-[28px] text-[#002045]">Daily Training Completed!</h2>
-          <p className="text-[19px] text-[#43474e]">
+          <h2 className="font-extrabold text-[28px] text-white">Daily Training Completed!</h2>
+          <p className="text-[19px] text-blue-200">
             Congratulations Asha Devi! All three cognitive lobes (Memory, Attention, Planning) were stimulated.
           </p>
 
-          <div className="bg-[#f0f3ff] p-5 rounded-2xl border border-[#d9e3f9] space-y-2 text-left">
-            <div className="flex justify-between font-bold text-[17px] text-[#002045]">
+          <div className="bg-[#f0f3ff] p-5 rounded-2xl border border-blue-800 space-y-2 text-left">
+            <div className="flex justify-between font-bold text-[17px] text-white">
               <span>🧠 Memory Score</span>
               <span className="text-emerald-700">85% (+5%)</span>
             </div>
-            <div className="flex justify-between font-bold text-[17px] text-[#002045]">
+            <div className="flex justify-between font-bold text-[17px] text-white">
               <span>👁️ Attention Score</span>
               <span className="text-emerald-700">75% (+10%)</span>
             </div>
-            <div className="flex justify-between font-bold text-[17px] text-[#002045]">
+            <div className="flex justify-between font-bold text-[17px] text-white">
               <span>🧭 Planning Score</span>
               <span className="text-emerald-700">65% (+25%)</span>
             </div>
@@ -72,19 +72,19 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
     <div className="fixed inset-0 bg-[#002045]/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-[#ffffff] rounded-2xl border-2 border-[#002045] p-5 sm:p-7 max-w-2xl w-full shadow-2xl my-auto">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-[#c4c6cf]">
+        <div className="flex justify-between items-center pb-4 border-b border-blue-800">
           <div className="flex items-center space-x-3">
-            <span className="material-symbols-outlined text-[#002045] text-[32px]">psychology</span>
+            <span className="material-symbols-outlined text-white text-[32px]">psychology</span>
             <div>
-              <h2 className="font-extrabold text-[22px] sm:text-[24px] text-[#002045]">
+              <h2 className="font-extrabold text-[22px] sm:text-[24px] text-white">
                 Daily Guided Cognitive Workout
               </h2>
-              <p className="text-sm text-[#43474e]">Drill {step + 1} of 3</p>
+              <p className="text-sm text-blue-200">Drill {step + 1} of 3</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[#43474e] hover:bg-[#f0f3ff] rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center cursor-pointer"
+            className="p-2 text-blue-200 hover:bg-[#f0f3ff] rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center cursor-pointer"
           >
             <span className="material-symbols-outlined text-[28px]">close</span>
           </button>
@@ -112,11 +112,11 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
         {/* Step 1: Memory Warmup */}
         {step === 0 && (
           <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#f0f3ff] p-4 rounded-xl border border-[#adc7f7]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#002045]">
+            <div className="bg-[#f0f3ff] p-4 rounded-xl border border-blue-700">
+              <span className="text-xs font-bold uppercase tracking-wider text-white">
                 Part 1: Memory Recall
               </span>
-              <h3 className="font-extrabold text-[20px] text-[#002045] mt-1">
+              <h3 className="font-extrabold text-[20px] text-white mt-1">
                 Which flower do you plant for morning puja rituals in your home garden?
               </h3>
             </div>
@@ -131,7 +131,7 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
                   className={`p-4 rounded-xl text-[19px] font-bold text-left min-h-[60px] border-2 transition-all cursor-pointer ${
                     drill1Choice === opt
                       ? 'bg-[#002045] text-white border-[#002045]'
-                      : 'bg-[#f9f9ff] text-[#121c2c] border-[#c4c6cf] hover:border-[#002045]'
+                      : 'bg-[#0b1d3a] text-white border-blue-800 hover:border-[#002045]'
                   }`}
                 >
                   {opt}
@@ -144,11 +144,11 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
         {/* Step 2: Attention & Discrimination */}
         {step === 1 && (
           <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#f0f3ff] p-4 rounded-xl border border-[#adc7f7]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#002045]">
+            <div className="bg-[#f0f3ff] p-4 rounded-xl border border-blue-700">
+              <span className="text-xs font-bold uppercase tracking-wider text-white">
                 Part 2: Visual Attention Focus
               </span>
-              <h3 className="font-extrabold text-[20px] text-[#002045] mt-1">
+              <h3 className="font-extrabold text-[20px] text-white mt-1">
                 Spot the symbol that represents peace and good health:
               </h3>
             </div>
@@ -167,7 +167,7 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
                   className={`p-4 rounded-2xl flex flex-col items-center justify-center min-h-[90px] border-2 transition-all cursor-pointer ${
                     drill2Choice === item.label
                       ? 'bg-[#002045] text-white border-[#002045]'
-                      : 'bg-[#f9f9ff] text-[#121c2c] border-[#c4c6cf] hover:border-[#002045]'
+                      : 'bg-[#0b1d3a] text-white border-blue-800 hover:border-[#002045]'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[36px] mb-1">{item.icon}</span>
@@ -181,11 +181,11 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
         {/* Step 3: Planning Executive Function */}
         {step === 2 && (
           <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#f0f3ff] p-4 rounded-xl border border-[#adc7f7]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#002045]">
+            <div className="bg-[#f0f3ff] p-4 rounded-xl border border-blue-700">
+              <span className="text-xs font-bold uppercase tracking-wider text-white">
                 Part 3: Daily Planning & Hydration
               </span>
-              <h3 className="font-extrabold text-[20px] text-[#002045] mt-1">
+              <h3 className="font-extrabold text-[20px] text-white mt-1">
                 How many fresh glasses of warm water or herbal tea do you aim for daily?
               </h3>
             </div>
@@ -200,7 +200,7 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
                   className={`p-4 rounded-xl text-[19px] font-bold text-left min-h-[60px] border-2 transition-all cursor-pointer ${
                     drill3Choice === opt
                       ? 'bg-[#002045] text-white border-[#002045]'
-                      : 'bg-[#f9f9ff] text-[#121c2c] border-[#c4c6cf] hover:border-[#002045]'
+                      : 'bg-[#0b1d3a] text-white border-blue-800 hover:border-[#002045]'
                   }`}
                 >
                   {opt}
@@ -211,14 +211,14 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
         )}
 
         {/* Footer Navigation */}
-        <div className="mt-7 pt-4 border-t border-[#c4c6cf] flex justify-between items-center">
+        <div className="mt-7 pt-4 border-t border-blue-800 flex justify-between items-center">
           <button
             onClick={() => {
               if (step === 0) speakText('Which flower do you plant for morning puja rituals?');
               if (step === 1) speakText('Spot the symbol that represents peace and good health.');
               if (step === 2) speakText('How many fresh glasses of water or tea do you aim for daily?');
             }}
-            className="text-[#002045] font-bold text-base flex items-center hover:bg-[#f0f3ff] px-3 py-2 rounded-lg cursor-pointer"
+            className="text-white font-bold text-base flex items-center hover:bg-[#f0f3ff] px-3 py-2 rounded-lg cursor-pointer"
           >
             <span className="material-symbols-outlined mr-1.5 text-[22px]">volume_up</span>
             Read Step

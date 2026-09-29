@@ -17,6 +17,8 @@
     max-width: 100%;
     margin: 0;
     padding: 0;
+    background-color: #020d1c;
+    color: #f8fafc;
     box-sizing: border-box;
     -webkit-overflow-scrolling: touch;
   }
@@ -26,6 +28,8 @@
     max-width: 100%;
     overflow-x: hidden;
     min-height: 100vh;
+    background-color: #020d1c;
+    color: #f8fafc;
     box-sizing: border-box;
   }
 }
@@ -59,18 +63,19 @@
   outline-offset: 2px;
 }
 
-/* Custom scrollbars */
+/* Custom scrollbars matching deep blue theme */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #020d1c;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #1e3a8a;
   border-radius: 9999px;
+  border: 2px solid #020d1c;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #0284c7;
 }

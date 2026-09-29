@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       id="top-app-bar"
-      className="bg-[#f9f9ff] fixed top-0 left-0 md:left-64 right-0 border-b-2 border-[#c4c6cf] flex justify-between items-center px-3 sm:px-6 md:px-8 h-[72px] z-30 shadow-xs box-border overflow-hidden"
+      className="bg-[#001838]/95 backdrop-blur-md fixed top-0 left-0 md:left-64 right-0 border-b-2 border-blue-900/60 flex justify-between items-center px-3 sm:px-6 md:px-8 h-[72px] z-30 shadow-md box-border overflow-hidden text-white"
     >
       <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
         {/* Mobile menu trigger */}
@@ -73,14 +73,14 @@ export const Header: React.FC<HeaderProps> = ({
           id="btn-mobile-menu-toggle"
           onClick={onOpenMobileMenu}
           aria-label="Open Navigation Menu"
-          className="md:hidden p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-lg min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045] shrink-0 cursor-pointer"
+          className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-sky-400 shrink-0 cursor-pointer"
         >
           <span className="material-symbols-outlined text-[26px]">menu</span>
         </button>
 
         <h1
           id="app-main-title"
-          className="font-extrabold text-[18px] sm:text-[24px] md:text-[28px] tracking-tight text-[#002045] select-none truncate"
+          className="font-extrabold text-[18px] sm:text-[24px] md:text-[28px] tracking-tight text-white select-none truncate"
         >
           SmritiSaathi
         </h1>
@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={handleReadAloud}
           title="Read screen aloud with voice guidance"
           aria-label="Read screen aloud"
-          className="p-1.5 sm:p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer shrink-0"
+          className="p-1.5 sm:p-2 text-white hover:bg-white/10 rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-sky-400 cursor-pointer shrink-0"
         >
           <span className="material-symbols-outlined text-[22px] sm:text-[26px]">volume_up</span>
         </button>
@@ -112,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Google Sign In / Account Status */}
         {user?.isGoogleLinked ? (
-          <div className="flex items-center space-x-1 sm:space-x-2 bg-[#e7eeff] pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-1 rounded-full border border-[#adc7f7]">
+          <div className="flex items-center space-x-1 sm:space-x-2 bg-[#002855] pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-1 rounded-full border border-blue-700">
             <button
               id="btn-user-google-profile"
               onClick={onOpenProfile}
@@ -126,13 +126,13 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-sky-400 object-cover"
                 />
               ) : (
-                <span className="material-symbols-outlined text-[24px] sm:text-[26px] text-[#002045]">account_circle</span>
+                <span className="material-symbols-outlined text-[24px] sm:text-[26px] text-sky-300">account_circle</span>
               )}
               <div className="hidden lg:block text-left pr-1">
-                <p className="text-xs font-extrabold text-[#002045] truncate max-w-[100px] leading-tight">
+                <p className="text-xs font-extrabold text-white truncate max-w-[100px] leading-tight">
                   {user.name}
                 </p>
-                <p className="text-[10px] text-emerald-700 font-bold flex items-center gap-0.5">
+                <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-0.5">
                   <CheckCircle2 className="w-2.5 h-2.5" /> Google Synced
                 </p>
               </div>
@@ -142,7 +142,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-header-signout"
               onClick={handleGoogleSignOut}
               title="Sign out of Google"
-              className="p-1 sm:p-1.5 text-[#43474e] hover:text-rose-600 hover:bg-white/80 rounded-full transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 text-slate-300 hover:text-rose-400 hover:bg-white/10 rounded-full transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
@@ -153,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-header-google-signin"
               onClick={onOpenProfile}
               title="Sign in to backup your progress across devices"
-              className="flex items-center space-x-1 bg-white hover:bg-[#f0f3ff] text-[#002045] font-bold text-xs px-2.5 sm:px-3 py-1.5 rounded-full border-2 border-[#adc7f7] shadow-xs hover:border-[#002045] transition-all cursor-pointer min-h-[38px] shrink-0"
+              className="flex items-center space-x-1 bg-white hover:bg-slate-100 text-[#002045] font-black text-xs px-2.5 sm:px-3 py-1.5 rounded-full border-2 border-white shadow-xs transition-all cursor-pointer min-h-[38px] shrink-0"
             >
               <LogIn className="w-3.5 h-3.5 text-[#002045]" />
               <span className="hidden xs:inline sm:inline">Sign In</span>
@@ -163,9 +163,9 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-user-account"
               onClick={onOpenProfile}
               aria-label={`Account profile for ${user?.name || 'Asha Devi'}`}
-              className="text-[#002045] hover:bg-[#dee8ff] transition-colors p-1 rounded-full min-h-[38px] min-w-[38px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer shrink-0"
+              className="text-white hover:bg-white/10 transition-colors p-1 rounded-full min-h-[38px] min-w-[38px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-sky-400 cursor-pointer shrink-0"
             >
-              <span className="material-symbols-outlined filled-icon text-[26px] sm:text-[28px]">account_circle</span>
+              <span className="material-symbols-outlined filled-icon text-[26px] sm:text-[28px] text-white">account_circle</span>
             </button>
           </div>
         )}

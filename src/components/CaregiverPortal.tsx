@@ -187,7 +187,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
   return (
     <main
       id="caregiver-clinical-portal-main"
-      className="flex-1 bg-[#F8F9FA] text-[#0F172A] p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border"
+      className="flex-1 bg-[#020d1c] text-white p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Top Header Card */}
@@ -236,7 +236,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         </div>
 
         {/* Tab Navigation Ribbon */}
-        <div className="bg-white p-2 rounded-2xl border-2 border-slate-200 shadow-xs flex items-center gap-1.5 overflow-x-auto">
+        <div className="bg-[#0b1d3a] p-2 rounded-2xl border-2 border-blue-900/60 shadow-xs flex items-center gap-1.5 overflow-x-auto">
           {[
             { id: 'overview', label: 'Patient Summary', icon: User },
             { id: 'geofence', label: 'CareCompass GPS Radar', icon: Radio },
@@ -258,7 +258,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                 className={`py-2.5 px-4 rounded-xl font-extrabold text-xs sm:text-sm flex items-center space-x-2 whitespace-nowrap transition-all cursor-pointer ${
                   isActive
                     ? 'bg-[#0F172A] text-white shadow-md'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    : 'text-blue-300 hover:text-white hover:bg-blue-950'
                 }`}
               >
                 <IconC className={`w-4 h-4 ${isActive ? 'text-[#FF6321]' : 'text-slate-400'}`} />
@@ -274,13 +274,13 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             {/* Top Patient Profile Summary Bento */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
               {/* Profile Card */}
-              <div className="md:col-span-4 bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+              <div className="md:col-span-4 bg-[#0b1d3a] p-6 rounded-3xl border-2 border-blue-900/60 shadow-sm space-y-4">
                 <div className="flex items-center space-x-4">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] border-2 border-[#FF6321] flex items-center justify-center text-white text-2xl font-black shadow-md">
                     RS
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-[#0F172A]">{user.name}</h2>
+                    <h2 className="text-xl font-black text-white">{user.name}</h2>
                     <p className="text-xs text-slate-500 font-bold">
                       Age {user.age} • {user.gender}
                     </p>
@@ -290,26 +290,26 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-3 border-t border-slate-100 text-xs">
+                <div className="space-y-2 pt-3 border-t border-blue-900/40 text-xs">
                   <div className="flex justify-between py-1 border-b border-slate-50">
                     <span className="font-bold text-slate-500">Baseline MoCA:</span>
-                    <span className="font-black text-[#0F172A]">{user.baselineMocaScore} / 30</span>
+                    <span className="font-black text-white">{user.baselineMocaScore} / 30</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-50">
                     <span className="font-bold text-slate-500">Primary Caregiver:</span>
-                    <span className="font-black text-[#0F172A]">{user.caregiverName} ({user.caregiverRelation})</span>
+                    <span className="font-black text-white">{user.caregiverName} ({user.caregiverRelation})</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-50">
                     <span className="font-bold text-slate-500">Caregiver Contact:</span>
-                    <span className="font-black text-[#0F172A]">{user.caregiverPhone}</span>
+                    <span className="font-black text-white">{user.caregiverPhone}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-50">
                     <span className="font-bold text-slate-500">Primary Physician:</span>
-                    <span className="font-black text-[#0F172A]">{user.physicianName}</span>
+                    <span className="font-black text-white">{user.physicianName}</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span className="font-bold text-slate-500">Registered Safe Home:</span>
-                    <span className="font-black text-[#0F172A] text-right truncate max-w-[160px]">
+                    <span className="font-black text-white text-right truncate max-w-[160px]">
                       {user.homeAddress}
                     </span>
                   </div>
@@ -318,16 +318,16 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
               {/* Cognitive Vitals Quick Cards */}
               <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
+                <div className="bg-[#0b1d3a] p-5 rounded-3xl border-2 border-blue-900/60 shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-400">Mind Points</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-[#0F172A]">{user.totalPoints}</span>
+                    <span className="text-3xl font-black text-white">{user.totalPoints}</span>
                     <span className="text-xs font-bold text-emerald-600 ml-1.5">+180 this week</span>
                   </div>
                   <span className="text-[11px] text-slate-500 font-medium">Cognitive effort currency</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
+                <div className="bg-[#0b1d3a] p-5 rounded-3xl border-2 border-blue-900/60 shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-400">Active Daily Streak</span>
                   <div className="my-2 flex items-center space-x-1.5">
                     <span className="text-3xl font-black text-[#FF6321]">🔥 {user.currentStreak}</span>
@@ -336,16 +336,16 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   <span className="text-[11px] text-slate-500 font-medium">Consecutive engagement</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
+                <div className="bg-[#0b1d3a] p-5 rounded-3xl border-2 border-blue-900/60 shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-400">Total Exercises Logged</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-[#0F172A]">{activityLogs.length}</span>
+                    <span className="text-3xl font-black text-white">{activityLogs.length}</span>
                     <span className="text-xs font-bold text-slate-500 ml-1">sessions</span>
                   </div>
                   <span className="text-[11px] text-slate-500 font-medium">All 5 therapeutic modules</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
+                <div className="bg-[#0b1d3a] p-5 rounded-3xl border-2 border-blue-900/60 shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-400">Memory Domain</span>
                   <div className="my-2">
                     <span className="text-3xl font-black text-indigo-600">{domainScores.memory}%</span>
@@ -354,7 +354,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   <span className="text-[11px] text-slate-500 font-medium">LifeThread & FaceBond</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
+                <div className="bg-[#0b1d3a] p-5 rounded-3xl border-2 border-blue-900/60 shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-400">Spatial Navigation</span>
                   <div className="my-2">
                     <span className="text-3xl font-black text-amber-600">{domainScores.spatial}%</span>
@@ -363,7 +363,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   <span className="text-[11px] text-slate-500 font-medium">WayBack route memory</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
+                <div className="bg-[#0b1d3a] p-5 rounded-3xl border-2 border-blue-900/60 shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-400">Temporal Grounding</span>
                   <div className="my-2">
                     <span className="text-3xl font-black text-emerald-600">{domainScores.temporal}%</span>
@@ -375,14 +375,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             </div>
 
             {/* Emergency Safe-Return & GPS Geofence Monitor Card */}
-            <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+            <div className="bg-[#0b1d3a] p-6 rounded-3xl border-2 border-blue-900/60 shadow-sm space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">
                   <div className="p-2.5 bg-rose-100 text-rose-700 rounded-xl">
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-black text-base sm:text-lg text-[#0F172A]">
+                    <h3 className="font-black text-base sm:text-lg text-white">
                       Emergency Safe-Return & Spatial Geofence Anchor
                     </h3>
                     <p className="text-xs text-slate-500 font-medium">
@@ -398,11 +398,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               </div>
 
               {locationLogs.length > 0 && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                <div className="bg-[#00142b] p-4 rounded-2xl border border-blue-900/60 space-y-2">
                   <span className="text-xs font-black uppercase text-slate-500 block">
                     Recent Location Check Record:
                   </span>
-                  <div className="flex flex-wrap items-center justify-between text-xs font-bold text-slate-700 gap-2">
+                  <div className="flex flex-wrap items-center justify-between text-xs font-bold text-blue-200 gap-2">
                     <span>
                       Timestamp: {new Date(locationLogs[0].timestamp).toLocaleString()}
                     </span>
@@ -466,11 +466,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               ].map((item) => (
                 <div
                   key={item.domain}
-                  className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col justify-between space-y-4"
+                  className="bg-[#0b1d3a] p-6 rounded-3xl border-2 border-blue-900/60 shadow-sm flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-black text-base sm:text-lg text-[#0F172A]">
+                      <h3 className="font-black text-base sm:text-lg text-white">
                         {item.domain}
                       </h3>
                       <span className="text-2xl font-black text-[#FF6321]">{item.score}%</span>
@@ -478,20 +478,20 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     <p className="text-xs text-slate-500 font-medium">{item.desc}</p>
                   </div>
 
-                  <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+                  <div className="w-full bg-blue-950 h-3 rounded-full overflow-hidden border border-blue-900/60">
                     <div
                       className="h-full bg-gradient-to-r from-[#FF6321] to-[#EA580C]"
                       style={{ width: `${item.score}%` }}
                     />
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="font-extrabold text-slate-600">{item.trend}</span>
+                  <div className="pt-2 border-t border-blue-900/40 flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-blue-300">{item.trend}</span>
                     <div className="flex gap-1">
                       {item.games.map((g) => (
                         <span
                           key={g}
-                          className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          className="bg-blue-950 text-blue-200 px-2 py-0.5 rounded-full text-[10px] font-bold"
                         >
                           {g}
                         </span>
@@ -542,20 +542,20 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     className={`p-6 rounded-3xl border-2 transition-all ${
                       isBridge
                         ? 'bg-orange-50/60 border-orange-400 shadow-sm'
-                        : 'bg-white border-slate-200 shadow-xs'
+                        : 'bg-[#0b1d3a] border-blue-900/60 shadow-xs'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-black text-base sm:text-lg text-[#0F172A] capitalize">
+                          <h4 className="font-black text-base sm:text-lg text-white capitalize">
                             {gameId} Module
                           </h4>
                           <span
                             className={`text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase ${
                               isBridge
                                 ? 'bg-orange-600 text-white'
-                                : 'bg-slate-200 text-slate-700'
+                                : 'bg-slate-200 text-blue-200'
                             }`}
                           >
                             {isBridge ? 'Bridge Active' : 'Normal Pace'}
@@ -580,9 +580,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
                     {/* Recent 3 Scores */}
                     <div className="space-y-1.5 my-3">
-                      <div className="flex justify-between text-xs font-bold text-slate-600">
+                      <div className="flex justify-between text-xs font-bold text-blue-300">
                         <span>Last 3 Attempts History:</span>
-                        <span className="font-black text-[#0F172A]">3-Game Avg: {avgScore}%</span>
+                        <span className="font-black text-white">3-Game Avg: {avgScore}%</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -609,11 +609,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
                     {/* Bridge Details */}
                     {isBridge && prog?.activeBridge && (
-                      <div className="mt-3 p-3 bg-white rounded-2xl border border-orange-300 text-xs text-slate-700 space-y-1">
+                      <div className="mt-3 p-3 bg-[#0b1d3a] rounded-2xl border border-orange-300 text-xs text-blue-200 space-y-1">
                         <span className="font-black text-[#FF6321] block">
                           Active Assistance Modifiers:
                         </span>
-                        <p className="font-medium text-slate-600">
+                        <p className="font-medium text-blue-300">
                           {prog.activeBridge.reason || 'Visual clues + extended time active'}
                         </p>
                         <p className="text-[11px] text-slate-400">
@@ -633,7 +633,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           <div className="space-y-6 animate-fadeIn">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="font-black text-lg sm:text-xl text-[#0F172A]">
+                <h3 className="font-black text-lg sm:text-xl text-white">
                   Family Directory & Reminiscence Profiles ({familyMembers.length})
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
@@ -654,10 +654,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               {familyMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col justify-between hover:border-[#FF6321] transition-all relative overflow-hidden"
+                  className="bg-[#0b1d3a] p-5 rounded-3xl border-2 border-blue-900/60 shadow-sm flex flex-col justify-between hover:border-[#FF6321] transition-all relative overflow-hidden"
                 >
                   <div>
-                    <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-xs border-2 border-slate-100 mb-3 relative group">
+                    <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-xs border-2 border-blue-900/40 mb-3 relative group">
                       <img
                         src={member.photoUrl}
                         alt={member.name}
@@ -668,7 +668,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       </span>
                     </div>
 
-                    <h4 className="font-black text-base text-[#0F172A]">{member.name}</h4>
+                    <h4 className="font-black text-base text-white">{member.name}</h4>
                     <span className="inline-block mt-0.5 bg-orange-100 text-[#9A3412] text-[11px] font-black px-2.5 py-0.5 rounded-full border border-orange-200">
                       {member.relation}
                     </span>
@@ -685,7 +685,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                         Key Anecdotes:
                       </span>
                       {member.keyMemories.slice(0, 2).map((m, i) => (
-                        <p key={i} className="text-[11px] text-slate-600 line-clamp-2 italic">
+                        <p key={i} className="text-[11px] text-blue-300 line-clamp-2 italic">
                           "{m}"
                         </p>
                       ))}
@@ -693,11 +693,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-blue-900/40 flex items-center justify-between">
                     {member.voiceNote && (
                       <button
                         onClick={() => speakText(member.voiceNote, true)}
-                        className="p-1.5 text-slate-600 hover:text-[#0F172A] hover:bg-slate-100 rounded-lg"
+                        className="p-1.5 text-blue-300 hover:text-white hover:bg-blue-950 rounded-lg"
                         title="Hear Voice Greeting"
                       >
                         <Volume2 className="w-4 h-4 text-[#FF6321]" />
@@ -707,7 +707,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     <div className="flex items-center space-x-1 ml-auto">
                       <button
                         onClick={() => handleOpenEditMember(member)}
-                        className="p-1.5 text-slate-600 hover:text-[#0F172A] hover:bg-slate-100 rounded-lg cursor-pointer"
+                        className="p-1.5 text-blue-300 hover:text-white hover:bg-blue-950 rounded-lg cursor-pointer"
                         title="Edit Member"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -731,7 +731,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         {activeTab === 'logs' && (
           <div className="space-y-5 animate-fadeIn">
             {/* Search & Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-[#0b1d3a] p-4 rounded-2xl border-2 border-blue-900/60 shadow-xs flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center space-x-2 flex-1 min-w-[200px] max-w-md">
                 <Search className="w-4 h-4 text-slate-400" />
                 <input
@@ -751,7 +751,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
                       logFilter === cat
                         ? 'bg-[#0F172A] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        : 'bg-blue-950 text-blue-200 hover:bg-slate-200'
                     }`}
                   >
                     {cat}
@@ -761,10 +761,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             </div>
 
             {/* Logs Table */}
-            <div className="bg-white rounded-3xl border-2 border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-[#0b1d3a] rounded-3xl border-2 border-blue-900/60 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-slate-100 text-slate-600 uppercase font-black text-[11px] border-b border-slate-200">
+                  <thead className="bg-blue-950 text-blue-300 uppercase font-black text-[11px] border-b border-blue-900/60">
                     <tr>
                       <th className="py-3 px-4">Date & Time</th>
                       <th className="py-3 px-4">Exercise Module</th>
@@ -775,17 +775,17 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       <th className="py-3 px-4">Notes</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                  <tbody className="divide-y divide-slate-100 font-medium text-white">
                     {filteredLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-50">
+                      <tr key={log.id} className="hover:bg-[#00142b]">
                         <td className="py-3.5 px-4 whitespace-nowrap text-slate-500 font-mono text-xs">
                           {new Date(log.timestamp).toLocaleString()}
                         </td>
-                        <td className="py-3.5 px-4 font-black text-[#0F172A]">
+                        <td className="py-3.5 px-4 font-black text-white">
                           {log.title}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="bg-slate-100 text-slate-800 text-[11px] font-black px-2.5 py-0.5 rounded-full">
+                          <span className="bg-blue-950 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">
                             {log.category}
                           </span>
                         </td>
@@ -820,11 +820,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
         {/* TAB 6: DOCTOR CLINICAL REPORT */}
         {activeTab === 'report' && (
-          <div className="bg-white p-8 rounded-3xl border-3 border-slate-300 shadow-xl space-y-6 print:border-none print:shadow-none animate-fadeIn max-w-4xl mx-auto">
+          <div className="bg-[#0b1d3a] p-8 rounded-3xl border-3 border-blue-800 shadow-xl space-y-6 print:border-none print:shadow-none animate-fadeIn max-w-4xl mx-auto">
             {/* Report Header */}
-            <div className="border-b-2 border-slate-300 pb-5 flex items-start justify-between">
+            <div className="border-b-2 border-blue-800 pb-5 flex items-start justify-between">
               <div>
-                <h2 className="text-2xl font-black text-[#0F172A]">
+                <h2 className="text-2xl font-black text-white">
                   SmritiSaathi Cognitive Assessment & Progress Report
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -837,14 +837,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             </div>
 
             {/* Patient Demographics */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[#00142b] p-4 rounded-2xl border border-blue-900/60 text-xs">
               <div>
                 <span className="font-bold text-slate-400 block">PATIENT NAME</span>
-                <span className="font-black text-sm text-[#0F172A]">{user.name}</span>
+                <span className="font-black text-sm text-white">{user.name}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">AGE / GENDER</span>
-                <span className="font-black text-sm text-[#0F172A]">{user.age} Yrs / {user.gender}</span>
+                <span className="font-black text-sm text-white">{user.age} Yrs / {user.gender}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">DIAGNOSIS</span>
@@ -852,13 +852,13 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">BASELINE MoCA</span>
-                <span className="font-black text-sm text-[#0F172A]">{user.baselineMocaScore} / 30</span>
+                <span className="font-black text-sm text-white">{user.baselineMocaScore} / 30</span>
               </div>
             </div>
 
             {/* Domain Summary Table */}
             <div className="space-y-2">
-              <h3 className="font-black text-base text-[#0F172A]">1. Longitudinal Domain Competence</h3>
+              <h3 className="font-black text-base text-white">1. Longitudinal Domain Competence</h3>
               <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 {[
                   { name: 'Memory Recall', val: domainScores.memory },
@@ -867,7 +867,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   { name: 'Executive Function', val: domainScores.executive },
                   { name: 'Sensory Planning', val: domainScores.planning },
                 ].map((d) => (
-                  <div key={d.name} className="p-3 bg-white rounded-xl border border-slate-200 text-center">
+                  <div key={d.name} className="p-3 bg-[#0b1d3a] rounded-xl border border-blue-900/60 text-center">
                     <span className="text-[11px] font-bold text-slate-500 block">{d.name}</span>
                     <span className="text-xl font-black text-[#FF6321]">{d.val}%</span>
                   </div>
@@ -877,8 +877,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
             {/* Clinical Observations & Recommendations */}
             <div className="space-y-3 pt-2">
-              <h3 className="font-black text-base text-[#0F172A]">2. Clinical Observations & Next Steps</h3>
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs text-slate-700 leading-relaxed">
+              <h3 className="font-black text-base text-white">2. Clinical Observations & Next Steps</h3>
+              <div className="bg-[#00142b] p-4 rounded-2xl border border-blue-900/60 space-y-2 text-xs text-blue-200 leading-relaxed">
                 <p>
                   • <strong>Temporal Awareness:</strong> Patient demonstrates consistent performance in TimeSense clock-setting and RealityQuest daily orientation (+8% trajectory).
                 </p>
@@ -895,15 +895,15 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             </div>
 
             {/* Signature Block */}
-            <div className="pt-8 flex justify-between items-end text-xs text-slate-500 border-t border-slate-200">
+            <div className="pt-8 flex justify-between items-end text-xs text-slate-500 border-t border-blue-900/60">
               <div>
                 <p>Signed electronically by:</p>
-                <p className="font-black text-sm text-[#0F172A] mt-1">{user.caregiverName}</p>
+                <p className="font-black text-sm text-white mt-1">{user.caregiverName}</p>
                 <p>Primary Caregiver ({user.caregiverRelation})</p>
               </div>
               <div className="text-right">
                 <p>Clinical Reviewer:</p>
-                <p className="font-black text-sm text-[#0F172A] mt-1">{user.physicianName}</p>
+                <p className="font-black text-sm text-white mt-1">{user.physicianName}</p>
                 <p>Neurology Consultant, Apollo Hospitals Delhi</p>
               </div>
             </div>
@@ -919,15 +919,15 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto"
+            className="bg-[#0b1d3a] rounded-3xl border-2 border-blue-800 shadow-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="font-black text-lg text-[#0F172A]">
+            <div className="flex items-center justify-between border-b border-blue-900/60 pb-3">
+              <h3 className="font-black text-lg text-white">
                 {editingMember ? 'Edit Family Profile' : 'Add New Family Member'}
               </h3>
               <button
                 onClick={() => setIsAddFamilyModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700"
+                className="p-1.5 text-slate-400 hover:text-blue-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -935,89 +935,89 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
             <form onSubmit={handleSaveMember} className="space-y-3.5 text-xs sm:text-sm">
               <div>
-                <label className="font-black text-slate-700 block mb-1">Full Name</label>
+                <label className="font-black text-blue-200 block mb-1">Full Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Rohan Sharma"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-blue-800 font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-black text-slate-700 block mb-1">Kinship Relation</label>
+                  <label className="font-black text-blue-200 block mb-1">Kinship Relation</label>
                   <input
                     type="text"
                     required
                     value={formData.relation}
                     onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
                     placeholder="e.g. Son, Granddaughter"
-                    className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                    className="w-full p-2.5 rounded-xl border border-blue-800 font-medium focus:ring-2 focus:ring-[#FF6321]"
                   />
                 </div>
                 <div>
-                  <label className="font-black text-slate-700 block mb-1">Age</label>
+                  <label className="font-black text-blue-200 block mb-1">Age</label>
                   <input
                     type="number"
                     value={formData.age}
                     onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                    className="w-full p-2.5 rounded-xl border border-blue-800 font-medium focus:ring-2 focus:ring-[#FF6321]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Contact Phone</label>
+                <label className="font-black text-blue-200 block mb-1">Contact Phone</label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+91 98100 00000"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-blue-800 font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Photo URL</label>
+                <label className="font-black text-blue-200 block mb-1">Photo URL</label>
                 <input
                   type="url"
                   value={formData.photoUrl}
                   onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-blue-800 font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Voice Greeting Note</label>
+                <label className="font-black text-blue-200 block mb-1">Voice Greeting Note</label>
                 <input
                   type="text"
                   value={formData.voiceNote}
                   onChange={(e) => setFormData({ ...formData, voiceNote: e.target.value })}
                   placeholder="e.g. Hello Dadaji, thinking of you always!"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-blue-800 font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Key Memories (Separated by semicolon ;)</label>
+                <label className="font-black text-blue-200 block mb-1">Key Memories (Separated by semicolon ;)</label>
                 <textarea
                   rows={2}
                   value={formData.memories}
                   onChange={(e) => setFormData({ ...formData, memories: e.target.value })}
                   placeholder="Shared Shimla trip in 2019; Loves drinking morning ginger tea together"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-blue-800 font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-blue-900/60">
                 <button
                   type="button"
                   onClick={() => setIsAddFamilyModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-blue-300 font-bold hover:bg-blue-950 rounded-xl"
                 >
                   Cancel
                 </button>
