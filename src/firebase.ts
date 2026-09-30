@@ -24,6 +24,7 @@ import {
   getDocFromServer,
   query,
   limit,
+  deleteDoc,
 } from 'firebase/firestore';
 import firebaseConfigJson from '../firebase-applet-config.json';
 import type {
@@ -34,7 +35,9 @@ import type {
   CareCompassTelemetry,
   AlertLogEntry,
   AppDatabase,
+  ChatThread,
 } from './types';
+
 
 // Detect and validate environment variables with safe fallback to firebase-applet-config.json
 const firebaseConfig = {
@@ -936,4 +939,67 @@ export const firestoreSyncService = {
       return {};
     }
   },
+
+  /**
+   * Saves an OpenAI ChatGPT-style conversation thread to Firestore under authenticated user
+   */
+  async saveChatThread(thread: ChatThread, explicitUid?: string): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
+    try {
+      const threadRef = doc(db, 'users', uid, 'chatThreads', thread.id);
+      await setDoc(threadRef, {
+        id: thread.id,
+        title: thread.title,
+        role: thread.role || 'companion',
+        createdAt: thread.createdAt,
+        updatedAt: thread.updatedAt || new Date().toISOString(),
+        lastMessage: thread.lastMessage || '',
+        userEmail: thread.userEmail || auth.currentUser?.email || '',
+        messages: thread.messages || [],
+      });
+      console.log(`[Firestore] Chat thread ${thread.id} safely synced for user ${uid}`);
+    } catch (err) {
+      console.warn('[Firestore] Error saving chat thread:', err);
+    }
+  },
+
+  /**
+   * Retrieves all ChatGPT-style conversation threads for the authenticated user from Firestore
+   */
+  async getChatThreads(explicitUid?: string): Promise<ChatThread[]> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return [];
+    try {
+      const threadsSnap = await getDocs(
+        query(collection(db, 'users', uid, 'chatThreads'), limit(50))
+      );
+      if (threadsSnap.empty) return [];
+
+      const threads = threadsSnap.docs.map((d) => d.data() as ChatThread);
+      // Sort newest first
+      return threads.sort(
+        (a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+      );
+    } catch (err) {
+      console.warn('[Firestore] Error fetching chat threads:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Deletes a chat conversation thread from Firestore
+   */
+  async deleteChatThread(threadId: string, explicitUid?: string): Promise<void> {
+    const uid = explicitUid || this.getUserId();
+    if (!uid) return;
+    try {
+      const threadRef = doc(db, 'users', uid, 'chatThreads', threadId);
+      await deleteDoc(threadRef);
+      console.log(`[Firestore] Chat thread ${threadId} deleted for user ${uid}`);
+    } catch (err) {
+      console.warn('[Firestore] Error deleting chat thread:', err);
+    }
+  },
 };
+

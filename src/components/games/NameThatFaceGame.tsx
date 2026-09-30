@@ -170,18 +170,18 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
 
   return (
     <div id="name-face-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/80 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-[#f8f9fc] text-[#002045] w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
+      <div className="bg-[#f8f9fc] text-white w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-[#1a365d]/20 overflow-hidden flex flex-col max-h-[96vh] my-auto">
         
         {/* Header */}
         <div className="bg-[#002045] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-[#d7e2ff] text-[#002045] rounded-xl flex items-center justify-center shadow-inner">
-              <UserCheck className="w-6 h-6 text-[#002045]" />
+            <div className="p-2 bg-[#d7e2ff] text-white rounded-xl flex items-center justify-center shadow-inner">
+              <UserCheck className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-xl font-bold tracking-tight">Name That Face & Family Memories</h2>
-                <span className="bg-[#facc15] text-[#002045] text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                <span className="bg-[#facc15] text-white text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                   2-Stage Episodic Recall
                 </span>
               </div>
@@ -204,7 +204,7 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
         {!isFinished && (
           <div className="bg-[#e2eafc] px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between border-b border-[#c8d8f8] gap-2">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-black text-[#002045] uppercase">Difficulty:</span>
+              <span className="text-xs font-black text-white uppercase">Difficulty:</span>
               <div className="flex space-x-1">
                 {[1, 2, 3].map((lvl) => (
                   <button
@@ -218,7 +218,7 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
                       setCurrentStage('name');
                     }}
                     className={`px-3 py-1 text-xs font-bold rounded-md border ${
-                      selectedLevel === lvl ? 'bg-[#002045] text-white border-[#002045]' : 'bg-white text-[#002045] border-[#c8d8f8]'
+                      selectedLevel === lvl ? 'bg-[#002045] text-white border-[#002045]' : 'bg-white text-white border-[#c8d8f8]'
                     }`}
                   >
                     Level {lvl}
@@ -227,9 +227,9 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center space-x-4 text-xs font-bold text-[#002045]">
+            <div className="flex items-center space-x-4 text-xs font-bold text-white">
               <span>Photo {currentIndex + 1} of {totalRounds}</span>
-              <span className="bg-[#d7e2ff] px-2.5 py-1 rounded-md text-[#002045] font-black border border-[#a0c4ff]">
+              <span className="bg-[#d7e2ff] px-2.5 py-1 rounded-md text-white font-black border border-[#a0c4ff]">
                 Score: {score} pts
               </span>
             </div>
@@ -240,22 +240,22 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 flex flex-col justify-center">
           {isFinished ? (
             <div className="text-center py-6 flex flex-col items-center space-y-5">
-              <div className="w-20 h-20 bg-[#d7e2ff] text-[#002045] rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
-                <Trophy className="w-10 h-10 text-[#002045]" />
+              <div className="w-20 h-20 bg-[#d7e2ff] text-white rounded-full flex items-center justify-center shadow-lg border-4 border-[#002045]">
+                <Trophy className="w-10 h-10 text-white" />
               </div>
               <div>
-                <h3 className="text-3xl font-black text-[#002045]">Family Memories Celebrated!</h3>
+                <h3 className="text-3xl font-black text-white">Family Memories Celebrated!</h3>
                 <p className="text-[#3b5998] text-base mt-1">You recognized your loved ones and strengthened emotional neural pathways.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 w-full max-w-sm bg-[#eef3fc] p-4 rounded-xl border border-[#c8d8f8]">
                 <div className="bg-white p-3 rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987]">Total Score</p>
-                  <p className="text-2xl font-black text-[#002045]">{score}</p>
+                  <p className="text-2xl font-black text-white">{score}</p>
                 </div>
                 <div className="bg-white p-3 rounded-lg shadow-sm">
                   <p className="text-xs text-[#556987]">Accuracy</p>
-                  <p className="text-2xl font-black text-[#002045]">{Math.round((correctCount / totalRounds) * 100)}%</p>
+                  <p className="text-2xl font-black text-white">{Math.round((correctCount / totalRounds) * 100)}%</p>
                 </div>
               </div>
 
@@ -305,11 +305,11 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-xs font-black uppercase tracking-wider text-[#3b5998]">Stage 1 • Facial Recognition</span>
-                        <h3 className="text-2xl font-black text-[#002045]">Who is this loved one?</h3>
+                        <h3 className="text-2xl font-black text-white">Who is this loved one?</h3>
                       </div>
                       <button
                         onClick={() => setShowHint(!showHint)}
-                        className="px-3 py-1.5 bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#002045] rounded-xl text-xs font-bold border border-[#cbd5e1] flex items-center space-x-1"
+                        className="px-3 py-1.5 bg-[#f1f5f9] hover:bg-[#e2e8f0] text-white rounded-xl text-xs font-bold border border-[#cbd5e1] flex items-center space-x-1"
                       >
                         <HelpCircle className="w-4 h-4" />
                         <span>{showHint ? 'Hide Clue' : 'Show Clue'}</span>
@@ -319,7 +319,7 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {options.map((name) => {
                         const isSelected = selectedOption === name;
-                        let btnStyle = 'bg-white border-[#c8d8f8] text-[#002045] hover:border-[#002045]';
+                        let btnStyle = 'bg-white border-[#c8d8f8] text-white hover:border-[#002045]';
 
                         if (isAnswerChecked) {
                           if (name === currentFace.name) {
@@ -328,7 +328,7 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
                             btnStyle = 'bg-rose-50 border-rose-400 text-rose-900';
                           }
                         } else if (isSelected) {
-                          btnStyle = 'bg-[#d7e2ff] border-[#002045] text-[#002045] font-black ring-2 ring-[#002045]';
+                          btnStyle = 'bg-[#d7e2ff] border-[#002045] text-white font-black ring-2 ring-[#002045]';
                         }
 
                         return (
@@ -339,7 +339,7 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
                             className={`p-4 rounded-xl border-2 text-left font-bold text-base transition-all shadow-sm flex items-center justify-between ${btnStyle}`}
                           >
                             <span>{name}</span>
-                            {isSelected && <CheckCircle2 className="w-5 h-5 text-[#002045]" />}
+                            {isSelected && <CheckCircle2 className="w-5 h-5 text-white" />}
                           </button>
                         );
                       })}
@@ -372,13 +372,13 @@ export const NameThatFaceGame: React.FC<NameThatFaceGameProps> = ({
 
                     <div>
                       <span className="text-xs font-black uppercase tracking-wider text-[#3b5998]">Stage 2 • Episodic Kinship Recall</span>
-                      <h3 className="text-xl font-black text-[#002045]">{detailQuestion?.prompt}</h3>
+                      <h3 className="text-xl font-black text-white">{detailQuestion?.prompt}</h3>
                     </div>
 
                     <div className="grid grid-cols-1 gap-2.5">
                       {detailQuestion?.options.map((opt) => {
                         const isSelected = selectedDetail === opt;
-                        let btnStyle = 'bg-white border-[#c8d8f8] text-[#002045] hover:border-[#002045]';
+                        let btnStyle = 'bg-white border-[#c8d8f8] text-white hover:border-[#002045]';
 
                         if (isDetailChecked) {
                           if (opt === currentFace.relation) {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import type { UserProfile } from '../types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import type { UserProfile, ChatMessage, ChatThread } from '../types';
 import {
   Send,
   Bot,
@@ -25,31 +25,22 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  KeyRound,
   CheckCircle2,
-  Music,
-  Coffee,
-  HelpCircle,
   Compass,
-  CornerDownLeft,
   Eye,
   Globe,
+  Plus,
+  MessageSquare,
+  Search,
+  PanelLeftClose,
+  PanelLeft,
+  LogIn,
+  Cloud,
+  CloudOff,
+  History,
+  Lock,
 } from 'lucide-react';
-
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'model';
-  text: string;
-  timestamp: string;
-  modelUsed?: string;
-  roleUsed?: string;
-  error?: boolean;
-  isLiveAI?: boolean;
-  source?: string;
-  groundingSources?: Array<{ title?: string; uri?: string }>;
-  webSearchQueries?: string[];
-  webSearchUsed?: boolean;
-}
+import { auth, signInWithGoogle, firestoreSyncService } from '../firebase';
 
 export type ChatRole = 'companion' | 'quick' | 'complex';
 
@@ -81,7 +72,7 @@ const ROLE_CONFIGS: Record<
     name: 'Saathi (Companion)',
     shortName: 'Companion',
     tagline: 'Warm memory friend & gentle conversational buddy (Live Web Search)',
-    model: 'gemini-3.8-flash',
+    model: 'gemini-3.5-flash-lite',
     taskType: 'General Memory Tasks',
     icon: Heart,
     badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
@@ -89,11 +80,16 @@ const ROLE_CONFIGS: Record<
     borderColor: 'border-rose-200',
     avatarBg: 'bg-[#002045] text-white',
     welcomeMessage: (name) =>
-      `Namaste ${name || 'Asha ji'}! I am Saathi, your personal memory friend. I am equipped with live internal Google Search to check the web for any current facts or recent news beyond 2024, or we can talk about pleasant memories and classic songs. How are you feeling today?`,
+      `Namaste ${name || 'Asha ji'}! I am Saathi, your personal memory friend. I am equipped with live internal Google Search to check the web for current facts, 2025/2026 news, or we can talk about pleasant memories and classic songs. How are you feeling today?`,
     quickPrompts: [
       {
+        label: 'Who is the President of US? 🌐',
+        text: 'Who is the president of the United States?',
+        category: 'Live Search',
+      },
+      {
         label: 'Latest 2025/2026 News 🌐',
-        text: 'Search the live web for the latest major news and events in India in 2025 and 2026 🌐',
+        text: 'Search the live web for the latest major news and events today 🌐',
         category: 'Live Search',
       },
       {
@@ -116,11 +112,6 @@ const ROLE_CONFIGS: Record<
         text: 'Why is the sky blue? Can you explain in a simple, beautiful way? 🌌',
         category: 'Science',
       },
-      {
-        label: 'Gentle Comfort 🌸',
-        text: 'I feel a little forgetful today, can you comfort and reassure me? 🌸',
-        category: 'Comfort',
-      },
     ],
   },
   quick: {
@@ -128,7 +119,7 @@ const ROLE_CONFIGS: Record<
     name: 'Quick Anchor',
     shortName: 'Quick',
     tagline: 'Lightning-fast temporal & routine orientation (Live Web Search)',
-    model: 'gemini-3.8-flash',
+    model: 'gemini-3.5-flash-lite',
     taskType: 'Tasks That Happen Fast',
     icon: Zap,
     badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -136,11 +127,11 @@ const ROLE_CONFIGS: Record<
     borderColor: 'border-amber-200',
     avatarBg: 'bg-amber-600 text-white',
     welcomeMessage: (name) =>
-      `Hello ${name || 'there'}! Quick Anchor active with live web search. I provide instant, snappy answers for dates, times, live weather, medicine routines, and emergency contacts. What do you need right now?`,
+      `Hello ${name || 'there'}! Quick Anchor active with live web search. I provide instant answers for dates, times, live weather, medicine routines, and emergency contacts. What do you need right now?`,
     quickPrompts: [
       {
         label: 'Live Headlines & Weather 🌐',
-        text: 'Search the web for today\'s top news headlines and weather forecast 🌐',
+        text: "Search the web for today's top news headlines and weather forecast 🌐",
         category: 'Live Search',
       },
       {
@@ -163,11 +154,6 @@ const ROLE_CONFIGS: Record<
         text: 'Did I take my morning medicine and drink water? 💊',
         category: 'Health',
       },
-      {
-        label: 'Emergency Contact 📞',
-        text: 'Who is my primary emergency family contact? 📞',
-        category: 'Safety',
-      },
     ],
   },
   complex: {
@@ -175,7 +161,7 @@ const ROLE_CONFIGS: Record<
     name: 'Dr. Smriti (Clinical Specialist)',
     shortName: 'Clinical',
     tagline: 'Complex geriatric dementia & caregiver intelligence (Live Web Search)',
-    model: 'gemini-3.8-flash',
+    model: 'gemini-3.5-flash-lite',
     taskType: 'Caregiver & Clinical Advice',
     icon: Stethoscope,
     badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
@@ -183,22 +169,17 @@ const ROLE_CONFIGS: Record<
     borderColor: 'border-blue-200',
     avatarBg: 'bg-blue-800 text-white',
     welcomeMessage: (name) =>
-      `Welcome to the Clinical Caregiver Consultation. I am Dr. Smriti, specialized in geriatric neuropsychology, MCI progression, and non-pharmacological behavioral care. Live Google Search grounding is enabled for the latest 2025/2026 Alzheimer's trials and clinical approvals. How can I assist you today?`,
+      `Welcome to the Clinical Caregiver Consultation. I am Dr. Smriti, specialized in geriatric neuropsychology, MCI progression, and non-pharmacological behavioral care. Live Google Search grounding is enabled for the latest Alzheimer's trials and clinical approvals. How can I assist you today?`,
     quickPrompts: [
       {
         label: '2025/2026 Dementia Research 🌐',
-        text: 'Search the web and explain the latest 2025-2026 FDA approvals and clinical dementia trials 🌐',
+        text: 'Search the web and explain the latest FDA approvals and clinical dementia trials 🌐',
         category: 'Live Search',
       },
       {
         label: 'Sundowning Protocol 🌅',
         text: 'How do I handle evening agitation or sundowning syndrome? 🌅',
         category: 'Clinical',
-      },
-      {
-        label: 'Forgetfulness vs MCI 🔬',
-        text: 'Explain the difference between age-related forgetfulness and MCI 🔬',
-        category: 'Diagnosis',
       },
       {
         label: 'Validation Therapy 🤝',
@@ -210,42 +191,40 @@ const ROLE_CONFIGS: Record<
         text: 'How can we prevent nighttime wandering safely in our home? 🚪',
         category: 'Safety',
       },
-      {
-        label: 'Joint & Arthritis Care 🦵',
-        text: 'What gentle daily habits help relieve elderly knee and joint aches? 🦵',
-        category: 'Health',
-      },
     ],
   },
 };
 
-const STORAGE_KEY_PREFIX = 'smritisathi_gemini_chat_history_v2_';
-
 export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigateTab }) => {
-  const patientName = user?.name || 'Roy';
+  const patientName = user?.name || 'Asha Devi';
   const caregiverName = user?.caregiverName || 'Rohan Sharma';
 
+  // Authentication State Detection: strictly distinguish between signed-in Google users vs guests
+  const isUserLoggedIn = Boolean(
+    (user?.isGoogleLinked && user?.email) || auth.currentUser?.email
+  );
+  const activeUserEmail = user?.email || auth.currentUser?.email || '';
+  const activeUserId = auth.currentUser?.uid || user?.id || activeUserEmail;
+
+  // ChatGPT-Style Thread Management
+  const [threads, setThreads] = useState<ChatThread[]>([]);
+  const [activeThreadId, setActiveThreadId] = useState<string>('initial-thread');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Active Role and Messages for current conversation
   const [activeRole, setActiveRole] = useState<ChatRole>('companion');
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}companion`);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('Failed to load chat history from localStorage', e);
-    }
-    return [
-      {
-        id: 'initial-welcome',
-        role: 'model',
-        text: ROLE_CONFIGS.companion.welcomeMessage(patientName),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        modelUsed: ROLE_CONFIGS.companion.model,
-        roleUsed: 'companion',
-      },
-    ];
-  });
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'initial-welcome',
+      role: 'model',
+      text: ROLE_CONFIGS.companion.welcomeMessage(patientName),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      modelUsed: ROLE_CONFIGS.companion.model,
+      roleUsed: 'companion',
+    },
+  ]);
 
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -277,26 +256,11 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     })
   );
 
-  // Gemini Live AI Status
-  const [aiStatus, setAiStatus] = useState<{
-    hasApiKey: boolean;
-    keySource?: string | null;
-    primaryModel?: string;
-  } | null>(null);
-
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  // Save font size preference
-  const handleToggleFontSize = () => {
-    const nextMode = fontSizeMode === 'normal' ? 'large' : fontSizeMode === 'large' ? 'xlarge' : 'normal';
-    setFontSizeMode(nextMode);
-    localStorage.setItem('smritisathi_chat_font_size', nextMode);
-  };
-
-  // Update live clock
+  // Live clock timer
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
@@ -315,23 +279,161 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch Gemini live status on mount
-  const checkStatus = () => {
-    fetch('/api/gemini/status')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) {
-          setAiStatus(data);
-        }
-      })
-      .catch((err) => console.warn('[Gemini Status Check]', err));
-  };
-
+  // Responsive default sidebar visibility
   useEffect(() => {
-    checkStatus();
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
   }, []);
 
-  // Auto-scroll inside chat thread smoothly
+  // ============================================================================
+  // DATABASE SYNCHRONIZATION FOR LOGGED-IN USERS (Firestore + Backend API)
+  // Guests: strictly NOT saved to database. History is empty on other devices.
+  // ============================================================================
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadUserThreads() {
+      if (!isUserLoggedIn || !activeUserEmail) {
+        // Guest: strictly clear database threads so guest session starts empty/transient
+        setThreads([]);
+        const initialThread: ChatThread = {
+          id: `guest-${Date.now()}`,
+          title: 'New Conversation',
+          role: 'companion',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          messages: [
+            {
+              id: 'initial-welcome',
+              role: 'model',
+              text: ROLE_CONFIGS.companion.welcomeMessage(patientName),
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              modelUsed: ROLE_CONFIGS.companion.model,
+              roleUsed: 'companion',
+            },
+          ],
+        };
+        setActiveThreadId(initialThread.id);
+        setMessages(initialThread.messages);
+        return;
+      }
+
+      setIsSyncing(true);
+      try {
+        // 1. Fetch from Firestore subcollection /users/{userId}/chatThreads
+        const cloudThreads = await firestoreSyncService.getChatThreads(activeUserId);
+
+        // 2. Fetch from Express Backend Scoped Database (/api/chat/threads)
+        let backendThreads: ChatThread[] = [];
+        try {
+          const res = await fetch(`/api/chat/threads?email=${encodeURIComponent(activeUserEmail)}&userId=${encodeURIComponent(activeUserId)}`, {
+            headers: {
+              'x-user-email': activeUserEmail,
+              'x-user-id': activeUserId,
+            },
+          });
+          const data = await res.json();
+          if (data.success && Array.isArray(data.threads)) {
+            backendThreads = data.threads;
+          }
+        } catch (e) {
+          console.warn('[Chat History] Backend threads notice:', e);
+        }
+
+        if (isCancelled) return;
+
+        // Merge threads (deduplicating by ID, prioritizing newest updatedAt)
+        const threadMap = new Map<string, ChatThread>();
+        for (const t of [...cloudThreads, ...backendThreads]) {
+          if (!t.id) continue;
+          const existing = threadMap.get(t.id);
+          if (!existing || new Date(t.updatedAt || t.createdAt).getTime() > new Date(existing.updatedAt || existing.createdAt).getTime()) {
+            threadMap.set(t.id, t);
+          }
+        }
+
+        const merged = Array.from(threadMap.values()).sort(
+          (a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+        );
+
+        if (merged.length > 0) {
+          setThreads(merged);
+          setActiveThreadId(merged[0].id);
+          setMessages(merged[0].messages || []);
+          setActiveRole(merged[0].role || 'companion');
+        } else {
+          // Initialize fresh first conversation for this user
+          const newThread: ChatThread = {
+            id: `thread-${Date.now()}`,
+            title: 'Welcome to Saathi',
+            role: 'companion',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            userEmail: activeUserEmail,
+            userId: activeUserId,
+            messages: [
+              {
+                id: 'welcome-init',
+                role: 'model',
+                text: ROLE_CONFIGS.companion.welcomeMessage(patientName),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                modelUsed: ROLE_CONFIGS.companion.model,
+                roleUsed: 'companion',
+              },
+            ],
+          };
+          setThreads([newThread]);
+          setActiveThreadId(newThread.id);
+          setMessages(newThread.messages);
+          // Save initial thread to cloud
+          await saveThreadToDatabase(newThread);
+        }
+      } catch (err) {
+        console.warn('[Chat History Load Error]:', err);
+      } finally {
+        if (!isCancelled) setIsSyncing(false);
+      }
+    }
+
+    loadUserThreads();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isUserLoggedIn, activeUserEmail, activeUserId]);
+
+  // Persist updated thread to both Firestore and Backend database
+  const saveThreadToDatabase = async (threadToSave: ChatThread) => {
+    if (!isUserLoggedIn || !activeUserEmail) {
+      // Guest: strictly do NOT save to database
+      return;
+    }
+
+    try {
+      // 1. Save to Cloud Firestore
+      await firestoreSyncService.saveChatThread(threadToSave, activeUserId);
+
+      // 2. Save to Express Backend DB
+      await fetch('/api/chat/threads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-email': activeUserEmail,
+          'x-user-id': activeUserId,
+        },
+        body: JSON.stringify({
+          userEmail: activeUserEmail,
+          userId: activeUserId,
+          thread: threadToSave,
+        }),
+      });
+    } catch (e) {
+      console.warn('[Save Thread Notice]:', e);
+    }
+  };
+
+  // Auto-scroll to bottom of messages container
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTo({
@@ -345,16 +447,101 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     scrollToBottom();
   }, [messages, loading]);
 
-  // Persist messages per role
-  useEffect(() => {
-    try {
-      localStorage.setItem(`${STORAGE_KEY_PREFIX}${activeRole}`, JSON.stringify(messages));
-    } catch (e) {
-      console.warn('Failed to save chat history to localStorage', e);
+  // Handle "+ New Chat" (ChatGPT style)
+  const handleStartNewChat = () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
     }
-  }, [messages, activeRole]);
 
-  // Handle role switch
+    const newThreadId = `thread-${Date.now()}`;
+    const initialMsg: ChatMessage = {
+      id: `welcome-${Date.now()}`,
+      role: 'model',
+      text: ROLE_CONFIGS[activeRole].welcomeMessage(patientName),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      modelUsed: ROLE_CONFIGS[activeRole].model,
+      roleUsed: activeRole,
+    };
+
+    const newThread: ChatThread = {
+      id: newThreadId,
+      title: 'New Chat',
+      role: activeRole,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userEmail: isUserLoggedIn ? activeUserEmail : undefined,
+      userId: isUserLoggedIn ? activeUserId : undefined,
+      messages: [initialMsg],
+    };
+
+    setActiveThreadId(newThreadId);
+    setMessages([initialMsg]);
+
+    if (isUserLoggedIn) {
+      setThreads((prev) => [newThread, ...prev]);
+      saveThreadToDatabase(newThread);
+    } else {
+      setThreads([newThread]);
+    }
+
+    // Auto-close sidebar on mobile after starting new chat
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  // Switch to a previous conversation thread
+  const handleSelectThread = (thread: ChatThread) => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+    }
+
+    setActiveThreadId(thread.id);
+    setMessages(thread.messages || []);
+    if (thread.role && thread.role in ROLE_CONFIGS) {
+      setActiveRole(thread.role);
+    }
+
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  // Delete a conversation thread
+  const handleDeleteThread = async (e: React.MouseEvent, threadId: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this chat conversation?')) return;
+
+    if (isUserLoggedIn) {
+      try {
+        await firestoreSyncService.deleteChatThread(threadId, activeUserId);
+        await fetch(`/api/chat/threads/${threadId}`, {
+          method: 'DELETE',
+          headers: {
+            'x-user-email': activeUserEmail,
+            'x-user-id': activeUserId,
+          },
+        });
+      } catch (err) {
+        console.warn('[Delete Thread Error]:', err);
+      }
+    }
+
+    const remaining = threads.filter((t) => t.id !== threadId);
+    setThreads(remaining);
+
+    if (activeThreadId === threadId) {
+      if (remaining.length > 0) {
+        handleSelectThread(remaining[0]);
+      } else {
+        handleStartNewChat();
+      }
+    }
+  };
+
+  // Handle persona role change
   const handleSelectRole = (newRole: ChatRole) => {
     if (newRole === activeRole) return;
     setActiveRole(newRole);
@@ -364,49 +551,21 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
       setSpeakingId(null);
     }
 
-    try {
-      const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}${newRole}`);
-      if (saved) {
-        setMessages(JSON.parse(saved));
-        return;
-      }
-    } catch (e) {
-      console.warn('Failed to load role messages', e);
-    }
-
-    setMessages([
-      {
-        id: `welcome-${newRole}-${Date.now()}`,
-        role: 'model',
-        text: ROLE_CONFIGS[newRole].welcomeMessage(patientName),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        modelUsed: ROLE_CONFIGS[newRole].model,
-        roleUsed: newRole,
-      },
-    ]);
-  };
-
-  // Clear conversation history
-  const handleClearChat = () => {
-    if (window.confirm(`Clear chat history for ${ROLE_CONFIGS[activeRole].name}?`)) {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        setSpeakingId(null);
-      }
-      const freshMessage: ChatMessage = {
-        id: `fresh-${Date.now()}`,
-        role: 'model',
-        text: ROLE_CONFIGS[activeRole].welcomeMessage(patientName),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        modelUsed: ROLE_CONFIGS[activeRole].model,
-        roleUsed: activeRole,
-      };
-      setMessages([freshMessage]);
-      localStorage.removeItem(`${STORAGE_KEY_PREFIX}${activeRole}`);
+    // Update active thread role
+    if (threads.length > 0) {
+      const updated = threads.map((t) => {
+        if (t.id === activeThreadId) {
+          const mod = { ...t, role: newRole, updatedAt: new Date().toISOString() };
+          if (isUserLoggedIn) saveThreadToDatabase(mod);
+          return mod;
+        }
+        return t;
+      });
+      setThreads(updated);
     }
   };
 
-  // Send message to Gemini server endpoint
+  // Send message to AI endpoint with real-time web grounding and thread persistence
   const handleSendMessage = async (textToSend?: string) => {
     const messageContent = (textToSend || inputMessage).trim();
     if (!messageContent || loading) return;
@@ -423,12 +582,23 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    const updatedHistory = [...messages, userMessage];
-    setMessages(updatedHistory);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setLoading(true);
 
+    // Auto-generate conversation title from the first query (OpenAI style)
+    let currentThreadTitle = 'Conversation';
+    const activeThread = threads.find((t) => t.id === activeThreadId);
+    if (activeThread && activeThread.title && activeThread.title !== 'New Chat' && activeThread.title !== 'Welcome to Saathi') {
+      currentThreadTitle = activeThread.title;
+    } else {
+      const cleanSnippet = messageContent.replace(/[?!.,]/g, '').trim();
+      currentThreadTitle = cleanSnippet.length > 40 ? cleanSnippet.slice(0, 38) + '...' : cleanSnippet;
+      currentThreadTitle = currentThreadTitle.charAt(0).toUpperCase() + currentThreadTitle.slice(1);
+    }
+
     try {
-      // Send concise history (last 6 messages) to optimize token efficiency
+      // Send concise history (last 6 turns)
       const historyPayload = messages
         .filter((m) => !m.error)
         .slice(-6)
@@ -441,6 +611,8 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-user-email': activeUserEmail,
+          'x-user-id': activeUserId,
         },
         body: JSON.stringify({
           message: messageContent,
@@ -453,91 +625,118 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
       });
 
       const data = await res.json();
+      let botReplyText = '';
+      let groundingSources: Array<{ title?: string; uri?: string }> = [];
+      let modelUsed = ROLE_CONFIGS[activeRole].model;
 
       if (data.success && data.reply) {
-        const botMessage: ChatMessage = {
-          id: `bot-${Date.now()}`,
-          role: 'model',
-          text: data.reply,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          modelUsed: data.modelUsed || ROLE_CONFIGS[activeRole].model,
-          roleUsed: data.roleUsed || activeRole,
-          isLiveAI: data.isLiveAI ?? (data.source === 'gemini-live' || data.source === 'gemini'),
-          source: data.source || 'gemini-live',
-          groundingSources: data.groundingSources,
-          webSearchQueries: data.webSearchQueries,
-          webSearchUsed: (data.groundingSources && data.groundingSources.length > 0) || (data.webSearchQueries && data.webSearchQueries.length > 0) || !!data.searchGroundingActive,
-        };
-        setMessages((prev) => [...prev, botMessage]);
-
-        // Auto-speak reply if enabled
-        if (autoSpeakReplies) {
-          handleSpeak(botMessage.text, botMessage.id);
-        }
+        botReplyText = data.reply;
+        groundingSources = data.groundingSources || [];
+        modelUsed = data.modelUsed || modelUsed;
       } else {
-        throw new Error(data.error || 'Failed to receive response from Gemini');
+        botReplyText = data.reply || 'Namaste! I am right here listening. Please ask again and we will explore it together.';
+      }
+
+      const botMessage: ChatMessage = {
+        id: `bot-${Date.now()}`,
+        role: 'model',
+        text: botReplyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        modelUsed,
+        roleUsed: activeRole,
+        isLiveAI: data.isLiveAI !== false,
+        source: data.source || 'gemini-live',
+        groundingSources,
+        webSearchQueries: data.webSearchQueries || [],
+      };
+
+      const finalMessages = [...updatedMessages, botMessage];
+      setMessages(finalMessages);
+
+      // Update thread state
+      const updatedThread: ChatThread = {
+        id: activeThreadId,
+        title: currentThreadTitle,
+        role: activeRole,
+        createdAt: activeThread?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastMessage: botReplyText.slice(0, 80),
+        userEmail: isUserLoggedIn ? activeUserEmail : undefined,
+        userId: isUserLoggedIn ? activeUserId : undefined,
+        messages: finalMessages,
+      };
+
+      setThreads((prev) => {
+        const filtered = prev.filter((t) => t.id !== activeThreadId);
+        return [updatedThread, ...filtered];
+      });
+
+      // Save to database only if user is logged in
+      if (isUserLoggedIn) {
+        await saveThreadToDatabase(updatedThread);
+      }
+
+      // Auto-speak if speech synthesis is enabled
+      if (autoSpeakReplies && botReplyText) {
+        handleSpeak(botReplyText, botMessage.id);
       }
     } catch (err: any) {
-      console.error('[Chat Error]', err);
-      const errorMessage: ChatMessage = {
+      console.error('[Chat Error]:', err);
+      const errorMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         role: 'model',
-        text: `I apologize, I experienced a brief connection flutter. Please tap retry to ask again.`,
+        text: 'I am here with you, Asha ji. Please take a gentle sip of warm water and try asking again.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         error: true,
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Text-to-Speech (TTS) Voice Readout for Seniors
-  const handleSpeak = (text: string, id: string) => {
+  // Web Speech Synthesis (Listen Aloud)
+  const handleSpeak = (text: string, messageId: string) => {
     if (!('speechSynthesis' in window)) return;
 
-    if (speakingId === id) {
+    if (speakingId === messageId) {
       window.speechSynthesis.cancel();
       setSpeakingId(null);
       return;
     }
 
     window.speechSynthesis.cancel();
+    setSpeakingId(messageId);
 
-    const cleanText = text.replace(/[*_#•-]/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanText = text
+      .replace(/[*_#`~]/g, '')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\[VERIFIED REAL-TIME.*?\]/g, '')
+      .trim();
+
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 0.9;
     utterance.pitch = 1.0;
-
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice =
-      voices.find((v) => v.lang.includes('en-IN')) ||
-      voices.find((v) => v.name.toLowerCase().includes('natural')) ||
-      voices.find((v) => v.lang.startsWith('en'));
-
-    if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.lang = 'en-IN';
 
     utterance.onend = () => setSpeakingId(null);
     utterance.onerror = () => setSpeakingId(null);
 
-    setSpeakingId(id);
     window.speechSynthesis.speak(utterance);
   };
 
   // Copy message text to clipboard
   const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard?.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Speech-to-Text Voice Dictation
-  const handleToggleVoiceInput = () => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
+  // Web Speech Recognition (Mic Input)
+  const handleToggleMic = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Speech recognition is not supported in this browser. Please type your message.');
+      alert('Speech recognition is not supported in this browser.');
       return;
     }
 
@@ -572,7 +771,6 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     }
   };
 
-  // Textarea Enter key handling
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -587,207 +785,431 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
     textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
   };
 
+  // Font size toggle
+  const handleToggleFontSize = () => {
+    const nextMode = fontSizeMode === 'normal' ? 'large' : fontSizeMode === 'large' ? 'xlarge' : 'normal';
+    setFontSizeMode(nextMode);
+    localStorage.setItem('smritisathi_chat_font_size', nextMode);
+  };
+
   const currentConfig = ROLE_CONFIGS[activeRole];
 
-  // Font size class mapping for high readability
   const fontClasses = {
     normal: 'text-sm sm:text-base leading-relaxed',
     large: 'text-base sm:text-lg leading-relaxed',
     xlarge: 'text-lg sm:text-xl leading-relaxed',
   }[fontSizeMode];
 
+  // Group threads chronologically like ChatGPT ("Today", "Previous 7 Days", "Older")
+  const groupedThreads = useMemo(() => {
+    const filtered = threads.filter((t) =>
+      t.title.toLowerCase().includes(searchFilter.toLowerCase())
+    );
+
+    const now = new Date();
+    const today: ChatThread[] = [];
+    const pastWeek: ChatThread[] = [];
+    const older: ChatThread[] = [];
+
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const sevenDaysMs = 7 * oneDayMs;
+
+    for (const t of filtered) {
+      const date = new Date(t.updatedAt || t.createdAt);
+      const diff = now.getTime() - date.getTime();
+      if (diff < oneDayMs && now.getDate() === date.getDate()) {
+        today.push(t);
+      } else if (diff < sevenDaysMs) {
+        pastWeek.push(t);
+      } else {
+        older.push(t);
+      }
+    }
+
+    return { today, pastWeek, older };
+  }, [threads, searchFilter]);
+
   return (
-    <div className="flex-1 flex flex-col 2xl:flex-row bg-[#F8F9FA] h-[calc(100dvh-72px)] sm:h-[calc(100vh-72px)] overflow-hidden w-full min-w-0 max-w-full relative">
+    <div className="flex-1 flex bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 h-[calc(100dvh-72px)] sm:h-[calc(100vh-72px)] overflow-hidden w-full relative transition-colors">
       {/* =========================================================================
-          MAIN CHAT PANE (Adaptive for Phone, Tablet, and PC)
+          OPENAI CHATGPT-STYLE CONVERSATIONS SIDEBAR (Collapsible & Responsive)
          ========================================================================= */}
-      <div className="flex-1 flex flex-col h-full min-w-0 max-w-full bg-[#F8F9FA] relative overflow-hidden">
-        {/* TOP APP BAR & STATUS BAR */}
-        <header className="bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 shrink-0 shadow-xs z-20 w-full min-w-0 max-w-full box-border overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full min-w-0">
-            {/* Top row on mobile / Left section on desktop */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0 flex-1">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <div
-                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${currentConfig.avatarBg} flex items-center justify-center shrink-0 shadow-xs`}
-                >
-                  <currentConfig.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed lg:static top-0 bottom-0 left-0 z-40 w-72 sm:w-80 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col h-full border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out shrink-0 shadow-lg lg:shadow-none ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:hidden'
+        }`}
+      >
+        {/* Sidebar Header: Brand & New Chat */}
+        <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 space-y-3 bg-white/70 dark:bg-slate-900/90">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6321] to-[#e04f11] flex items-center justify-center text-white shadow-xs">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-sm text-slate-900 dark:text-white leading-tight">Chat History</h2>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">ChatGPT-Style Sessions</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* "+ New Chat" Button */}
+          <button
+            type="button"
+            onClick={handleStartNewChat}
+            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FF6321] to-[#ea580c] hover:from-[#e04f11] hover:to-[#c2410c] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-98"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Chat</span>
+          </button>
+
+          {/* Search conversations */}
+          {threads.length > 3 && (
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400 dark:text-slate-500" />
+              <input
+                type="text"
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                placeholder="Search chats..."
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#FF6321]"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar Middle: Conversation Thread List or Guest Promotion */}
+        <div className="flex-1 overflow-y-auto p-2.5 space-y-4">
+          {!isUserLoggedIn ? (
+            /* GUEST MODE: Prominently explain that history is not saved across devices */
+            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 space-y-3">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-xs font-bold">
+                <Lock className="w-4 h-4" />
+                <span>Guest Mode (Not Saved)</span>
+              </div>
+              <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
+                You are chatting as a <strong>guest</strong>. Your chat history is temporary and will <strong>not</strong> be saved to the database or synced to other devices.
+              </p>
+              <button
+                type="button"
+                onClick={() => signInWithGoogle()}
+                className="w-full py-2 px-3 rounded-lg bg-[#002045] dark:bg-white hover:bg-[#1a365d] dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+              >
+                <LogIn className="w-3.5 h-3.5 text-amber-400 dark:text-blue-600" />
+                <span>Sign in with Google</span>
+              </button>
+            </div>
+          ) : (
+            /* AUTHENTICATED USER: Full ChatGPT history grouped by date */
+            <>
+              {isSyncing && (
+                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 px-2 py-1 font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span>Syncing with Cloud Firestore...</span>
+                </div>
+              )}
+
+              {threads.length === 0 ? (
+                <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400">
+                  <MessageSquare className="w-8 h-8 mx-auto text-slate-400 dark:text-slate-600 mb-2" />
+                  <p className="font-semibold">No saved conversations yet.</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Start chatting to automatically save your conversation!</p>
+                </div>
+              ) : (
+                <>
+                  {/* Today Group */}
+                  {groupedThreads.today.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider px-2 py-0.5">Today</p>
+                      {groupedThreads.today.map((thread) => (
+                        <div
+                          key={thread.id}
+                          onClick={() => handleSelectThread(thread)}
+                          className={`group flex items-center justify-between p-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors ${
+                            activeThreadId === thread.id
+                              ? 'bg-[#002045] dark:bg-blue-600 text-white shadow-xs'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${activeThreadId === thread.id ? 'text-[#FF6321] dark:text-amber-300' : 'text-slate-400 dark:text-slate-500'}`} />
+                            <span className="truncate">{thread.title || 'Conversation'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteThread(e, thread.id)}
+                            title="Delete conversation"
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-opacity"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Previous 7 Days Group */}
+                  {groupedThreads.pastWeek.length > 0 && (
+                    <div className="space-y-1 pt-2">
+                      <p className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider px-2 py-0.5">Previous 7 Days</p>
+                      {groupedThreads.pastWeek.map((thread) => (
+                        <div
+                          key={thread.id}
+                          onClick={() => handleSelectThread(thread)}
+                          className={`group flex items-center justify-between p-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors ${
+                            activeThreadId === thread.id
+                              ? 'bg-[#002045] dark:bg-blue-600 text-white shadow-xs'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${activeThreadId === thread.id ? 'text-[#FF6321] dark:text-amber-300' : 'text-slate-400 dark:text-slate-500'}`} />
+                            <span className="truncate">{thread.title || 'Conversation'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteThread(e, thread.id)}
+                            title="Delete conversation"
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-opacity"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Older Group */}
+                  {groupedThreads.older.length > 0 && (
+                    <div className="space-y-1 pt-2">
+                      <p className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider px-2 py-0.5">Older</p>
+                      {groupedThreads.older.map((thread) => (
+                        <div
+                          key={thread.id}
+                          onClick={() => handleSelectThread(thread)}
+                          className={`group flex items-center justify-between p-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors ${
+                            activeThreadId === thread.id
+                              ? 'bg-[#002045] dark:bg-blue-600 text-white shadow-xs'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${activeThreadId === thread.id ? 'text-[#FF6321] dark:text-amber-300' : 'text-slate-400 dark:text-slate-500'}`} />
+                            <span className="truncate">{thread.title || 'Conversation'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteThread(e, thread.id)}
+                            title="Delete conversation"
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-opacity"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Sidebar Footer: User Account Info */}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+          {isUserLoggedIn ? (
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  {activeUserEmail.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <h1 className="font-black text-sm sm:text-base text-[#002045] truncate leading-tight">
-                      {currentConfig.name}
+                  <p className="text-slate-900 dark:text-white font-bold truncate text-[11px]">{activeUserEmail}</p>
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
+                    <Cloud className="w-3 h-3 shrink-0" />
+                    <span>Cloud Synced</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 text-center py-1 flex items-center justify-center gap-1.5 font-medium">
+              <CloudOff className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+              <span>Guest session: Not saved</span>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* =========================================================================
+          MAIN CHAT AREA (Adaptive for all devices)
+         ========================================================================= */}
+      <div className="flex-1 flex flex-col h-full min-w-0 bg-slate-50 dark:bg-slate-950 relative overflow-hidden transition-colors">
+        {/* TOP APP BAR */}
+        <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-5 py-2.5 shrink-0 shadow-xs z-20 w-full box-border transition-colors">
+          <div className="flex items-center justify-between gap-2 w-full">
+            {/* Left: Sidebar Toggle, Persona Name & Title */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                title={isSidebarOpen ? 'Hide Chat History' : 'Show Chat History'}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
+              >
+                {isSidebarOpen ? (
+                  <PanelLeftClose className="w-4 h-4" />
+                ) : (
+                  <PanelLeft className="w-4 h-4" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleStartNewChat}
+                title="Start a new chat conversation"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-[#FF6321] hover:text-[#FF6321] transition-colors cursor-pointer shrink-0 hidden sm:flex items-center gap-1 text-xs font-bold"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#FF6321]" />
+                <span>New Chat</span>
+              </button>
+
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className={`w-8 h-8 rounded-xl ${currentConfig.avatarBg} flex items-center justify-center shrink-0 shadow-xs`}
+                >
+                  <currentConfig.icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h1 className="font-extrabold text-xs sm:text-sm text-[#002045] dark:text-white truncate">
+                      {threads.find((t) => t.id === activeThreadId)?.title || currentConfig.name}
                     </h1>
-                    <span className="hidden lg:inline-flex text-[10px] font-extrabold px-1.5 py-0.2 rounded-full border border-slate-200 bg-slate-50 text-slate-600 whitespace-nowrap shrink-0">
-                      gemini-3.1-flash-lite
-                    </span>
                   </div>
-                  <p className="hidden xl:block text-[11px] text-[#64748b] truncate max-w-xs font-medium">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate hidden md:block font-medium">
                     {currentConfig.tagline}
                   </p>
                 </div>
               </div>
-
-              {/* Mobile Right: Quick Actions */}
-              <div className="flex items-center gap-1.5 sm:hidden shrink-0">
-                <div
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-bold"
-                  title="Gemini Live AI Active"
-                >
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                  </span>
-                  <span>Live</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowStationDrawer(true)}
-                  title="Open Memory Station & Grounding Anchors"
-                  className="p-1.5 rounded-lg border border-[#cbd5e1] bg-[#f8fafc] text-xs font-bold text-[#002045] hover:bg-[#e2e8f0] cursor-pointer"
-                >
-                  <Compass className="w-3.5 h-3.5 text-[#FF6321]" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleClearChat}
-                  title="Clear chat conversation"
-                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
 
-            {/* Bottom row on mobile / Right section on desktop */}
-            <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 shrink-0 min-w-0 flex-wrap">
+            {/* Right: Persona Switcher, Senior Font Size & Cloud Status */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Persona Switcher Tabs */}
-              <div className="flex items-center bg-[#f1f5f9] p-0.5 rounded-xl border border-[#e2e8f0] shrink-0">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
                 <button
-                  id="tab-role-companion"
                   onClick={() => handleSelectRole('companion')}
-                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'companion'
-                      ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
-                      : 'text-[#64748b] hover:text-[#002045]'
+                      ? 'bg-white dark:bg-slate-700 text-[#002045] dark:text-white shadow-xs border border-slate-200 dark:border-slate-600'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-[#002045] dark:hover:text-white'
                   }`}
                   title="Saathi Memory Companion"
                 >
                   <Heart className="w-3 h-3 text-rose-500 shrink-0" />
-                  <span>Companion</span>
+                  <span className="hidden sm:inline">Companion</span>
                 </button>
 
                 <button
-                  id="tab-role-quick"
                   onClick={() => handleSelectRole('quick')}
-                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'quick'
-                      ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
-                      : 'text-[#64748b] hover:text-[#002045]'
+                      ? 'bg-white dark:bg-slate-700 text-[#002045] dark:text-white shadow-xs border border-slate-200 dark:border-slate-600'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-[#002045] dark:hover:text-white'
                   }`}
                   title="Quick Anchor"
                 >
                   <Zap className="w-3 h-3 text-amber-500 shrink-0" />
-                  <span>Quick</span>
+                  <span className="hidden sm:inline">Quick</span>
                 </button>
 
                 <button
-                  id="tab-role-complex"
                   onClick={() => handleSelectRole('complex')}
-                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     activeRole === 'complex'
-                      ? 'bg-white text-[#002045] shadow-xs border border-[#cbd5e1]'
-                      : 'text-[#64748b] hover:text-[#002045]'
+                      ? 'bg-white dark:bg-slate-700 text-[#002045] dark:text-white shadow-xs border border-slate-200 dark:border-slate-600'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-[#002045] dark:hover:text-white'
                   }`}
-                  title="Dr. Smriti Clinical Specialist"
+                  title="Clinical Specialist"
                 >
                   <Stethoscope className="w-3 h-3 text-blue-600 shrink-0" />
-                  <span>Clinical</span>
+                  <span className="hidden sm:inline">Clinical</span>
                 </button>
               </div>
 
-              {/* Desktop-only action buttons */}
-              <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                {/* Gemini Live AI Status Badge */}
+              {/* Cloud Sync Status / Sign In Button */}
+              {isUserLoggedIn ? (
                 <div
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px] font-bold"
-                  title="Gemini 3.1 Flash Lite Live AI Active"
+                  className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold"
+                  title={`Chat history saved under ${activeUserEmail}`}
                 >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  <span>Gemini Live</span>
+                  <Cloud className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                  <span className="truncate max-w-[120px]">{activeUserEmail}</span>
                 </div>
-
-                {/* Senior Font Size Switcher Toggle */}
+              ) : (
                 <button
                   type="button"
-                  onClick={handleToggleFontSize}
-                  title={`Change font size (Current: ${fontSizeMode})`}
-                  className="px-2 py-1 rounded-lg border border-[#cbd5e1] hover:border-[#002045] bg-[#f8fafc] text-xs font-black text-[#002045] transition-colors cursor-pointer flex items-center gap-0.5"
+                  onClick={() => signInWithGoogle()}
+                  className="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  title="Sign in with Google to save chat history across devices"
                 >
-                  <Eye className="w-3 h-3 text-slate-500" />
-                  <span>{fontSizeMode === 'normal' ? 'A' : fontSizeMode === 'large' ? 'A+' : 'A++'}</span>
+                  <LogIn className="w-3 h-3 text-[#4285F4]" />
+                  <span>Sign In</span>
                 </button>
+              )}
 
-                {/* Memory Station Drawer Toggle Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowStationDrawer(!showStationDrawer)}
-                  title="Open Memory Station & Anchors"
-                  className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                    showStationDrawer
-                      ? 'bg-[#002045] text-white border-[#002045]'
-                      : 'border-[#cbd5e1] hover:border-[#002045] bg-[#f8fafc] text-[#002045]'
-                  }`}
-                >
-                  <Compass className={`w-3.5 h-3.5 ${showStationDrawer ? 'text-[#FF6321]' : 'text-slate-600'}`} />
-                  <span className="hidden xl:inline">Station</span>
-                </button>
-
-                {/* Clear History Button */}
-                <button
-                  id="btn-clear-chat-history"
-                  onClick={handleClearChat}
-                  title="Clear chat conversation"
-                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+              {/* Senior Font Size Selector */}
+              <button
+                type="button"
+                onClick={handleToggleFontSize}
+                title={`Change font size (Current: ${fontSizeMode})`}
+                className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#002045] dark:hover:border-blue-400 bg-slate-100 dark:bg-slate-800 text-xs font-black text-[#002045] dark:text-white transition-colors cursor-pointer flex items-center gap-0.5"
+              >
+                <Eye className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+                <span>{fontSizeMode === 'normal' ? 'A' : fontSizeMode === 'large' ? 'A+' : 'A++'}</span>
+              </button>
             </div>
           </div>
         </header>
 
+        {/* GUEST WARNING NOTIFICATION BANNER (When not logged in) */}
+        {!isUserLoggedIn && (
+          <div className="bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-800 px-4 py-2 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>
+                <strong>Guest Mode:</strong> Your chat history is temporary. To save and sync your conversations across devices, sign in with your Google account.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => signInWithGoogle()}
+              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shrink-0 cursor-pointer transition-colors shadow-2xs"
+            >
+              Sign In with Google
+            </button>
+          </div>
+        )}
+
         {/* CONVERSATION MESSAGE THREAD CONTAINER */}
         <div
           ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 scroll-smooth"
+          className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 scroll-smooth bg-slate-50 dark:bg-slate-950 transition-colors"
         >
           <div className="max-w-3xl mx-auto space-y-4 sm:space-y-5">
-            {/* Active Persona Banner */}
-            <div
-              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border ${currentConfig.borderColor} ${currentConfig.bgTint} flex items-start gap-3 text-xs sm:text-sm text-[#334155] shadow-xs`}
-            >
-              <currentConfig.icon className="w-5 h-5 text-[#002045] shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-extrabold text-[#002045]">
-                    {currentConfig.name} Active
-                  </p>
-                  <span className="text-[11px] font-semibold text-slate-500">
-                    Session preserved
-                  </span>
-                </div>
-                <p className="text-slate-600 text-xs mt-0.5 leading-relaxed">
-                  {currentConfig.tagline}. Everything you ask is answered with thoughtful care.
-                </p>
-              </div>
-            </div>
-
             {/* Conversation Messages */}
             {messages.map((msg) => {
               const isUser = msg.role === 'user';
@@ -804,8 +1226,8 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                   <div
                     className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
                       isUser
-                        ? 'bg-gradient-to-br from-[#FF6321] to-[#e04f11] text-white ring-2 ring-orange-200'
-                        : `${currentConfig.avatarBg} ring-2 ring-slate-200`
+                        ? 'bg-gradient-to-br from-[#FF6321] to-[#e04f11] text-white ring-2 ring-orange-200 dark:ring-orange-900/60'
+                        : `${currentConfig.avatarBg} ring-2 ring-slate-200 dark:ring-slate-700`
                     }`}
                   >
                     {isUser ? (
@@ -822,7 +1244,7 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     }`}
                   >
                     {/* Timestamp & Name */}
-                    <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-[#64748b] font-medium">
+                    <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       <span>{isUser ? patientName : currentConfig.shortName}</span>
                       <span>·</span>
                       <span>{msg.timestamp}</span>
@@ -832,21 +1254,21 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                     <div
                       className={`relative p-3.5 sm:p-5 rounded-2xl shadow-xs break-words ${fontClasses} ${
                         isUser
-                          ? 'bg-gradient-to-r from-[#002045] to-[#12396b] text-white rounded-tr-xs font-medium shadow-sm'
+                          ? 'bg-[#002045] dark:bg-blue-600 text-white rounded-tr-xs font-medium shadow-sm'
                           : msg.error
-                          ? 'bg-rose-50 border-2 border-rose-300 text-rose-900 rounded-tl-xs'
-                          : 'bg-white border border-[#e2e8f0] text-[#0f172a] rounded-tl-xs font-normal shadow-xs'
+                          ? 'bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-300 dark:border-rose-800 text-rose-950 dark:text-rose-200 rounded-tl-xs'
+                          : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs font-normal shadow-xs'
                       }`}
                     >
-                      <div className="whitespace-pre-wrap select-text">{msg.text}</div>
+                      <div className="whitespace-pre-wrap select-text leading-relaxed">{msg.text}</div>
 
                       {/* Grounding & Web Search Sources UI */}
                       {!isUser && msg.groundingSources && msg.groundingSources.length > 0 && (
-                        <div className="mt-3 pt-2.5 border-t border-sky-100 bg-sky-50/60 -mx-1 sm:-mx-2 px-2.5 py-2 rounded-xl">
-                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-sky-900 mb-1.5">
-                            <Globe className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                        <div className="mt-3 pt-2.5 border-t border-sky-100 dark:border-sky-900/60 bg-sky-50/70 dark:bg-sky-950/50 -mx-1 sm:-mx-2 px-2.5 py-2 rounded-xl">
+                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-sky-900 dark:text-sky-200 mb-1.5">
+                            <Globe className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
                             <span>Live Web Search Grounding</span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-200/70 text-sky-800 font-extrabold">
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-200/70 dark:bg-sky-800/60 text-sky-800 dark:text-sky-200 font-extrabold">
                               {msg.groundingSources.length} source{msg.groundingSources.length > 1 ? 's' : ''}
                             </span>
                           </div>
@@ -866,11 +1288,11 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                                   href={source.uri}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-sky-100 text-sky-800 hover:text-sky-950 border border-sky-200 text-[11px] font-semibold transition-all shadow-2xs max-w-full truncate"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-800 dark:text-sky-200 border border-sky-200 dark:border-sky-700 text-[11px] font-semibold transition-all shadow-2xs max-w-full truncate"
                                   title={source.title || source.uri}
                                 >
                                   <span className="truncate max-w-[180px] sm:max-w-xs">{source.title || hostName}</span>
-                                  <ExternalLink className="w-2.5 h-2.5 shrink-0 text-sky-500" />
+                                  <ExternalLink className="w-2.5 h-2.5 shrink-0 text-sky-500 dark:text-sky-400" />
                                 </a>
                               );
                             })}
@@ -878,89 +1300,51 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                         </div>
                       )}
 
-                      {/* Bot Controls: Listen Aloud, Copy, Source */}
+                      {/* Bot Controls: Listen Aloud, Copy */}
                       {!isUser && (
-                        <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs text-[#64748b]">
+                        <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
                           <div className="flex items-center gap-2">
-                            {/* Speak Aloud Button with Dancing Sound Wave Visualizer */}
                             <button
                               type="button"
                               onClick={() => handleSpeak(msg.text, msg.id)}
                               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer active:scale-95 min-h-[32px] ${
                                 isCurrentlySpeaking
-                                  ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-300'
-                                  : 'bg-slate-100 hover:bg-slate-200 text-[#002045]'
+                                  ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 ring-1 ring-rose-300 dark:ring-rose-700'
+                                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#002045] dark:text-white'
                               }`}
                               title="Listen aloud with gentle voice readout"
                             >
                               {isCurrentlySpeaking ? (
                                 <>
-                                  <VolumeX className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
-                                  <span className="font-extrabold text-rose-700">Stop</span>
-                                  {/* Dancing Audio Equalizer Wave Animation */}
-                                  <div className="flex items-center gap-0.5 h-3 ml-1">
-                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '70%', animationDelay: '0ms' }} />
-                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '100%', animationDelay: '150ms' }} />
-                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '40%', animationDelay: '300ms' }} />
-                                    <span className="w-0.5 bg-rose-600 rounded-full animate-bounce" style={{ height: '80%', animationDelay: '450ms' }} />
+                                  <VolumeX className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 animate-pulse" />
+                                  <span className="font-extrabold text-rose-700 dark:text-rose-300">Stop</span>
+                                  <div className="flex items-center gap-0.5 ml-1">
+                                    <span className="w-1 h-3 bg-rose-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                    <span className="w-1 h-4 bg-rose-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                                    <span className="w-1 h-2 bg-rose-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                                   </div>
                                 </>
                               ) : (
                                 <>
-                                  <Volume2 className="w-3.5 h-3.5 text-[#002045]" />
+                                  <Volume2 className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
                                   <span>Listen</span>
                                 </>
                               )}
                             </button>
 
-                            {/* Copy Button */}
                             <button
                               type="button"
                               onClick={() => handleCopy(msg.text, msg.id)}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
+                              className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                               title="Copy response"
                             >
                               {copiedId === msg.id ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
-
-                          {/* Source Model */}
-                          <div className="flex items-center gap-1.5">
-                            {msg.groundingSources && msg.groundingSources.length > 0 ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-50 text-sky-800 border border-sky-200 text-[10px] sm:text-[11px] font-bold">
-                                <Globe className="w-3 h-3 text-sky-600" />
-                                🌐 Web Grounded
-                              </span>
-                            ) : msg.isLiveAI || msg.source === 'gemini-live' || msg.source === 'gemini' ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-bold">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                Live AI
-                              </span>
-                            ) : (
-                              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
-                                {msg.modelUsed || 'Saathi Engine'}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Retry */}
-                          {msg.error && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const lastUserTurn = [...messages].reverse().find((m) => m.role === 'user');
-                                if (lastUserTurn) handleSendMessage(lastUserTurn.text);
-                              }}
-                              className="flex items-center gap-1 text-rose-700 font-bold hover:underline cursor-pointer"
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Retry</span>
-                            </button>
-                          )}
                         </div>
                       )}
                     </div>
@@ -977,483 +1361,93 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
                 >
                   <Bot className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
                 </div>
-                <div className="bg-white border border-[#e2e8f0] p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs flex items-center gap-3">
-                  <div className="flex gap-1.5">
-                    <div
-                      className="w-2 h-2 rounded-full bg-[#002045] animate-bounce"
-                      style={{ animationDelay: '0ms' }}
-                    />
-                    <div
-                      className="w-2 h-2 rounded-full bg-[#FF6321] animate-bounce"
-                      style={{ animationDelay: '150ms' }}
-                    />
-                    <div
-                      className="w-2 h-2 rounded-full bg-blue-600 animate-bounce"
-                      style={{ animationDelay: '300ms' }}
-                    />
+                <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-[#FF6321] animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-[#002045] dark:bg-blue-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#64748b]">
-                    {currentConfig.shortName} is reflecting...
+                  <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                    Saathi is searching the live web and thinking...
                   </span>
                 </div>
               </div>
             )}
-
-            <div ref={messagesEndRef} />
           </div>
         </div>
 
-        {/* QUICK SUGGESTIONS CAROUSEL */}
-        {showPromptsDrawer && (
-          <div className="px-3 sm:px-6 py-2 bg-white/95 border-t border-[#f1f5f9] shrink-0">
-            <div className="max-w-3xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              <span className="text-[10px] sm:text-[11px] font-extrabold uppercase text-[#94a3b8] tracking-wider shrink-0 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-[#FF6321]" /> Suggested:
-              </span>
-              {currentConfig.quickPrompts.map((promptItem, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => handleSendMessage(promptItem.text)}
-                  disabled={loading}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#f8fafc] hover:bg-[#e2e8f0] text-[#1e293b] border border-[#cbd5e1] whitespace-nowrap transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0 min-h-[32px]"
-                >
-                  {promptItem.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* BOTTOM MESSAGE INPUT BAR (Pinned & Responsive) */}
-        <div className="p-2.5 sm:p-4 bg-white border-t border-[#e2e8f0] shrink-0 shadow-lg z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="max-w-3xl mx-auto">
-            {/* Active Voice Listening Banner */}
-            {isListening && (
-              <div className="mb-2 p-2 bg-rose-50 border border-rose-300 rounded-xl flex items-center justify-between text-xs text-rose-900 animate-pulse">
-                <span className="flex items-center gap-2 font-bold">
-                  <Mic className="w-4 h-4 text-rose-600 animate-bounce" />
-                  Listening to your voice... Speak naturally in English, Hindi, or regional languages.
-                </span>
-                <button
-                  onClick={() => setIsListening(false)}
-                  className="font-extrabold text-rose-700 underline cursor-pointer"
-                >
-                  Cancel
-                </button>
+        {/* PROMPTS DRAWER & INPUT BAR */}
+        <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-4 z-20 shrink-0 transition-colors">
+          <div className="max-w-3xl mx-auto space-y-2.5">
+            {/* Quick Prompts Bar */}
+            {showPromptsDrawer && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+                {currentConfig.quickPrompts.map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSendMessage(p.text)}
+                    disabled={loading}
+                    className="whitespace-nowrap px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-[#002045] dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-2xs font-semibold"
+                  >
+                    {p.label}
+                  </button>
+                ))}
               </div>
             )}
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-              className="flex items-end gap-2 bg-[#f8fafc] border-2 border-[#cbd5e1] focus-within:border-[#002045] rounded-2xl p-1.5 transition-all shadow-inner"
-            >
-              {/* Voice Dictation Button */}
+            {/* Input Form */}
+            <div className="relative flex items-end gap-2 bg-slate-50 dark:bg-slate-800/90 border-2 border-slate-200 dark:border-slate-700 focus-within:border-[#002045] dark:focus-within:border-blue-500 rounded-2xl p-1.5 shadow-xs transition-colors">
               <button
                 type="button"
-                onClick={handleToggleVoiceInput}
-                title={isListening ? 'Stop listening' : 'Voice dictation'}
-                className={`p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 ${
+                onClick={handleToggleMic}
+                className={`p-2.5 rounded-xl transition-all cursor-pointer shrink-0 ${
                   isListening
-                    ? 'bg-rose-600 text-white animate-pulse shadow-md'
-                    : 'text-[#64748b] hover:text-[#002045] hover:bg-[#e2e8f0]'
+                    ? 'bg-rose-500 text-white animate-pulse'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#002045] dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
+                title={isListening ? 'Stop listening' : 'Speak your question'}
               >
-                {isListening ? (
-                  <MicOff className="w-5 h-5" />
-                ) : (
-                  <Mic className="w-5 h-5" />
-                )}
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
 
-              {/* Textarea Input (text-base prevents iOS Safari zoom) */}
               <textarea
                 ref={textareaRef}
-                id="gemini-chat-input"
-                rows={1}
                 value={inputMessage}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                placeholder={
-                  isListening
-                    ? 'Listening to your voice...'
-                    : `Ask ${currentConfig.shortName} anything (science, songs, health, math)...`
-                }
-                disabled={loading}
-                className="flex-1 min-w-0 bg-transparent px-2 py-2.5 text-base text-[#0f172a] placeholder-[#94a3b8] font-medium resize-none max-h-32 focus:outline-none"
+                placeholder={`Ask ${currentConfig.shortName} anything (e.g. news, weather, dates, memories)...`}
+                rows={1}
+                className={`flex-1 bg-transparent border-0 outline-none resize-none py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 max-h-32 ${fontClasses}`}
               />
 
-              {/* Submit Button */}
               <button
-                id="gemini-chat-send-btn"
-                type="submit"
+                type="button"
+                onClick={() => handleSendMessage()}
                 disabled={!inputMessage.trim() || loading}
-                className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-[#002045] hover:bg-[#1a365d] disabled:opacity-40 text-white font-extrabold flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 min-h-[44px] shrink-0"
-                title="Send message (Enter)"
+                className="p-2.5 rounded-xl bg-[#002045] hover:bg-[#12396b] dark:bg-blue-600 dark:hover:bg-blue-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0 shadow-xs"
+                title="Send message"
               >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Send className="w-5 h-5" />
               </button>
-            </form>
+            </div>
 
-            {/* Bottom Status & Reassurance row */}
-            <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-[#94a3b8]">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden sm:inline">Private & secure geriatric memory companion</span>
-                <span className="sm:hidden">Secure memory companion</span>
-              </span>
-              <span className="hidden lg:flex items-center gap-1 font-medium text-slate-500">
-                <CornerDownLeft className="w-3 h-3 text-slate-400" /> Enter to send, Shift+Enter for newline
+            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1">
+              <span>Press <strong>Enter</strong> to send, <strong>Shift+Enter</strong> for new line</span>
+              <span>
+                {isUserLoggedIn ? (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <Cloud className="w-3 h-3" /> Synced across your devices
+                  </span>
+                ) : (
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">Guest mode: Not saved to database</span>
+                )}
               </span>
             </div>
           </div>
         </div>
       </div>
-
-      {/* =========================================================================
-          RESPONSIVE MEMORY STATION DRAWER (For Phone, Tablet & Laptop screens < 2xl)
-         ========================================================================= */}
-      {showStationDrawer && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Memory Station & Grounding Anchors"
-          className="fixed inset-0 z-50 2xl:hidden flex justify-end bg-black/60 backdrop-blur-xs animate-fadeIn"
-          onClick={() => setShowStationDrawer(false)}
-        >
-          <div
-            className="w-full max-w-sm sm:max-w-md bg-white h-full flex flex-col shadow-2xl overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Drawer Header */}
-            <div className="p-4 sm:p-5 border-b border-[#e2e8f0] bg-[#F8F9FA] flex items-center justify-between shrink-0">
-              <div>
-                <h2 className="font-extrabold text-base text-[#002045] flex items-center gap-1.5">
-                  <Compass className="w-4 h-4 text-[#FF6321]" /> Memory Station
-                </h2>
-                <p className="text-xs text-[#64748b]">
-                  Companion controls and grounding anchors.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowStationDrawer(false)}
-                className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
-                aria-label="Close Memory Station"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-4 sm:p-5 space-y-5 flex-1">
-              {/* Real-time Temporal Anchor Widget */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#002045] to-[#1a365d] text-white shadow-sm space-y-2">
-                <div className="flex items-center justify-between text-xs text-blue-200">
-                  <span className="flex items-center gap-1 font-bold">
-                    <Clock className="w-3.5 h-3.5 text-blue-300" /> Temporal Anchor
-                  </span>
-                  <span className="text-[10px] uppercase font-bold bg-white/10 px-2 py-0.5 rounded">
-                    Live
-                  </span>
-                </div>
-                <div className="text-2xl font-black font-mono tracking-wider">
-                  {currentTimeStr}
-                </div>
-                <div className="text-xs text-slate-200 font-medium">
-                  {currentDateStr}
-                </div>
-                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-100">
-                  <span>Patient: <strong>{patientName}</strong></span>
-                  <span>Caregiver: <strong>{caregiverName}</strong></span>
-                </div>
-              </div>
-
-              {/* Persona Switching Cards */}
-              <div className="space-y-2.5">
-                <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
-                  Select AI Persona
-                </h3>
-                {(Object.keys(ROLE_CONFIGS) as ChatRole[]).map((roleKey) => {
-                  const cfg = ROLE_CONFIGS[roleKey];
-                  const isSelected = activeRole === roleKey;
-
-                  return (
-                    <button
-                      key={roleKey}
-                      type="button"
-                      onClick={() => {
-                        handleSelectRole(roleKey);
-                        setShowStationDrawer(false);
-                      }}
-                      className={`w-full p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
-                        isSelected
-                          ? 'border-[#002045] bg-[#002045]/5 shadow-xs ring-1 ring-[#002045]'
-                          : 'border-[#e2e8f0] bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <div
-                        className={`w-9 h-9 rounded-xl ${cfg.avatarBg} flex items-center justify-center shrink-0 mt-0.5`}
-                      >
-                        <cfg.icon className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-extrabold text-sm text-[#002045]">
-                            {cfg.shortName}
-                          </h4>
-                          {isSelected && (
-                            <span className="text-[10px] font-bold text-[#FF6321] uppercase">
-                              Selected
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[#64748b] mt-0.5 line-clamp-2">
-                          {cfg.tagline}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Voice Assistance Auto-Readout Switch */}
-              <div className="p-4 rounded-xl border border-[#e2e8f0] bg-slate-50 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-[#002045]" />
-                    <span className="text-xs font-bold text-[#002045]">
-                      Auto-Readout Replies
-                    </span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={autoSpeakReplies}
-                      onChange={(e) => setAutoSpeakReplies(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002045]"></div>
-                  </label>
-                </div>
-                <p className="text-[11px] text-[#64748b]">
-                  Automatically speaks responses aloud at a gentle 0.9x speed suitable for seniors.
-                </p>
-              </div>
-
-              {/* Quick Memory Bank Navigation Buttons */}
-              {onNavigateTab && (
-                <div className="space-y-2 pt-2 border-t border-[#e2e8f0]">
-                  <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
-                    Elder Training Activities
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowStationDrawer(false);
-                        onNavigateTab('reality-quest');
-                      }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                    >
-                      RealityQuest
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowStationDrawer(false);
-                        onNavigateTab('games');
-                      }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                    >
-                      Mind Games
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowStationDrawer(false);
-                        onNavigateTab('carecompass');
-                      }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                    >
-                      CareCompass
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowStationDrawer(false);
-                        onNavigateTab('history');
-                      }}
-                      className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                    >
-                      Activity Logs
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          PERSISTENT DESKTOP WORKSTATION SIDEBAR (Visible only on 2xl screens >= 1536px)
-         ========================================================================= */}
-      <aside className="hidden 2xl:flex w-80 flex-col border-l border-[#e2e8f0] bg-white h-full shrink-0 overflow-y-auto">
-        {/* Sidebar Header */}
-        <div className="p-5 border-b border-[#e2e8f0] bg-[#F8F9FA]">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-extrabold text-sm text-[#002045] uppercase tracking-wider flex items-center gap-1.5">
-              <Compass className="w-4 h-4 text-[#FF6321]" /> Memory Station
-            </h2>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Active
-            </span>
-          </div>
-          <p className="text-xs text-[#64748b]">
-            Companion controls and dementia grounding anchors.
-          </p>
-        </div>
-
-        <div className="p-5 space-y-6 flex-1">
-          {/* Real-time Temporal Anchor Widget */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-[#002045] to-[#1a365d] text-white shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-xs text-blue-200">
-              <span className="flex items-center gap-1 font-bold">
-                <Clock className="w-3.5 h-3.5 text-blue-300" /> Temporal Anchor
-              </span>
-              <span className="text-[10px] uppercase font-bold bg-white/10 px-2 py-0.5 rounded">
-                Live
-              </span>
-            </div>
-            <div className="text-2xl font-black font-mono tracking-wider">
-              {currentTimeStr}
-            </div>
-            <div className="text-xs text-slate-200 font-medium">
-              {currentDateStr}
-            </div>
-            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-100">
-              <span>Patient: <strong>{patientName}</strong></span>
-              <span>Caregiver: <strong>{caregiverName}</strong></span>
-            </div>
-          </div>
-
-          {/* Persona Switching Cards */}
-          <div className="space-y-2.5">
-            <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
-              Select AI Persona
-            </h3>
-            {(Object.keys(ROLE_CONFIGS) as ChatRole[]).map((roleKey) => {
-              const cfg = ROLE_CONFIGS[roleKey];
-              const isSelected = activeRole === roleKey;
-
-              return (
-                <button
-                  key={roleKey}
-                  type="button"
-                  onClick={() => handleSelectRole(roleKey)}
-                  className={`w-full p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
-                    isSelected
-                      ? 'border-[#002045] bg-[#002045]/5 shadow-xs ring-1 ring-[#002045]'
-                      : 'border-[#e2e8f0] bg-white hover:bg-slate-50'
-                  }`}
-                >
-                  <div
-                    className={`w-9 h-9 rounded-xl ${cfg.avatarBg} flex items-center justify-center shrink-0 mt-0.5`}
-                  >
-                    <cfg.icon className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-extrabold text-sm text-[#002045]">
-                        {cfg.shortName}
-                      </h4>
-                      {isSelected && (
-                        <span className="text-[10px] font-bold text-[#FF6321] uppercase">
-                          Selected
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[#64748b] mt-0.5 line-clamp-2">
-                      {cfg.tagline}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Voice Assistance Auto-Readout Switch */}
-          <div className="p-4 rounded-xl border border-[#e2e8f0] bg-slate-50 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-[#002045]" />
-                <span className="text-xs font-bold text-[#002045]">
-                  Auto-Readout Replies
-                </span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={autoSpeakReplies}
-                  onChange={(e) => setAutoSpeakReplies(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#002045]"></div>
-              </label>
-            </div>
-            <p className="text-[11px] text-[#64748b]">
-              Automatically speaks responses aloud at a gentle 0.9x speed suitable for seniors.
-            </p>
-          </div>
-
-          {/* Quick Memory Bank Navigation Buttons */}
-          {onNavigateTab && (
-            <div className="space-y-2 pt-2 border-t border-[#e2e8f0]">
-              <h3 className="text-xs font-extrabold uppercase text-[#64748b] tracking-wider">
-                Elder Training Activities
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => onNavigateTab('reality-quest')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                >
-                  RealityQuest
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onNavigateTab('games')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                >
-                  Mind Games
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onNavigateTab('carecompass')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                >
-                  CareCompass
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onNavigateTab('history')}
-                  className="p-2.5 rounded-xl border border-[#cbd5e1] hover:border-[#002045] bg-white text-xs font-bold text-[#002045] transition-all text-center cursor-pointer hover:shadow-xs"
-                >
-                  Activity Logs
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer info */}
-        <div className="p-4 border-t border-[#e2e8f0] text-center text-[11px] text-[#94a3b8]">
-          SmritiSaathi Cognitive Engine · Unified gemini-3.1-flash-lite
-        </div>
-      </aside>
     </div>
   );
 };
+

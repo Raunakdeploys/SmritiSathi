@@ -102,34 +102,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         setAuthError(res.error);
       }
     } catch (err: any) {
-      console.warn('Google sign-in caught exception:', err);
-      setAuthError(err?.message || 'Failed to connect');
-    } finally {
-      setLoadingGoogle(false);
-    }
-  };
-
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setAuthError('Please enter both email and password.');
-      return;
-    }
-    playGentleClick();
-    setAuthError(null);
-    setLoadingGoogle(true);
-    try {
-      const res = isRegistering
-        ? await registerWithEmailPassword(email, password, 'Caregiver')
-        : await signInWithEmailPassword(email, password);
-
-      if (res.success) {
-        playSuccessChime();
-      } else if (res.error) {
-        setAuthError(res.error);
-      }
-    } catch (err: any) {
-      setAuthError(err?.message || 'Authentication failed');
+      console.warn('Google sign-in error:', err);
+      setAuthError(err?.message || 'Google authentication encountered an issue.');
     } finally {
       setLoadingGoogle(false);
     }
@@ -146,8 +120,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       } else if (res.error) {
         setAuthError(res.error);
       }
-    } catch (err: any) {
-      setAuthError(err?.message || 'Guest sign-in failed');
+    } finally {
+      setLoadingGoogle(false);
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    playGentleClick();
+    setLoadingGoogle(true);
+    setAuthError(null);
+    try {
+      const res = isRegistering
+        ? await registerWithEmailPassword(email, password, 'Caregiver')
+        : await signInWithEmailPassword(email, password);
+
+      if (res.success) {
+        playSuccessChime();
+      } else if (res.error) {
+        setAuthError(res.error);
+      }
     } finally {
       setLoadingGoogle(false);
     }
@@ -155,33 +148,47 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
   const handleGoogleSignOut = async () => {
     playGentleClick();
-    setAuthError(null);
     setLoadingGoogle(true);
     try {
       await signOutUser();
-      onClose();
-    } catch (err) {
-      console.error('Google sign-out failed:', err);
     } finally {
       setLoadingGoogle(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-[#002045]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn overflow-y-auto">
-      <div className="bg-[#ffffff] rounded-2xl border-2 border-[#002045] p-5 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 my-6">
-        <div className="flex justify-between items-start">
+    <div
+      id="profile-modal-backdrop"
+      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fadeIn"
+      onClick={onClose}
+    >
+      <div
+        id="profile-modal-content"
+        className="bg-white dark:bg-[#111e38] text-[#002045] dark:text-slate-100 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border-2 border-slate-200 dark:border-[#1e3a6a] max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-start border-b border-slate-100 dark:border-[#1e3a6a] pb-4">
           <div className="flex items-center space-x-3.5">
-            <img
-              src={user?.avatarUrl}
-              alt={user?.name || 'Asha Devi'}
-              className="w-14 h-14 rounded-full border-2 border-[#d9e3f9] object-cover shrink-0"
-            />
+            <div className="relative">
+              <img
+                src={user?.avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'}
+                alt={user?.name || 'Asha Devi'}
+                className="w-14 h-14 rounded-full object-cover border-2 border-[#FF6321]"
+              />
+              {user?.isGoogleLinked && (
+                <span
+                  title="Google Account Linked"
+                  className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow-xs"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </span>
+              )}
+            </div>
             <div>
-              <h2 className="font-extrabold text-[20px] text-[#002045]">{user?.name || 'Asha Devi'}</h2>
-              <p className="text-xs text-[#43474e]">Age {user?.age || 72} • Cognitive Companion</p>
+              <h2 className="font-extrabold text-[20px] text-[#002045] dark:text-white">{user?.name || 'Asha Devi'}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Age {user?.age || 72} • Cognitive Companion</p>
               {user?.email && (
-                <p className="text-xs text-[#0284C7] font-semibold truncate max-w-[220px]">
+                <p className="text-xs text-sky-600 dark:text-sky-400 font-semibold truncate max-w-[220px]">
                   {user.email}
                 </p>
               )}
@@ -190,27 +197,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           <button
             id="btn-close-profile-modal"
             onClick={onClose}
-            className="p-1.5 text-[#43474e] hover:bg-[#f0f3ff] rounded-full cursor-pointer"
+            className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#162544] rounded-full cursor-pointer"
           >
             <span className="material-symbols-outlined text-[24px]">close</span>
           </button>
         </div>
 
         {/* Authentication Card */}
-        <div className="p-4 rounded-xl border border-[#adc7f7] bg-[#f0f5ff] space-y-3">
+        <div className="p-4 rounded-xl border border-sky-200 dark:border-[#1e3a6a] bg-sky-50 dark:bg-[#0d182e] space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider text-[#002045] flex items-center gap-1.5">
-              <Cloud className="w-3.5 h-3.5 text-sky-600" />
+            <span className="text-xs font-black uppercase tracking-wider text-[#002045] dark:text-white flex items-center gap-1.5">
+              <Cloud className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
               Cloud Sync & Authentication
             </span>
             <span
               className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                user?.isGoogleLinked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                user?.isGoogleLinked ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
               }`}
             >
               {user?.isGoogleLinked ? (
                 <>
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                   Synced
                 </>
               ) : (
@@ -221,14 +228,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
           {user?.isGoogleLinked ? (
             <div className="space-y-2">
-              <p className="text-xs text-[#43474e]">
+              <p className="text-xs text-slate-600 dark:text-slate-300">
                 Connected as <strong>{user.email || user.name}</strong>. Cognitive progress and CareCompass safety alerts are syncing with Firestore.
               </p>
               <button
                 id="btn-google-signout-modal"
                 disabled={loadingGoogle}
                 onClick={handleGoogleSignOut}
-                className="w-full py-2.5 px-3 rounded-lg border border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                className="w-full py-2.5 px-3 rounded-lg border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>{loadingGoogle ? 'Signing out...' : 'Sign Out'}</span>
@@ -237,7 +244,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           ) : (
             <div className="space-y-3">
               {/* Method Selector Tabs */}
-              <div className="flex bg-[#e2eaf8] p-1 rounded-xl gap-1 text-xs font-bold">
+              <div className="flex bg-slate-200/60 dark:bg-[#162544] p-1 rounded-xl gap-1 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => {
@@ -246,10 +253,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     setAuthError(null);
                   }}
                   className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    authMode === 'instant' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                    authMode === 'instant' ? 'bg-white dark:bg-blue-600 text-[#002045] dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-[#002045] dark:hover:text-white'
                   }`}
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>1-Click Access</span>
                 </button>
                 <button
@@ -260,7 +267,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     setAuthError(null);
                   }}
                   className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    authMode === 'email' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                    authMode === 'email' ? 'bg-white dark:bg-blue-600 text-[#002045] dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-[#002045] dark:hover:text-white'
                   }`}
                 >
                   <Mail className="w-3.5 h-3.5" />
@@ -274,7 +281,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     setAuthError(null);
                   }}
                   className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    authMode === 'google' ? 'bg-white text-[#002045] shadow-xs' : 'text-[#5b687a] hover:text-[#002045]'
+                    authMode === 'google' ? 'bg-white dark:bg-blue-600 text-[#002045] dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-[#002045] dark:hover:text-white'
                   }`}
                 >
                   <LogIn className="w-3.5 h-3.5" />
@@ -282,10 +289,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 </button>
               </div>
 
-              {/* Tab 1: 1-Click Access (Recommended Default) */}
+              {/* Tab 1: 1-Click Access */}
               {authMode === 'instant' && (
                 <div className="space-y-2.5">
-                  <p className="text-xs text-[#43474e]">
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
                     Instant cloud sync for caregivers and family. No passwords, client IDs, or external accounts needed.
                   </p>
                   <button
@@ -304,8 +311,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               {authMode === 'email' && (
                 <form onSubmit={handleEmailAuth} className="space-y-2.5">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-[#002045] flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-[#002045]" />
+                    <label className="text-[11px] font-bold text-[#002045] dark:text-slate-300 flex items-center gap-1">
+                      <Mail className="w-3 h-3" />
                       Caregiver Email
                     </label>
                     <input
@@ -314,12 +321,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="caregiver@gmail.com"
-                      className="w-full px-3 py-2 bg-white border border-[#b8c8dd] rounded-lg text-xs font-medium text-[#002045] focus:outline-none focus:ring-2 focus:ring-[#002045]"
+                      className="w-full px-3 py-2 bg-white dark:bg-[#111e38] border border-slate-300 dark:border-[#1e3a6a] rounded-lg text-xs font-medium text-[#002045] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-[#002045] flex items-center gap-1">
-                      <KeyRound className="w-3 h-3 text-[#002045]" />
+                    <label className="text-[11px] font-bold text-[#002045] dark:text-slate-300 flex items-center gap-1">
+                      <KeyRound className="w-3 h-3" />
                       Password
                     </label>
                     <input
@@ -328,7 +335,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 bg-white border border-[#b8c8dd] rounded-lg text-xs font-medium text-[#002045] focus:outline-none focus:ring-2 focus:ring-[#002045]"
+                      className="w-full px-3 py-2 bg-white dark:bg-[#111e38] border border-slate-300 dark:border-[#1e3a6a] rounded-lg text-xs font-medium text-[#002045] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -336,7 +343,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <button
                       type="submit"
                       disabled={loadingGoogle}
-                      className="flex-1 py-2 rounded-lg bg-[#002045] hover:bg-[#1a365d] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      className="flex-1 py-2 rounded-lg bg-[#002045] dark:bg-blue-600 hover:bg-[#1a365d] dark:hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                     >
                       {loadingGoogle ? 'Verifying...' : isRegistering ? 'Create Account' : 'Sign In'}
                     </button>
@@ -346,7 +353,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         setIsRegistering(!isRegistering);
                         setAuthError(null);
                       }}
-                      className="px-3 py-2 rounded-lg border border-[#adc7f7] bg-white text-[#002045] text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                      className="px-3 py-2 rounded-lg border border-sky-200 dark:border-[#1e3a6a] bg-white dark:bg-[#111e38] text-[#002045] dark:text-white text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#162544] cursor-pointer"
                     >
                       {isRegistering ? 'Have an account?' : 'Register'}
                     </button>
@@ -357,7 +364,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               {/* Tab 3: Google Account */}
               {authMode === 'google' && (
                 <div className="space-y-3">
-                  <p className="text-xs text-[#43474e]">
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
                     One-tap sign-in with your Google account. Automatically activates cloud synchronization.
                   </p>
 
@@ -368,16 +375,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     id="official-google-button-container"
                   />
 
-                  {/* Manual Fallback Button (only shown while official Google button initializes) */}
+                  {/* Manual Fallback Button */}
                   {!googleButtonReady && (
                     <button
                       id="btn-google-signin-modal"
                       type="button"
                       disabled={loadingGoogle}
                       onClick={handleGoogleSignIn}
-                      className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border-2 border-[#002045] text-[#002045] font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
+                      className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-[#111e38] hover:bg-slate-50 dark:hover:bg-[#162544] border-2 border-[#002045] dark:border-blue-400 text-[#002045] dark:text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-98"
                     >
-                      <LogIn className="w-4 h-4 text-[#002045]" />
+                      <LogIn className="w-4 h-4 text-[#002045] dark:text-blue-300" />
                       <span>{loadingGoogle ? 'Connecting...' : 'Sign In with Google'}</span>
                     </button>
                   )}
@@ -385,16 +392,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               )}
 
               {authError && (
-                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex items-start space-x-2 animate-fadeIn">
-                  <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 rounded-xl text-xs text-amber-950 dark:text-amber-200 flex items-start space-x-2 animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div className="flex-1 leading-relaxed">
-                    <p className="font-bold text-amber-900">Sign-in Notice</p>
+                    <p className="font-bold text-amber-900 dark:text-amber-300">Sign-in Notice</p>
                     <p>{authError}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setAuthError(null)}
-                    className="text-amber-800 hover:text-amber-950 font-bold p-1 text-xs cursor-pointer"
+                    className="text-amber-800 dark:text-amber-300 hover:text-amber-950 font-bold p-1 text-xs cursor-pointer"
                     aria-label="Dismiss notice"
                   >
                     ✕
@@ -406,22 +413,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         </div>
 
         {/* User Stats Overview */}
-        <div className="bg-[#f9f9ff] p-4 rounded-xl border border-[#d5e2e9] space-y-2 text-sm">
+        <div className="bg-slate-50 dark:bg-[#0d182e] p-4 rounded-xl border border-slate-200 dark:border-[#1e3a6a] space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Mind Points Balance:</span>
-            <span className="font-extrabold text-[#2d1d00]">{(user?.mindPoints || user?.totalMindPoints || 1240).toLocaleString()} pts</span>
+            <span className="text-slate-600 dark:text-slate-400">Mind Points Balance:</span>
+            <span className="font-extrabold text-[#FF6321]">{(user?.mindPoints || user?.totalMindPoints || 1240).toLocaleString()} pts</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Daily Training Streak:</span>
-            <span className="font-bold text-[#002045]">🔥 {user?.currentStreak || user?.dailyStreak || 5} Days</span>
+            <span className="text-slate-600 dark:text-slate-400">Daily Training Streak:</span>
+            <span className="font-bold text-[#002045] dark:text-white">🔥 {user?.currentStreak || user?.dailyStreak || 5} Days</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Total Completed Sessions:</span>
-            <span className="font-bold text-[#002045]">{user?.totalSessions || 38}</span>
+            <span className="text-slate-600 dark:text-slate-400">Total Completed Sessions:</span>
+            <span className="font-bold text-[#002045] dark:text-white">{user?.totalSessions || 38}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#43474e]">Family Caregiver:</span>
-            <span className="font-bold text-[#002045]">{user?.caregiverName || 'Rohan Sharma'}</span>
+            <span className="text-slate-600 dark:text-slate-400">Family Caregiver:</span>
+            <span className="font-bold text-[#002045] dark:text-white">{user?.caregiverName || 'Rohan Sharma'}</span>
           </div>
         </div>
 
@@ -432,14 +439,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               onClose();
               onOpenSettings();
             }}
-            className="flex-1 bg-[#002045] hover:bg-[#1a365d] text-white py-3 rounded-xl font-bold text-base cursor-pointer shadow-xs"
+            className="flex-1 bg-[#002045] dark:bg-blue-600 hover:bg-[#1a365d] dark:hover:bg-blue-500 text-white py-3 rounded-xl font-bold text-base cursor-pointer shadow-xs transition-colors"
           >
             Open Settings
           </button>
           <button
             id="btn-profile-close-action"
             onClick={onClose}
-            className="px-5 py-3 border border-[#c4c6cf] text-[#43474e] hover:bg-slate-50 rounded-xl font-bold text-base cursor-pointer"
+            className="px-5 py-3 border border-slate-300 dark:border-[#1e3a6a] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#162544] rounded-xl font-bold text-base cursor-pointer transition-colors"
           >
             Close
           </button>

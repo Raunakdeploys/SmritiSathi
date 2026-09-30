@@ -33,6 +33,12 @@ import { NotFoundView } from './components/NotFoundView';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { LegalModals } from './components/LegalModals';
 import { ThankYouModal } from './components/ThankYouModal';
+import { ScrollProgressBar } from './components/ScrollProgressBar';
+import { BackToTopButton } from './components/BackToTopButton';
+import { FloatingContactButton } from './components/FloatingContactButton';
+import { CommandPaletteSearch } from './components/CommandPaletteSearch';
+import { PrintReportModal } from './components/PrintReportModal';
+import { DesignSystemView } from './components/DesignSystemView';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
 import { WayBackGame } from './components/games/WayBackGame';
@@ -46,6 +52,7 @@ import { ShapeSorterGame } from './components/games/ShapeSorterGame';
 import { WordPairGame } from './components/games/WordPairGame';
 
 export default function App() {
+
   const [loading, setLoading] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -71,12 +78,51 @@ export default function App() {
   const [isDirectCallOpen, setIsDirectCallOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'contact' | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isPrintReportOpen, setIsPrintReportOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('smritisathi_theme');
+      if (stored) return stored === 'dark';
+      return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return false;
+    }
+  });
+
+  // Dark Mode Sync with DOM html class (REQ2 #1)
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      localStorage.setItem('smritisathi_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      localStorage.setItem('smritisathi_theme', 'light');
+    }
+  }, [isDarkMode]);
+
+
+  // Global Keyboard Shortcut: Cmd+K / Ctrl+K for Site Search (REQ2 #3)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const [thankYouState, setThankYouState] = useState<{
     isOpen: boolean;
     title?: string;
     subtitle?: string;
     points?: number;
   }>({ isOpen: false });
+
 
   // Subscribe to storeService updates & Google auth state
   useEffect(() => {
@@ -245,7 +291,15 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen bg-[#F8F9FA] text-[#0F172A] ${fontSizeClass} w-full max-w-full overflow-x-hidden relative`}>
+    <div className={`min-h-screen bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 ${fontSizeClass} w-full max-w-full overflow-x-hidden relative transition-colors`}>
+      {/* Accessible Skip-to-Content Link (REQ2 #12) */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
+      {/* Top Reading Scroll Progress Bar (REQ2 #8) */}
+      <ScrollProgressBar />
+
       {/* Desktop Side Navigation Bar */}
       <Sidebar
         currentTab={currentTab}
@@ -264,33 +318,34 @@ export default function App() {
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="w-72 bg-[#f0f3ff] h-full p-6 flex flex-col justify-between shadow-2xl"
+            className="w-72 bg-white dark:bg-[#0f1b38] h-full p-6 flex flex-col justify-between shadow-2xl border-r border-slate-200 dark:border-[#1e3a6a]"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="font-extrabold text-[22px] text-[#002045]">SmritiSaathi</h2>
+                <h2 className="font-extrabold text-[22px] text-[#002045] dark:text-white">SmritiSaathi</h2>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 text-[#43474e] rounded-full hover:bg-[#d9e3f9]"
+                  className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-[#1e293b]"
                 >
                   <span className="material-symbols-outlined text-[26px]">close</span>
                 </button>
               </div>
 
-              <div className="flex items-center space-x-3 mb-6 p-3 bg-white rounded-xl border border-[#d9e3f9]">
+              <div className="flex items-center space-x-3 mb-6 p-3 bg-slate-50 dark:bg-[#111e38] rounded-xl border border-slate-200 dark:border-[#1e3a6a]">
                 <img
                   src={user?.avatarUrl}
                   alt={user?.name || 'Asha Devi'}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#d9e3f9]"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 dark:border-[#1e3a6a]"
                 />
                 <div>
-                  <p className="font-bold text-base text-[#002045]">{user?.name || 'Asha Devi'}</p>
+                  <p className="font-bold text-base text-[#002045] dark:text-white">{user?.name || 'Asha Devi'}</p>
                   <p className="text-xs text-[#FF6321] font-extrabold">
                     {user?.totalMindPoints || user?.mindPoints || 240} Mind Points
                   </p>
                 </div>
               </div>
+
 
               <ul className="space-y-2">
                 {[
@@ -303,6 +358,7 @@ export default function App() {
                   { id: 'caregiver', label: 'Caregiver Portal', icon: 'supervised_user_circle' },
                   { id: 'settings', label: 'Settings', icon: 'settings' },
                   { id: 'help', label: 'Help & Guide', icon: 'help' },
+                  { id: 'design', label: 'Design System', icon: 'palette' },
                 ].map((item) => (
                   <li key={item.id}>
                     <button
@@ -312,8 +368,8 @@ export default function App() {
                       }}
                       className={`w-full text-left p-3.5 rounded-xl font-bold text-base flex items-center ${
                         currentTab === item.id
-                          ? 'bg-[#002045] text-white'
-                          : 'text-[#43474e] hover:bg-[#d9e3f9]'
+                          ? 'bg-[#002045] dark:bg-blue-600 text-white'
+                          : 'text-[#43474e] dark:text-slate-300 hover:bg-[#d9e3f9] dark:hover:bg-slate-800'
                       }`}
                     >
                       <span className="material-symbols-outlined mr-3 text-[22px]">{item.icon}</span>
@@ -346,10 +402,15 @@ export default function App() {
           onOpenProfile={() => setIsProfileModalOpen(true)}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           onOpenRewards={() => setIsRewardsModalOpen(true)}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+          onOpenPrintReport={() => setIsPrintReportOpen(true)}
         />
 
         {/* View Switcher Container */}
-        <div className="flex-1 mt-[72px] flex flex-col w-full min-w-0 max-w-full overflow-x-hidden box-border">
+        <div id="main-content" className="flex-1 mt-[72px] flex flex-col w-full min-w-0 max-w-full overflow-x-hidden box-border">
+
           {currentTab === 'carecompass' && (
             <CaregiverDashboard
               telemetry={database.careCompass?.telemetry}
@@ -475,7 +536,16 @@ export default function App() {
 
           {currentTab === 'help' && <HelpView user={user} />}
 
-          {/* 404 Page Safe Anchor for unknown routes */}
+          {/* Design System & Component States (Layer 6 Standard) */}
+          {currentTab === 'design' && (
+            <DesignSystemView
+              onBackToApp={() => setCurrentTab('dashboard')}
+              isDarkMode={isDarkMode}
+              onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+            />
+          )}
+
+          {/* 404 Page Safe Anchor for unknown routes (REQ1 #1) */}
           {![
             'carecompass',
             'patient-mode',
@@ -487,6 +557,7 @@ export default function App() {
             'history',
             'settings',
             'help',
+            'design',
           ].includes(currentTab) && (
             <NotFoundView
               onNavigateHome={() => setCurrentTab('dashboard')}
@@ -495,27 +566,28 @@ export default function App() {
           )}
 
           {/* Real Production-Grade Footer with Legal, Helplines & Address */}
-          {currentTab !== 'patient-mode' && currentTab !== 'saathi-chat' && (
-            <footer className="mt-12 border-t border-slate-200 bg-white/80 backdrop-blur-xs py-8 px-4 sm:px-8 text-xs text-slate-600">
+          {currentTab !== 'patient-mode' && currentTab !== 'saathi-chat' && currentTab !== 'design' && (
+            <footer className="mt-12 border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs py-8 px-4 sm:px-8 text-xs text-slate-600 dark:text-slate-400 no-print transition-colors">
               <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
                 {/* Brand & Address */}
                 <div className="text-center md:text-left space-y-1">
                   <div className="flex items-center justify-center md:justify-start gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-[#002045] flex items-center justify-center text-white font-bold text-xs">
+                    <div className="w-6 h-6 rounded-lg bg-[#002045] dark:bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
                       स
                     </div>
-                    <span className="font-extrabold text-[#002045] text-sm tracking-tight">SmritiSaathi</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                    <span className="font-extrabold text-[#002045] dark:text-white text-sm tracking-tight">SmritiSaathi</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">
                       DPDP Safe · AI Grounded
                     </span>
                   </div>
-                  <p className="text-slate-500 text-[11px]">
+                  <p className="text-slate-500 dark:text-slate-400 text-[11px]">
                     Cognitive Wellness &amp; Assistive Tech Labs · Bengaluru, Karnataka 560038, India
                   </p>
-                  <p className="text-slate-400 text-[10px]">
+                  <p className="text-slate-400 dark:text-slate-500 text-[10px]">
                     © 2026 SmritiSaathi. Designed with dignity for seniors and family caregivers.
                   </p>
                 </div>
+
 
                 {/* Emergency Hotline Badge */}
                 <div className="flex items-center gap-3 bg-orange-50/80 border border-orange-200 px-4 py-2.5 rounded-2xl">
@@ -812,7 +884,7 @@ export default function App() {
         onClose={() => setLegalModalType(null)}
       />
 
-      {/* Celebratory Thank You & Milestone Achievement Modal */}
+      {/* Celebratory Thank You & Milestone Achievement Modal (REQ1 #14) */}
       <ThankYouModal
         isOpen={thankYouState.isOpen}
         title={thankYouState.title}
@@ -825,6 +897,52 @@ export default function App() {
         }}
         nextActionLabel="Play Another Exercise"
       />
+
+      {/* Back to Top Floating Button (REQ2 #4) */}
+      <BackToTopButton />
+
+      {/* Floating Emergency & Direct Contact Hub (REQ2 #20) */}
+      {currentTab !== 'patient-mode' && (
+        <FloatingContactButton
+          onOpenDirectCall={() => setIsDirectCallOpen(true)}
+          onOpenWhereAmI={() => setIsWhereAmIOpen(true)}
+          onOpenChat={() => {
+            setCurrentTab('saathi-chat');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          caregiverName={database.careCompass?.config?.caregiverName || 'Rohan Sharma'}
+          caregiverPhone={database.careCompass?.config?.emergencyPhone || '+91 98765 43210'}
+        />
+      )}
+
+      {/* Command Palette Site Search Modal (REQ2 #3) */}
+      <CommandPaletteSearch
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectTab={(tab) => {
+          setCurrentTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onPlayGame={(gameId) => setActiveGameId(gameId)}
+        onStartDailyTraining={() => setIsDailyTrainingOpen(true)}
+        onOpenDirectCall={() => setIsDirectCallOpen(true)}
+        onOpenWhereAmI={() => setIsWhereAmIOpen(true)}
+        onOpenRewards={() => setIsRewardsModalOpen(true)}
+        onOpenPrintReport={() => setIsPrintReportOpen(true)}
+      />
+
+      {/* Clinical Cognitive Summary & Handover Print Modal (REQ2 #10) */}
+      <PrintReportModal
+        isOpen={isPrintReportOpen}
+        onClose={() => setIsPrintReportOpen(false)}
+        user={user}
+        progress={progress}
+        activities={activities}
+        caregiverPhone={database.careCompass?.config?.emergencyPhone || '+91 98765 43210'}
+        anchorName={database.careCompass?.config?.anchorName || 'Home Sweet Home'}
+        safeRadius={database.careCompass?.config?.anchorRadiusMeters || 100}
+      />
     </div>
   );
 }
+

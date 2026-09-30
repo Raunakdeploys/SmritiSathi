@@ -26,17 +26,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: 'Live',
       badgeColor: 'bg-emerald-600 text-white',
       accentColor: 'border-emerald-400',
-      iconActiveColor: 'text-emerald-400',
-      iconDefaultColor: 'text-emerald-600',
+      iconActiveColor: 'text-emerald-300',
+      iconDefaultColor: 'text-emerald-600 dark:text-emerald-400',
     },
     {
       id: 'patient-mode',
       label: 'Patient Mode (Dadaji)',
       icon: 'shield_person',
       badge: null,
-      accentColor: 'border-white',
+      accentColor: 'border-emerald-400',
       iconActiveColor: 'text-white',
-      iconDefaultColor: 'text-emerald-700',
+      iconDefaultColor: 'text-emerald-700 dark:text-emerald-300',
     },
     {
       id: 'saathi-chat',
@@ -46,43 +46,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-[#FF6321] text-white',
       accentColor: 'border-[#FF6321]',
       iconActiveColor: 'text-[#FF6321]',
-      iconDefaultColor: 'text-[#FF6321]',
+      iconDefaultColor: 'text-amber-600 dark:text-[#FF844B]',
     },
     {
       id: 'games',
       label: 'Games & Exercises',
       icon: 'videogame_asset',
       badge: null,
-      accentColor: 'border-[#002045]',
+      accentColor: 'border-blue-500',
       iconActiveColor: 'text-white',
-      iconDefaultColor: 'text-[#43474e]',
+      iconDefaultColor: 'text-blue-700 dark:text-sky-400',
     },
     {
       id: 'reality-quest',
       label: 'Reality Quest',
       icon: 'explore',
       badge: null,
-      accentColor: 'border-[#002045]',
+      accentColor: 'border-indigo-500',
       iconActiveColor: 'text-white',
-      iconDefaultColor: 'text-[#43474e]',
+      iconDefaultColor: 'text-indigo-700 dark:text-indigo-400',
     },
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: 'dashboard',
       badge: null,
-      accentColor: 'border-[#002045]',
+      accentColor: 'border-blue-600',
       iconActiveColor: 'text-white',
-      iconDefaultColor: 'text-[#43474e]',
+      iconDefaultColor: 'text-slate-700 dark:text-slate-300',
     },
     {
       id: 'caregiver',
       label: 'Caregiver Portal',
       icon: 'supervised_user_circle',
       badge: null,
-      accentColor: 'border-[#FF6321]',
-      iconActiveColor: 'text-[#FF6321]',
-      iconDefaultColor: 'text-[#43474e]',
+      accentColor: 'border-rose-500',
+      iconActiveColor: 'text-white',
+      iconDefaultColor: 'text-purple-700 dark:text-purple-300',
     },
   ];
 
@@ -97,13 +97,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Help & Guide',
       icon: 'help',
     },
+    {
+      id: 'design',
+      label: 'Design System',
+      icon: 'palette',
+    },
   ];
 
   return (
     <nav
       id="side-navigation-bar"
       aria-label="Main Navigation"
-      className="hidden md:flex flex-col h-screen py-4 px-3 bg-[#f0f3ff] text-[#002045] font-bold fixed left-0 top-0 w-64 border-r-2 border-[#c4c6cf] z-40 select-none overflow-y-auto overflow-x-hidden box-border"
+      className="hidden md:flex flex-col h-screen py-4 px-3 bg-white dark:bg-[#070d18] text-slate-900 dark:text-slate-100 font-bold fixed left-0 top-0 w-64 border-r-2 border-slate-200 dark:border-[#1e3a6a] z-40 select-none overflow-y-auto overflow-x-hidden box-border transition-colors"
     >
       {/* Profile & Action Header */}
       <div className="px-3 mb-4 flex flex-col items-center text-center shrink-0">
@@ -111,28 +116,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <img
             id="user-avatar-image"
             alt={user?.name || 'Elderly user profile'}
-            className="w-16 h-16 rounded-full border-3 border-[#d9e3f9] object-cover shadow-xs transition-transform hover:scale-105"
+            className="w-16 h-16 rounded-full border-3 border-blue-200 dark:border-blue-800 object-cover shadow-xs transition-transform hover:scale-105"
             src={avatarUrl}
           />
+
           <div
             title="Daily Activity Active"
-            className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-600 border-2 border-white rounded-full flex items-center justify-center text-white text-[10px]"
+            className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-600 border-2 border-white dark:border-[#070d18] rounded-full flex items-center justify-center text-white text-[10px]"
           >
             ✓
           </div>
         </div>
 
-        <h2 id="sidebar-welcome-title" className="font-extrabold text-[18px] leading-tight text-[#002045]">
+        <h2 id="sidebar-welcome-title" className="font-extrabold text-[18px] leading-tight text-slate-900 dark:text-white">
           Welcome Back
         </h2>
-        <p id="sidebar-welcome-subtitle" className="font-normal text-[13px] text-[#43474e] mt-0.5">
+        <p id="sidebar-welcome-subtitle" className="font-medium text-[13px] text-slate-600 dark:text-slate-300 mt-0.5">
           Ready to train?
         </p>
 
         <button
           id="btn-start-daily-training-sidebar"
           onClick={onStartDailyTraining}
-          className="mt-2.5 bg-[#002045] hover:bg-[#1a365d] active:bg-[#00142b] text-white w-full py-2.5 px-3 rounded-xl flex items-center justify-center min-h-[44px] text-[15px] font-bold shadow-xs transition-all focus:outline-none focus:ring-4 focus:ring-[#002045] focus:ring-offset-2 cursor-pointer hover:shadow-sm"
+          className="mt-2.5 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 dark:bg-blue-600 dark:hover:bg-blue-500 text-white w-full py-2.5 px-3 rounded-xl flex items-center justify-center min-h-[44px] text-[15px] font-bold shadow-xs transition-all focus:outline-hidden focus:ring-4 focus:ring-blue-400 focus:ring-offset-2 cursor-pointer hover:shadow-sm"
         >
           <span className="material-symbols-outlined mr-2 filled-icon text-[20px]">play_circle</span>
           <span>Start Daily Training</span>
@@ -152,9 +158,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all min-h-[42px] cursor-pointer text-left ${
                 isActive
                   ? item.id === 'patient-mode'
-                    ? 'bg-emerald-800 text-white font-extrabold shadow-xs'
-                    : `bg-[#002045] text-white font-extrabold shadow-xs ${item.accentColor ? `border-l-4 ${item.accentColor}` : ''}`
-                  : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
+                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white font-extrabold shadow-xs'
+                    : `bg-blue-700 dark:bg-blue-600 text-white font-extrabold shadow-xs ${item.accentColor ? `border-l-4 ${item.accentColor}` : ''}`
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-[#111f3d] hover:text-blue-900 dark:hover:text-white'
               }`}
             >
               <div className="flex items-center min-w-0">
@@ -180,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Secondary Links Section (Settings & Help) */}
-      <div className="pt-2 mt-2 border-t border-[#c4c6cf]/60 space-y-1">
+      <div className="pt-2 mt-2 border-t border-slate-200 dark:border-[#1e3a6a] space-y-1">
         {secondaryNavItems.map((item) => {
           const isActive = currentTab === item.id;
           return (
@@ -191,13 +197,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               aria-current={isActive ? 'page' : undefined}
               className={`w-full flex items-center px-3 py-2 rounded-xl transition-all min-h-[42px] cursor-pointer text-left ${
                 isActive
-                  ? 'bg-[#002045] text-white font-extrabold shadow-xs'
-                  : 'text-[#43474e] hover:bg-[#d9e3f9] hover:text-[#002045]'
+                  ? 'bg-blue-700 dark:bg-blue-600 text-white font-extrabold shadow-xs'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-[#111f3d] hover:text-blue-900 dark:hover:text-white'
               }`}
             >
               <span
                 className={`material-symbols-outlined mr-2.5 text-[22px] shrink-0 ${
-                  isActive ? 'filled-icon text-white' : 'text-[#43474e]'
+                  isActive ? 'filled-icon text-white' : 'text-slate-500 dark:text-slate-400'
                 }`}
               >
                 {item.icon}

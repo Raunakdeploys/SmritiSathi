@@ -98,84 +98,73 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
         `${daysOfWeek[(now.getDay() + 4) % 7]} (Morning)`,
       ].sort(() => 0.5 - Math.random()),
       correctAnswer: `${currentDayName} (${timeOfDay})`,
-      explanation: `Today is indeed ${currentDayName} during the ${timeOfDay}.`,
-      clue: `Look at the clock or the sunlight outside your window.`,
+      explanation: `Today is indeed ${currentDayName} ${timeOfDay}. Anchoring time of day reinforces temporal stability.`,
+      clue: `Look outside at the sun or check your room wall clock.`,
       icon: Clock,
     },
     {
       id: 2,
-      category: 'Seasonal',
-      prompt: `What is the current season and weather outside your window?`,
-      subPrompt: `Observe the weather conditions, garden foliage, and seasonal temperature.`,
+      category: 'Calendar',
+      prompt: `Which calendar month and year are we currently in?`,
+      subPrompt: `Connect with the current monthly cycle. Today is in ${currentMonthName} ${currentYear}.`,
       options: [
-        'Monsoon / Late Summer Breeze with lush garden foliage',
-        'Freezing Sub-Zero Himalayan Snowstorm',
-        'Mid-December Heavy Frost & Dense Fog',
+        `${currentMonthName} ${currentYear}`,
+        `${months[(now.getMonth() + 4) % 12]} ${currentYear - 1}`,
+        `${months[(now.getMonth() + 8) % 12]} ${currentYear + 1}`,
       ].sort(() => 0.5 - Math.random()),
-      correctAnswer: 'Monsoon / Late Summer Breeze with lush garden foliage',
-      explanation: 'Currently in the seasonal monsoon/warm summer transition with blooming plants and warm air.',
-      clue: 'Notice the blooming garden flowers and warm ambient breeze outside.',
-      icon: Sun,
+      correctAnswer: `${currentMonthName} ${currentYear}`,
+      explanation: `We are residing in ${currentMonthName} ${currentYear}. Excellent calendar orientation.`,
+      clue: `Think about upcoming festivals or the current season.`,
+      icon: Calendar,
     },
     {
       id: 3,
-      category: 'Environmental',
-      prompt: `Which room in your house are you currently seated in?`,
-      subPrompt: `Ground yourself in your physical environment: look at the furniture and doors around you.`,
+      category: 'Seasonal',
+      prompt: `Which seasonal weather pattern describes our current climate?`,
+      subPrompt: `Notice the ambient room temperature and air outside.`,
       options: [
-        'Living Room / Main Hall with Sofa & Tea Table',
-        'Master Bedroom with Bedside Nightstand',
-        'Dining Area near the Kitchen Counter',
-        'Sunny Verandah / Garden Balcony',
+        hour > 6 && hour < 18 ? 'Pleasant Daylight & Clear Skies' : 'Calm Evening Twilight',
+        'Heavy Monsoon Downpour',
+        'Freezing Himalayan Snowfall',
       ].sort(() => 0.5 - Math.random()),
-      correctAnswer: 'Living Room / Main Hall with Sofa & Tea Table',
-      explanation: 'Grounding your immediate room surroundings enhances spatial orientation and comfort.',
-      clue: 'Identify the room you are resting in right now.',
-      icon: Compass,
+      correctAnswer: hour > 6 && hour < 18 ? 'Pleasant Daylight & Clear Skies' : 'Calm Evening Twilight',
+      explanation: `Noticing weather and climate anchors our biological circadian rhythm.`,
+      clue: `Feel the breeze from the window or fan.`,
+      icon: Sun,
     },
     {
       id: 4,
       category: 'Environmental',
-      prompt: `Sensory Object Validation: Find and show your Water Glass, Cup, Glasses, or Newspaper to the camera!`,
-      subPrompt: `Hold the item in front of your camera for real-time validation or tap an item below.`,
+      prompt: `Sensory Spotting: Which everyday physical item is currently near you in your room?`,
+      subPrompt: `Look around your room or table to ground your immediate tactile surroundings.`,
       options: [
-        'Water Glass / Steel Tumbler',
-        'Ceramic Tea Cup / Chai Mug',
-        'Reading Prescription Glasses',
-        'Daily Morning Newspaper / Book',
-      ].sort(() => 0.5 - Math.random()),
-      correctAnswer: 'Ceramic Tea Cup / Chai Mug',
-      explanation: 'Recognizing immediate tactile objects grounds sensory presence and spatial comfort.',
-      clue: 'Show your cup, drinking glass, glasses, or newspaper to the camera.',
-      icon: Coffee,
+        'A steel water tumbler / tea mug',
+        'Reading prescription spectacles',
+        'Daily morning newspaper or prayer book',
+      ],
+      correctAnswer: 'A steel water tumbler / tea mug',
+      explanation: `Tactile observation of nearby familiar objects calms disorientation and anchors spatial memory.`,
+      clue: `Reach out and touch a familiar object on your table.`,
+      icon: Eye,
       hasCameraOption: true,
     },
   ];
 
   const currentQ = questions[currentStep];
 
-  useEffect(() => {
-    if (currentQ) {
-      speakText(`${currentQ.prompt}. ${currentQ.subPrompt}`, voiceGuidanceEnabled);
-    }
-  }, [currentStep]);
-
-  // Handle Camera activation for Object Spotting
   const startCamera = async () => {
     try {
       setIsCameraActive(true);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
+        video: { facingMode: 'environment' },
       });
       mediaStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      speakText('Camera activated. Point at a household object like your tea cup or book.', true);
-    } catch (e) {
-      console.warn('Camera access error:', e);
+    } catch (err) {
+      console.warn('Camera access denied or unavailable:', err);
       setIsCameraActive(false);
-      speakText('Camera unavailable. You can tap any option directly on screen.', true);
     }
   };
 
@@ -194,39 +183,43 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
   }, []);
 
   const handleCaptureObject = (objectName: string) => {
-    setIsScanning(true);
     setDetectingTarget(objectName);
-    speakText(`Scanning ${objectName}...`, true);
+    setIsScanning(true);
+    playGentleClick();
 
     setTimeout(() => {
       setIsScanning(false);
-      setDetectionConfidence(96.4);
       setCameraCapturedObject(objectName);
+      setDetectionConfidence(Math.round(92 + Math.random() * 7));
       setSelectedAnswer(objectName);
       playSuccessChime();
-      speakText(`Verified: ${objectName} with 96.4% confidence match.`, true);
+      speakText(`Visual match confirmed: ${objectName}. Excellent reality anchoring!`, true);
     }, 1200);
   };
 
-  const handleSelectOption = (opt: string) => {
+  const handleSelectOption = (option: string) => {
     if (isAnswerSubmitted) return;
     playGentleClick();
-    setSelectedAnswer(opt);
-    speakText(opt, voiceGuidanceEnabled);
+    setSelectedAnswer(option);
   };
 
   const handleSubmitStep = () => {
-    if (!selectedAnswer || isAnswerSubmitted) return;
+    if (!selectedAnswer) return;
+
     setIsAnswerSubmitted(true);
     const isCorrect =
       selectedAnswer === currentQ.correctAnswer || currentQ.category === 'Environmental';
 
     if (isCorrect) {
       playSuccessChime();
-      setCorrectAnswersCount((c) => c + 1);
-      speakText(`Splendid! That is correct. ${currentQ.explanation}`, voiceGuidanceEnabled);
+      setCorrectAnswersCount((prev) => prev + 1);
+      if (voiceGuidanceEnabled) {
+        speakText(`Correct! ${currentQ.explanation}`, true);
+      }
     } else {
-      speakText(`Here is the key context: ${currentQ.explanation}`, voiceGuidanceEnabled);
+      if (voiceGuidanceEnabled) {
+        speakText(`That's okay. ${currentQ.explanation}`, true);
+      }
     }
   };
 
@@ -280,25 +273,25 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
   return (
     <main
       id="reality-quest-view-main"
-      className="flex-1 p-4 sm:p-6 md:p-10 bg-[#F8F9FA] text-[#0F172A] overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border"
+      className="flex-1 p-4 sm:p-6 md:p-10 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors"
     >
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Ribbon */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-200 pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-100 dark:border-[#1e3a6a] pb-5">
           <div className="flex items-center space-x-3.5">
-            <div className="p-3 bg-[#0F172A] text-white rounded-2xl shadow-md">
-              <Compass className="w-7 h-7 text-[#FF6321]" />
+            <div className="p-3 bg-[#002045] dark:bg-blue-600 text-white rounded-2xl shadow-md">
+              <Compass className="w-7 h-7 text-amber-300" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
+                <h1 className="text-2xl sm:text-3xl font-black text-[#002045] dark:text-white">
                   RealityQuest
                 </h1>
-                <span className="bg-[#10B981] text-white text-xs font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="bg-emerald-600 text-white text-xs font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
                   Daily Temporal Anchoring
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium mt-0.5">
                 Anchor calendar consciousness, seasonal grounding, and sensory awareness
               </p>
             </div>
@@ -307,7 +300,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={() => speakText(`${currentQ.prompt}. ${currentQ.subPrompt}`, true)}
-              className="bg-white hover:bg-slate-100 text-slate-800 border-2 border-slate-300 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs cursor-pointer"
+              className="bg-slate-50 dark:bg-[#111e38] hover:bg-slate-100 dark:hover:bg-[#162544] text-[#002045] dark:text-white border-2 border-slate-200 dark:border-[#1e3a6a] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs cursor-pointer"
             >
               <Volume2 className="w-4 h-4 text-[#FF6321]" />
               <span>Hear Question</span>
@@ -324,27 +317,27 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
         )}
 
         {/* Quest Card Container */}
-        <div className="bg-white rounded-3xl border-3 border-[#0F172A]/15 shadow-xl p-5 sm:p-8 space-y-6">
+        <div className="bg-white dark:bg-[#111e38] rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-md p-5 sm:p-8 space-y-6">
           {/* Progress Tracker */}
-          <div className="flex items-center justify-between text-xs sm:text-sm font-black text-slate-600">
-            <span className="bg-orange-100 text-[#9A3412] px-3 py-1 rounded-full border border-orange-200 uppercase tracking-wider text-xs">
+          <div className="flex items-center justify-between text-xs sm:text-sm font-black text-slate-600 dark:text-slate-300">
+            <span className="bg-orange-100 dark:bg-orange-950/80 text-[#9A3412] dark:text-orange-300 px-3 py-1 rounded-full border border-orange-200 dark:border-orange-800 uppercase tracking-wider text-xs">
               {currentQ.category} Pillar
             </span>
-            <span className="text-slate-500">
+            <span className="text-slate-500 dark:text-slate-400">
               Checkpoint {currentStep + 1} of {questions.length}
             </span>
           </div>
 
           {/* Question Title */}
           <div className="flex items-start space-x-3.5 pt-1">
-            <div className="p-3 bg-slate-100 text-[#0F172A] rounded-2xl border border-slate-200 flex-shrink-0 mt-1">
+            <div className="p-3 bg-sky-50 dark:bg-[#0d182e] text-[#002045] dark:text-sky-300 rounded-2xl border border-sky-100 dark:border-[#1e3a6a] flex-shrink-0 mt-1">
               <IconComp className="w-7 h-7 text-[#FF6321]" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-2xl font-black text-[#0F172A] leading-snug">
+              <h2 className="text-lg sm:text-2xl font-black text-[#002045] dark:text-white leading-snug">
                 {currentQ.prompt}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium mt-1">
                 {currentQ.subPrompt}
               </p>
             </div>
@@ -352,7 +345,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
 
           {/* Optional Live Camera Object Spotter Panel for Question 4 */}
           {currentQ.hasCameraOption && (
-            <div className="bg-slate-900 text-white p-5 rounded-2xl space-y-3">
+            <div className="bg-slate-900 dark:bg-[#070D18] text-white p-5 rounded-2xl border border-slate-800 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Camera className="w-5 h-5 text-[#FF6321]" />
@@ -457,17 +450,17 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
                 option === currentQ.correctAnswer || currentQ.category === 'Environmental';
 
               let btnStyle =
-                'bg-[#F8F9FA] hover:bg-slate-100 text-slate-800 border-2 border-slate-200 hover:border-slate-300';
+                'bg-slate-50 dark:bg-[#0d182e] hover:bg-slate-100 dark:hover:bg-[#162544] text-[#002045] dark:text-slate-100 border-2 border-slate-200 dark:border-[#1e3a6a] hover:border-blue-400';
               if (isSelected && !isAnswerSubmitted) {
-                btnStyle = 'bg-[#0F172A] text-white border-2 border-[#FF6321] shadow-md';
+                btnStyle = 'bg-[#002045] dark:bg-blue-600 text-white border-2 border-[#FF6321] shadow-md';
               } else if (isAnswerSubmitted) {
                 if (isCorrect) {
                   btnStyle =
-                    'bg-emerald-50 text-emerald-950 border-2 border-emerald-500 font-extrabold shadow-xs';
+                    'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-200 border-2 border-emerald-500 font-extrabold shadow-xs';
                 } else if (isSelected && !isCorrect) {
-                  btnStyle = 'bg-rose-50 text-rose-950 border-2 border-rose-400 font-extrabold';
+                  btnStyle = 'bg-rose-50 dark:bg-rose-950/80 text-rose-950 dark:text-rose-200 border-2 border-rose-400 font-extrabold';
                 } else {
-                  btnStyle = 'bg-slate-50 text-slate-400 opacity-60 border-slate-200';
+                  btnStyle = 'bg-slate-50 dark:bg-[#0d182e] text-slate-400 opacity-60 border-slate-200 dark:border-[#1e3a6a]';
                 }
               }
 
@@ -480,7 +473,7 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
                 >
                   <span>{option}</span>
                   {isAnswerSubmitted && isCorrect && (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 ml-2" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 ml-2" />
                   )}
                 </button>
               );
@@ -489,8 +482,8 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
 
           {/* Explanation & Context Note */}
           {isAnswerSubmitted && (
-            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-300 text-xs sm:text-sm text-amber-950 flex items-start space-x-2.5 animate-fadeIn">
-              <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="p-4 bg-amber-50 dark:bg-[#251f12] rounded-2xl border border-amber-300 dark:border-[#78510c] text-xs sm:text-sm text-amber-950 dark:text-amber-200 flex items-start space-x-2.5 animate-fadeIn">
+              <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
                 <span className="font-extrabold block">Daily Reality Context:</span>
                 <p className="font-medium mt-0.5">{currentQ.explanation}</p>
@@ -499,12 +492,12 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t-2 border-slate-100 flex items-center justify-between gap-3">
+          <div className="pt-4 border-t-2 border-slate-100 dark:border-[#1e3a6a] flex items-center justify-between gap-3">
             <button
               onClick={() => {
                 if (currentQ.clue) speakText(`Clue: ${currentQ.clue}`, true);
               }}
-              className="text-slate-600 hover:text-slate-900 font-bold text-xs sm:text-sm flex items-center space-x-1 cursor-pointer py-2 px-3 rounded-xl hover:bg-slate-100"
+              className="text-slate-600 dark:text-slate-300 hover:text-[#002045] dark:hover:text-white font-bold text-xs sm:text-sm flex items-center space-x-1 cursor-pointer py-2 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-[#162544]"
             >
               <Sparkles className="w-4 h-4 text-[#FF6321]" />
               <span>Need a Hint?</span>
@@ -522,12 +515,12 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
             ) : (
               <button
                 onClick={handleNextStep}
-                className="bg-[#0F172A] hover:bg-[#1E293B] text-white py-3.5 px-8 rounded-2xl font-black text-sm sm:text-base shadow-md flex items-center space-x-2 transition-transform active:scale-95 cursor-pointer"
+                className="bg-[#002045] dark:bg-blue-600 hover:bg-[#1E293B] dark:hover:bg-blue-500 text-white py-3.5 px-8 rounded-2xl font-black text-sm sm:text-base shadow-md flex items-center space-x-2 transition-transform active:scale-95 cursor-pointer"
               >
                 <span>
                   {currentStep < questions.length - 1 ? 'Next Checkpoint' : 'Complete Quest (+70 Pts)'}
                 </span>
-                <ArrowRight className="w-5 h-5 text-[#FF6321]" />
+                <ArrowRight className="w-5 h-5 text-amber-300" />
               </button>
             )}
           </div>

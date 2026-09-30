@@ -183,6 +183,46 @@
         }
       },
       "required": ["id", "timestamp", "severity", "cause"]
+    },
+    "ChatThread": {
+      "title": "ChatThread",
+      "description": "OpenAI ChatGPT style persistent conversation thread with message history",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique conversation thread identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of conversation auto-generated from prompt"
+        },
+        "role": {
+          "type": "string",
+          "description": "AI role: companion, quick, or complex"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO last activity timestamp"
+        },
+        "lastMessage": {
+          "type": "string",
+          "description": "Last message snippet in conversation"
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Authenticated Google user email"
+        },
+        "messages": {
+          "type": "array",
+          "description": "Chronological list of chat messages"
+        }
+      },
+      "required": ["id", "title", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -205,6 +245,11 @@
     "/users/{userId}/alerts/{alertId}": {
       "schema": "AlertLogEntry",
       "description": "Emergency alert logs and SOS notifications"
+    },
+    "/users/{userId}/chatThreads/{threadId}": {
+      "schema": "ChatThread",
+      "description": "Persistent AI chat conversation threads for authenticated Google user"
     }
   }
 }
+

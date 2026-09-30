@@ -101,11 +101,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
     setFormData({
       name: '',
       relation: '',
-      age: 28,
-      phone: '+91 98100 00000',
+      age: 30,
+      phone: '',
       photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80',
-      voiceNote: 'Hello dadaji, thinking of you always!',
-      memories: 'Loves sharing morning mango tea in the courtyard',
+      voiceNote: '',
+      memories: '',
     });
     setIsAddFamilyModalOpen(true);
   };
@@ -126,9 +126,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
   const handleSaveMember = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.relation) return;
+    playGentleClick();
 
-    const memoriesArr = formData.memories
+    const memoriesList = formData.memories
       .split(';')
       .map((s) => s.trim())
       .filter(Boolean);
@@ -141,57 +141,59 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         phone: formData.phone,
         photoUrl: formData.photoUrl,
         voiceNote: formData.voiceNote,
-        keyMemories: memoriesArr,
+        keyMemories: memoriesList,
       });
     } else {
       storeService.addFamilyMember({
         name: formData.name,
         relation: formData.relation,
-        age: Number(formData.age),
         relationCategory: 'immediate',
+        age: Number(formData.age) || 40,
         phone: formData.phone,
-        photoUrl: formData.photoUrl,
+        photoUrl: formData.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
         voiceNote: formData.voiceNote,
-        keyMemories: memoriesArr,
+        keyMemories: memoriesList,
       });
     }
 
-    setIsAddFamilyModalOpen(false);
     playSuccessChime();
+    setIsAddFamilyModalOpen(false);
   };
 
   const handleDeleteMember = (id: string) => {
-    if (window.confirm('Are you sure you want to remove this family profile?')) {
+    playGentleClick();
+    if (confirm('Are you sure you want to remove this family member from reminiscence training?')) {
       storeService.deleteFamilyMember(id);
-      playGentleClick();
     }
   };
 
   const handleToggleBridge = (gameId: string) => {
-    storeService.toggleBridgeMode(gameId);
     playGentleClick();
+    const current = gameProgresses[gameId]?.activeBridge?.status === 'active';
+    storeService.setAdaptiveBridgeState(gameId, !current, !current ? 'Manual caregiver activation' : undefined);
   };
 
-  const filteredLogs = activityLogs.filter((log) => {
-    const matchesFilter = logFilter === 'All' || log.category.toLowerCase() === logFilter.toLowerCase();
-    const matchesSearch =
-      log.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (log.notes && log.notes.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesFilter && matchesSearch;
-  });
-
   const printReport = () => {
+    playGentleClick();
     window.print();
   };
 
+  const filteredLogs = activityLogs
+    .filter((log) => (logFilter === 'All' ? true : log.category === logFilter))
+    .filter(
+      (log) =>
+        log.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (log.notes && log.notes.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
   return (
     <main
-      id="caregiver-clinical-portal-main"
-      className="flex-1 bg-[#F8F9FA] text-[#0F172A] p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border"
+      id="caregiver-portal-main"
+      className="flex-1 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors"
     >
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Top Header Card */}
-        <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white p-6 rounded-3xl shadow-xl border-b-4 border-[#FF6321] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-[#002045] via-[#093568] to-[#002045] dark:from-[#0f1b38] dark:via-[#16264c] dark:to-[#0f1b38] text-white p-6 rounded-3xl shadow-xl border-b-4 border-[#FF6321] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <div className="p-3.5 bg-gradient-to-br from-[#FF6321] to-[#EA580C] text-white rounded-2xl shadow-lg">
               <ShieldCheck className="w-9 h-9" />
@@ -236,7 +238,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         </div>
 
         {/* Tab Navigation Ribbon */}
-        <div className="bg-white p-2 rounded-2xl border-2 border-slate-200 shadow-xs flex items-center gap-1.5 overflow-x-auto">
+        <div className="bg-slate-50 dark:bg-[#111e38] p-2 rounded-2xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex items-center gap-1.5 overflow-x-auto">
           {[
             { id: 'overview', label: 'Patient Summary', icon: User },
             { id: 'geofence', label: 'CareCompass GPS Radar', icon: Radio },
@@ -257,11 +259,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                 }}
                 className={`py-2.5 px-4 rounded-xl font-extrabold text-xs sm:text-sm flex items-center space-x-2 whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#0F172A] text-white shadow-md'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'bg-[#002045] dark:bg-blue-600 text-white shadow-md'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#1a2d52]'
                 }`}
               >
-                <IconC className={`w-4 h-4 ${isActive ? 'text-[#FF6321]' : 'text-slate-400'}`} />
+                <IconC className={`w-4 h-4 ${isActive ? 'text-[#FF6321] dark:text-amber-300' : 'text-slate-400 dark:text-slate-400'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -274,42 +276,42 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             {/* Top Patient Profile Summary Bento */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
               {/* Profile Card */}
-              <div className="md:col-span-4 bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+              <div className="md:col-span-4 bg-white dark:bg-[#111e38] p-6 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs space-y-4">
                 <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] border-2 border-[#FF6321] flex items-center justify-center text-white text-2xl font-black shadow-md">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#002045] to-[#1E293B] dark:from-blue-600 dark:to-indigo-900 border-2 border-[#FF6321] flex items-center justify-center text-white text-2xl font-black shadow-md">
                     RS
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-[#0F172A]">{user.name}</h2>
-                    <p className="text-xs text-slate-500 font-bold">
+                    <h2 className="text-xl font-black text-[#002045] dark:text-white">{user.name}</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
                       Age {user.age} • {user.gender}
                     </p>
-                    <span className="inline-block mt-1 bg-amber-100 text-amber-900 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-amber-300">
+                    <span className="inline-block mt-1 bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-800">
                       {user.clinicalDiagnosis}
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-3 border-t border-slate-100 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="font-bold text-slate-500">Baseline MoCA:</span>
-                    <span className="font-black text-[#0F172A]">{user.baselineMocaScore} / 30</span>
+                <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-[#1e3a6a] text-xs">
+                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
+                    <span className="font-bold text-slate-500 dark:text-slate-400">Baseline MoCA:</span>
+                    <span className="font-black text-[#002045] dark:text-white">{user.baselineMocaScore} / 30</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="font-bold text-slate-500">Primary Caregiver:</span>
-                    <span className="font-black text-[#0F172A]">{user.caregiverName} ({user.caregiverRelation})</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
+                    <span className="font-bold text-slate-500 dark:text-slate-400">Primary Caregiver:</span>
+                    <span className="font-black text-[#002045] dark:text-white">{user.caregiverName} ({user.caregiverRelation})</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="font-bold text-slate-500">Caregiver Contact:</span>
-                    <span className="font-black text-[#0F172A]">{user.caregiverPhone}</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
+                    <span className="font-bold text-slate-500 dark:text-slate-400">Caregiver Contact:</span>
+                    <span className="font-black text-[#002045] dark:text-white">{user.caregiverPhone}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="font-bold text-slate-500">Primary Physician:</span>
-                    <span className="font-black text-[#0F172A]">{user.physicianName}</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
+                    <span className="font-bold text-slate-500 dark:text-slate-400">Primary Physician:</span>
+                    <span className="font-black text-[#002045] dark:text-white">{user.physicianName}</span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="font-bold text-slate-500">Registered Safe Home:</span>
-                    <span className="font-black text-[#0F172A] text-right truncate max-w-[160px]">
+                    <span className="font-bold text-slate-500 dark:text-slate-400">Registered Safe Home:</span>
+                    <span className="font-black text-[#002045] dark:text-white text-right truncate max-w-[160px]">
                       {user.homeAddress}
                     </span>
                   </div>
@@ -318,97 +320,97 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
               {/* Cognitive Vitals Quick Cards */}
               <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
-                  <span className="text-xs font-black uppercase text-slate-400">Mind Points</span>
+                <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
+                  <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Mind Points</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-[#0F172A]">{user.totalPoints}</span>
-                    <span className="text-xs font-bold text-emerald-600 ml-1.5">+180 this week</span>
+                    <span className="text-3xl font-black text-[#002045] dark:text-white">{user.totalPoints}</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-1.5">+180 this week</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">Cognitive effort currency</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Cognitive effort currency</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
-                  <span className="text-xs font-black uppercase text-slate-400">Active Daily Streak</span>
+                <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
+                  <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Active Daily Streak</span>
                   <div className="my-2 flex items-center space-x-1.5">
                     <span className="text-3xl font-black text-[#FF6321]">🔥 {user.currentStreak}</span>
-                    <span className="text-xs font-bold text-slate-500">Days</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Days</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">Consecutive engagement</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Consecutive engagement</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
-                  <span className="text-xs font-black uppercase text-slate-400">Total Exercises Logged</span>
+                <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
+                  <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Total Exercises Logged</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-[#0F172A]">{activityLogs.length}</span>
-                    <span className="text-xs font-bold text-slate-500 ml-1">sessions</span>
+                    <span className="text-3xl font-black text-[#002045] dark:text-white">{activityLogs.length}</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">sessions</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">All 5 therapeutic modules</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">All 5 therapeutic modules</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
-                  <span className="text-xs font-black uppercase text-slate-400">Memory Domain</span>
+                <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
+                  <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Memory Domain</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-indigo-600">{domainScores.memory}%</span>
-                    <span className="text-xs font-bold text-emerald-600 ml-1">Stable</span>
+                    <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{domainScores.memory}%</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-1">Stable</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">LifeThread & FaceBond</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">LifeThread & FaceBond</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
-                  <span className="text-xs font-black uppercase text-slate-400">Spatial Navigation</span>
+                <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
+                  <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Spatial Navigation</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-amber-600">{domainScores.spatial}%</span>
-                    <span className="text-xs font-bold text-amber-600 ml-1">Bridge Active</span>
+                    <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{domainScores.spatial}%</span>
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 ml-1">Bridge Active</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">WayBack route memory</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">WayBack route memory</span>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col justify-between">
-                  <span className="text-xs font-black uppercase text-slate-400">Temporal Grounding</span>
+                <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
+                  <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Temporal Grounding</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-emerald-600">{domainScores.temporal}%</span>
-                    <span className="text-xs font-bold text-emerald-600 ml-1">+6%</span>
+                    <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{domainScores.temporal}%</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-1">+6%</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">TimeSense & RealityQuest</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">TimeSense & RealityQuest</span>
                 </div>
               </div>
             </div>
 
             {/* Emergency Safe-Return & GPS Geofence Monitor Card */}
-            <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-[#111e38] p-6 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2.5 bg-rose-100 text-rose-700 rounded-xl">
+                  <div className="p-2.5 bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 rounded-xl">
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-black text-base sm:text-lg text-[#0F172A]">
+                    <h3 className="font-black text-base sm:text-lg text-[#002045] dark:text-white">
                       Emergency Safe-Return & Spatial Geofence Anchor
                     </h3>
-                    <p className="text-xs text-slate-500 font-medium">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       Registered Safe Anchor: {user.homeAddress} (Lat {user.homeCoordinates.lat}, Lng {user.homeCoordinates.lng})
                     </p>
                   </div>
                 </div>
 
-                <span className="bg-emerald-100 text-emerald-900 font-black text-xs px-3 py-1.5 rounded-full border border-emerald-300 flex items-center space-x-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span className="bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 font-black text-xs px-3 py-1.5 rounded-full border border-emerald-300 dark:border-emerald-800 flex items-center space-x-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Within Safe Zone (&lt; 250m)</span>
                 </span>
               </div>
 
               {locationLogs.length > 0 && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                  <span className="text-xs font-black uppercase text-slate-500 block">
+                <div className="bg-slate-50 dark:bg-[#0f1d38] p-4 rounded-2xl border border-slate-200 dark:border-[#1e3a6a] space-y-2">
+                  <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 block">
                     Recent Location Check Record:
                   </span>
-                  <div className="flex flex-wrap items-center justify-between text-xs font-bold text-slate-700 gap-2">
+                  <div className="flex flex-wrap items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 gap-2">
                     <span>
                       Timestamp: {new Date(locationLogs[0].timestamp).toLocaleString()}
                     </span>
                     <span>Distance from home: {locationLogs[0].distanceFromHomeMeters} meters</span>
                     <span>Compass Heading: {locationLogs[0].orientationDegrees}°</span>
-                    <span className="text-emerald-700 font-black">
+                    <span className="text-emerald-700 dark:text-emerald-400 font-black">
                       Status: {locationLogs[0].isWithinSafeZone ? 'SAFE' : 'OUTSIDE GEOFENCE'}
                     </span>
                   </div>
@@ -418,7 +420,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           </div>
         )}
 
-        {/* TAB 2: COGNITIVE DOMAINS */}
+        {/* TAB 2: CARECOMMASS LIVE GPS RADAR & GEOFENCE COMMAND CENTER */}
+        {activeTab === 'geofence' && (
+          <div className="space-y-6 animate-fadeIn">
+            <CaregiverDashboard />
+          </div>
+        )}
+
+        {/* TAB 3: COGNITIVE DOMAINS */}
         {activeTab === 'domains' && (
           <div className="space-y-6 animate-fadeIn">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
@@ -466,32 +475,32 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               ].map((item) => (
                 <div
                   key={item.domain}
-                  className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col justify-between space-y-4"
+                  className="bg-white dark:bg-[#111e38] p-6 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-black text-base sm:text-lg text-[#0F172A]">
+                      <h3 className="font-black text-base sm:text-lg text-[#002045] dark:text-white">
                         {item.domain}
                       </h3>
                       <span className="text-2xl font-black text-[#FF6321]">{item.score}%</span>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium">{item.desc}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{item.desc}</p>
                   </div>
 
-                  <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-200 dark:border-[#1e3a6a]">
                     <div
                       className="h-full bg-gradient-to-r from-[#FF6321] to-[#EA580C]"
                       style={{ width: `${item.score}%` }}
                     />
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="font-extrabold text-slate-600">{item.trend}</span>
+                  <div className="pt-2 border-t border-slate-100 dark:border-[#1e3a6a] flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-slate-600 dark:text-slate-300">{item.trend}</span>
                     <div className="flex gap-1">
                       {item.games.map((g) => (
                         <span
                           key={g}
-                          className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          className="bg-slate-100 dark:bg-[#162544] text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-full text-[10px] font-bold"
                         >
                           {g}
                         </span>
@@ -504,24 +513,17 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           </div>
         )}
 
-        {/* TAB 2: CARECOMMASS LIVE GPS RADAR & GEOFENCE COMMAND CENTER */}
-        {activeTab === 'geofence' && (
-          <div className="space-y-6 animate-fadeIn">
-            <CaregiverDashboard />
-          </div>
-        )}
-
-        {/* TAB 3: COGNITIVE BRIDGE ENGINE MONITOR */}
+        {/* TAB 4: COGNITIVE BRIDGE ENGINE MONITOR */}
         {activeTab === 'bridge' && (
           <div className="space-y-6 animate-fadeIn">
-            <div className="bg-amber-50 p-6 rounded-3xl border-2 border-amber-300 space-y-2">
+            <div className="bg-amber-50 dark:bg-[#251f12] p-6 rounded-3xl border-2 border-amber-300 dark:border-[#78510c] space-y-2">
               <div className="flex items-center space-x-3">
-                <Sparkles className="w-6 h-6 text-amber-700" />
-                <h3 className="text-base sm:text-lg font-black text-amber-950">
+                <Sparkles className="w-6 h-6 text-amber-700 dark:text-amber-400" />
+                <h3 className="text-base sm:text-lg font-black text-amber-950 dark:text-amber-200">
                   Cognitive Bridge Engine Rules & Surveillance
                 </h3>
               </div>
-              <p className="text-xs sm:text-sm text-amber-900 font-medium leading-relaxed">
+              <p className="text-xs sm:text-sm text-amber-900 dark:text-amber-300 font-medium leading-relaxed">
                 The engine evaluates the last 3 game attempts for each therapeutic module. If average score falls below <strong>60%</strong> or 2 consecutive failures occur, Bridge Mode automatically activates to provide scaffolded assistance (+50% study time, eliminated distractors, high-contrast visual clues). When average score surpasses <strong>85%</strong>, Bridge Mode deactivates and awards <strong>+50 Mind Points</strong>.
               </p>
             </div>
@@ -541,27 +543,27 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     key={gameId}
                     className={`p-6 rounded-3xl border-2 transition-all ${
                       isBridge
-                        ? 'bg-orange-50/60 border-orange-400 shadow-sm'
-                        : 'bg-white border-slate-200 shadow-xs'
+                        ? 'bg-orange-50/60 dark:bg-[#291b12] border-orange-400 dark:border-[#853e1a] shadow-sm'
+                        : 'bg-white dark:bg-[#111e38] border-slate-200 dark:border-[#1e3a6a] shadow-xs'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-black text-base sm:text-lg text-[#0F172A] capitalize">
+                          <h4 className="font-black text-base sm:text-lg text-[#002045] dark:text-white capitalize">
                             {gameId} Module
                           </h4>
                           <span
                             className={`text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase ${
                               isBridge
                                 ? 'bg-orange-600 text-white'
-                                : 'bg-slate-200 text-slate-700'
+                                : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                             }`}
                           >
                             {isBridge ? 'Bridge Active' : 'Normal Pace'}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                           Current Level {prog?.currentLevel || 1} • Total Sessions: {prog?.totalPlayed || 1}
                         </p>
                       </div>
@@ -570,8 +572,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                         onClick={() => handleToggleBridge(gameId)}
                         className={`text-xs font-black px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
                           isBridge
-                            ? 'bg-rose-100 hover:bg-rose-200 text-rose-900 border-rose-300'
-                            : 'bg-orange-100 hover:bg-orange-200 text-orange-900 border-orange-300'
+                            ? 'bg-rose-100 dark:bg-rose-950/80 hover:bg-rose-200 text-rose-900 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                            : 'bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-900 dark:text-orange-300 border-orange-300 dark:border-orange-800'
                         }`}
                       >
                         {isBridge ? 'Deactivate Bridge' : 'Manual Activate'}
@@ -580,9 +582,9 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
                     {/* Recent 3 Scores */}
                     <div className="space-y-1.5 my-3">
-                      <div className="flex justify-between text-xs font-bold text-slate-600">
+                      <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
                         <span>Last 3 Attempts History:</span>
-                        <span className="font-black text-[#0F172A]">3-Game Avg: {avgScore}%</span>
+                        <span className="font-black text-[#002045] dark:text-white">3-Game Avg: {avgScore}%</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -594,10 +596,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                               key={idx}
                               className={`flex-1 py-2 rounded-xl text-center font-mono font-black text-xs border ${
                                 s >= 85
-                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                                   : s < 60
-                                  ? 'bg-rose-100 text-rose-900 border-rose-300'
-                                  : 'bg-amber-100 text-amber-900 border-amber-300'
+                                  ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-900 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                                  : 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                               }`}
                             >
                               {s}%
@@ -609,11 +611,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
                     {/* Bridge Details */}
                     {isBridge && prog?.activeBridge && (
-                      <div className="mt-3 p-3 bg-white rounded-2xl border border-orange-300 text-xs text-slate-700 space-y-1">
+                      <div className="mt-3 p-3 bg-white dark:bg-[#111e38] rounded-2xl border border-orange-300 dark:border-orange-800 text-xs text-slate-700 dark:text-slate-300 space-y-1">
                         <span className="font-black text-[#FF6321] block">
                           Active Assistance Modifiers:
                         </span>
-                        <p className="font-medium text-slate-600">
+                        <p className="font-medium text-slate-600 dark:text-slate-300">
                           {prog.activeBridge.reason || 'Visual clues + extended time active'}
                         </p>
                         <p className="text-[11px] text-slate-400">
@@ -628,15 +630,15 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           </div>
         )}
 
-        {/* TAB 4: FAMILY & REMINISCENCE ARCHIVE */}
+        {/* TAB 5: FAMILY & REMINISCENCE ARCHIVE */}
         {activeTab === 'family' && (
           <div className="space-y-6 animate-fadeIn">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="font-black text-lg sm:text-xl text-[#0F172A]">
+                <h3 className="font-black text-lg sm:text-xl text-[#002045] dark:text-white">
                   Family Directory & Reminiscence Profiles ({familyMembers.length})
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   Photos, kinship ties, voice greetings, and key anecdotes used in the FaceBond module
                 </p>
               </div>
@@ -654,27 +656,27 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               {familyMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col justify-between hover:border-[#FF6321] transition-all relative overflow-hidden"
+                  className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-sm flex flex-col justify-between hover:border-[#FF6321] transition-all relative overflow-hidden"
                 >
                   <div>
-                    <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-xs border-2 border-slate-100 mb-3 relative group">
+                    <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-xs border-2 border-slate-100 dark:border-[#1e3a6a] mb-3 relative group">
                       <img
                         src={member.photoUrl}
                         alt={member.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <span className="absolute top-2 right-2 bg-[#0F172A]/80 backdrop-blur-xs text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                      <span className="absolute top-2 right-2 bg-[#002045]/80 dark:bg-black/80 backdrop-blur-xs text-white text-[10px] font-black px-2 py-0.5 rounded-full">
                         Age {member.age}
                       </span>
                     </div>
 
-                    <h4 className="font-black text-base text-[#0F172A]">{member.name}</h4>
-                    <span className="inline-block mt-0.5 bg-orange-100 text-[#9A3412] text-[11px] font-black px-2.5 py-0.5 rounded-full border border-orange-200">
+                    <h4 className="font-black text-base text-[#002045] dark:text-white">{member.name}</h4>
+                    <span className="inline-block mt-0.5 bg-orange-100 dark:bg-orange-950/80 text-[#9A3412] dark:text-orange-300 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-orange-200 dark:border-orange-800">
                       {member.relation}
                     </span>
 
                     {member.phone && (
-                      <p className="text-[11px] text-slate-500 font-bold mt-1.5 flex items-center space-x-1">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-1.5 flex items-center space-x-1">
                         <Phone className="w-3 h-3 text-slate-400" />
                         <span>{member.phone}</span>
                       </p>
@@ -685,7 +687,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                         Key Anecdotes:
                       </span>
                       {member.keyMemories.slice(0, 2).map((m, i) => (
-                        <p key={i} className="text-[11px] text-slate-600 line-clamp-2 italic">
+                        <p key={i} className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 italic">
                           "{m}"
                         </p>
                       ))}
@@ -693,11 +695,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#1e3a6a] flex items-center justify-between">
                     {member.voiceNote && (
                       <button
                         onClick={() => speakText(member.voiceNote, true)}
-                        className="p-1.5 text-slate-600 hover:text-[#0F172A] hover:bg-slate-100 rounded-lg"
+                        className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-[#002045] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1e293b] rounded-lg"
                         title="Hear Voice Greeting"
                       >
                         <Volume2 className="w-4 h-4 text-[#FF6321]" />
@@ -707,14 +709,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     <div className="flex items-center space-x-1 ml-auto">
                       <button
                         onClick={() => handleOpenEditMember(member)}
-                        className="p-1.5 text-slate-600 hover:text-[#0F172A] hover:bg-slate-100 rounded-lg cursor-pointer"
+                        className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-[#002045] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1e293b] rounded-lg cursor-pointer"
                         title="Edit Member"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteMember(member.id)}
-                        className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg cursor-pointer"
+                        className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg cursor-pointer"
                         title="Delete Member"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -727,11 +729,11 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           </div>
         )}
 
-        {/* TAB 5: ACTIVITY & GPS LOGS */}
+        {/* TAB 6: ACTIVITY & GPS LOGS */}
         {activeTab === 'logs' && (
           <div className="space-y-5 animate-fadeIn">
             {/* Search & Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-white dark:bg-[#111e38] p-4 rounded-2xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center space-x-2 flex-1 min-w-[200px] max-w-md">
                 <Search className="w-4 h-4 text-slate-400" />
                 <input
@@ -739,7 +741,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   placeholder="Search logs by activity name or notes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-xs sm:text-sm font-medium border-0 focus:ring-0 focus:outline-none"
+                  className="w-full text-xs sm:text-sm font-medium border-0 focus:ring-0 focus:outline-none bg-transparent text-[#002045] dark:text-white placeholder-slate-400"
                 />
               </div>
 
@@ -750,8 +752,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                     onClick={() => setLogFilter(cat)}
                     className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
                       logFilter === cat
-                        ? 'bg-[#0F172A] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-[#002045] dark:bg-blue-600 text-white shadow-xs'
+                        : 'bg-slate-100 dark:bg-[#0f1d38] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#162544]'
                     }`}
                   >
                     {cat}
@@ -761,10 +763,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             </div>
 
             {/* Logs Table */}
-            <div className="bg-white rounded-3xl border-2 border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-[#111e38] rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-slate-100 text-slate-600 uppercase font-black text-[11px] border-b border-slate-200">
+                  <thead className="bg-slate-100 dark:bg-[#0d182e] text-slate-600 dark:text-slate-300 uppercase font-black text-[11px] border-b border-slate-200 dark:border-[#1e3a6a]">
                     <tr>
                       <th className="py-3 px-4">Date & Time</th>
                       <th className="py-3 px-4">Exercise Module</th>
@@ -775,17 +777,17 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       <th className="py-3 px-4">Notes</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-[#1e3a6a] font-medium text-slate-800 dark:text-slate-200">
                     {filteredLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-50">
-                        <td className="py-3.5 px-4 whitespace-nowrap text-slate-500 font-mono text-xs">
+                      <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-[#162544]">
+                        <td className="py-3.5 px-4 whitespace-nowrap text-slate-500 dark:text-slate-400 font-mono text-xs">
                           {new Date(log.timestamp).toLocaleString()}
                         </td>
-                        <td className="py-3.5 px-4 font-black text-[#0F172A]">
+                        <td className="py-3.5 px-4 font-black text-[#002045] dark:text-white">
                           {log.title}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="bg-slate-100 text-slate-800 text-[11px] font-black px-2.5 py-0.5 rounded-full">
+                          <span className="bg-slate-100 dark:bg-[#0d182e] text-slate-800 dark:text-slate-200 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-[#1e3a6a]">
                             {log.category}
                           </span>
                         </td>
@@ -793,10 +795,10 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                           <span
                             className={
                               log.score >= 80
-                                ? 'text-emerald-700'
+                                ? 'text-emerald-700 dark:text-emerald-400'
                                 : log.score < 60
-                                ? 'text-rose-700'
-                                : 'text-amber-700'
+                                ? 'text-rose-700 dark:text-rose-400'
+                                : 'text-amber-700 dark:text-amber-400'
                             }
                           >
                             {log.score}%
@@ -806,7 +808,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                         <td className="py-3.5 px-4 font-black text-[#FF6321]">
                           +{log.pointsEarned} pts
                         </td>
-                        <td className="py-3.5 px-4 text-xs text-slate-500 max-w-xs truncate">
+                        <td className="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate">
                           {log.notes || 'Routine session'}
                         </td>
                       </tr>
@@ -818,47 +820,47 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           </div>
         )}
 
-        {/* TAB 6: DOCTOR CLINICAL REPORT */}
+        {/* TAB 7: DOCTOR CLINICAL REPORT */}
         {activeTab === 'report' && (
-          <div className="bg-white p-8 rounded-3xl border-3 border-slate-300 shadow-xl space-y-6 print:border-none print:shadow-none animate-fadeIn max-w-4xl mx-auto">
+          <div className="bg-white dark:bg-[#111e38] p-8 rounded-3xl border-3 border-slate-300 dark:border-[#1e3a6a] shadow-xl space-y-6 print:border-none print:shadow-none animate-fadeIn max-w-4xl mx-auto">
             {/* Report Header */}
-            <div className="border-b-2 border-slate-300 pb-5 flex items-start justify-between">
+            <div className="border-b-2 border-slate-300 dark:border-[#1e3a6a] pb-5 flex items-start justify-between">
               <div>
-                <h2 className="text-2xl font-black text-[#0F172A]">
+                <h2 className="text-2xl font-black text-[#002045] dark:text-white">
                   SmritiSaathi Cognitive Assessment & Progress Report
                 </h2>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                   Generated for Dr. Rajesh Verma (Neurology & Geriatrics) • Date: {new Date().toLocaleDateString()}
                 </p>
               </div>
-              <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 px-3 py-1 rounded-full text-xs font-black">
+              <span className="bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-3 py-1 rounded-full text-xs font-black">
                 CONFIDENTIAL MEDICAL RECORD
               </span>
             </div>
 
             {/* Patient Demographics */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 dark:bg-[#0d182e] p-4 rounded-2xl border border-slate-200 dark:border-[#1e3a6a] text-xs">
               <div>
                 <span className="font-bold text-slate-400 block">PATIENT NAME</span>
-                <span className="font-black text-sm text-[#0F172A]">{user.name}</span>
+                <span className="font-black text-sm text-[#002045] dark:text-white">{user.name}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">AGE / GENDER</span>
-                <span className="font-black text-sm text-[#0F172A]">{user.age} Yrs / {user.gender}</span>
+                <span className="font-black text-sm text-[#002045] dark:text-white">{user.age} Yrs / {user.gender}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">DIAGNOSIS</span>
-                <span className="font-black text-sm text-amber-900">{user.clinicalDiagnosis}</span>
+                <span className="font-black text-sm text-amber-900 dark:text-amber-300">{user.clinicalDiagnosis}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">BASELINE MoCA</span>
-                <span className="font-black text-sm text-[#0F172A]">{user.baselineMocaScore} / 30</span>
+                <span className="font-black text-sm text-[#002045] dark:text-white">{user.baselineMocaScore} / 30</span>
               </div>
             </div>
 
             {/* Domain Summary Table */}
             <div className="space-y-2">
-              <h3 className="font-black text-base text-[#0F172A]">1. Longitudinal Domain Competence</h3>
+              <h3 className="font-black text-base text-[#002045] dark:text-white">1. Longitudinal Domain Competence</h3>
               <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 {[
                   { name: 'Memory Recall', val: domainScores.memory },
@@ -867,8 +869,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                   { name: 'Executive Function', val: domainScores.executive },
                   { name: 'Sensory Planning', val: domainScores.planning },
                 ].map((d) => (
-                  <div key={d.name} className="p-3 bg-white rounded-xl border border-slate-200 text-center">
-                    <span className="text-[11px] font-bold text-slate-500 block">{d.name}</span>
+                  <div key={d.name} className="p-3 bg-white dark:bg-[#162544] rounded-xl border border-slate-200 dark:border-[#1e3a6a] text-center">
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">{d.name}</span>
                     <span className="text-xl font-black text-[#FF6321]">{d.val}%</span>
                   </div>
                 ))}
@@ -877,8 +879,8 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
             {/* Clinical Observations & Recommendations */}
             <div className="space-y-3 pt-2">
-              <h3 className="font-black text-base text-[#0F172A]">2. Clinical Observations & Next Steps</h3>
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs text-slate-700 leading-relaxed">
+              <h3 className="font-black text-base text-[#002045] dark:text-white">2. Clinical Observations & Next Steps</h3>
+              <div className="bg-slate-50 dark:bg-[#0d182e] p-4 rounded-2xl border border-slate-200 dark:border-[#1e3a6a] space-y-2 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                 <p>
                   • <strong>Temporal Awareness:</strong> Patient demonstrates consistent performance in TimeSense clock-setting and RealityQuest daily orientation (+8% trajectory).
                 </p>
@@ -895,15 +897,15 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             </div>
 
             {/* Signature Block */}
-            <div className="pt-8 flex justify-between items-end text-xs text-slate-500 border-t border-slate-200">
+            <div className="pt-8 flex justify-between items-end text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-[#1e3a6a]">
               <div>
                 <p>Signed electronically by:</p>
-                <p className="font-black text-sm text-[#0F172A] mt-1">{user.caregiverName}</p>
+                <p className="font-black text-sm text-[#002045] dark:text-white mt-1">{user.caregiverName}</p>
                 <p>Primary Caregiver ({user.caregiverRelation})</p>
               </div>
               <div className="text-right">
                 <p>Clinical Reviewer:</p>
-                <p className="font-black text-sm text-[#0F172A] mt-1">{user.physicianName}</p>
+                <p className="font-black text-sm text-[#002045] dark:text-white mt-1">{user.physicianName}</p>
                 <p>Neurology Consultant, Apollo Hospitals Delhi</p>
               </div>
             </div>
@@ -919,15 +921,15 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-[#111e38] rounded-3xl border-2 border-slate-300 dark:border-[#1e3a6a] shadow-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto text-[#002045] dark:text-slate-100"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="font-black text-lg text-[#0F172A]">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#1e3a6a] pb-3">
+              <h3 className="font-black text-lg text-[#002045] dark:text-white">
                 {editingMember ? 'Edit Family Profile' : 'Add New Family Member'}
               </h3>
               <button
                 onClick={() => setIsAddFamilyModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700"
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -935,89 +937,89 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
             <form onSubmit={handleSaveMember} className="space-y-3.5 text-xs sm:text-sm">
               <div>
-                <label className="font-black text-slate-700 block mb-1">Full Name</label>
+                <label className="font-black text-slate-700 dark:text-slate-300 block mb-1">Full Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Rohan Sharma"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-white dark:bg-[#0d182e] text-[#002045] dark:text-white font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-black text-slate-700 block mb-1">Kinship Relation</label>
+                  <label className="font-black text-slate-700 dark:text-slate-300 block mb-1">Kinship Relation</label>
                   <input
                     type="text"
                     required
                     value={formData.relation}
                     onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
                     placeholder="e.g. Son, Granddaughter"
-                    className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-white dark:bg-[#0d182e] text-[#002045] dark:text-white font-medium focus:ring-2 focus:ring-[#FF6321]"
                   />
                 </div>
                 <div>
-                  <label className="font-black text-slate-700 block mb-1">Age</label>
+                  <label className="font-black text-slate-700 dark:text-slate-300 block mb-1">Age</label>
                   <input
                     type="number"
                     value={formData.age}
                     onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-white dark:bg-[#0d182e] text-[#002045] dark:text-white font-medium focus:ring-2 focus:ring-[#FF6321]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Contact Phone</label>
+                <label className="font-black text-slate-700 dark:text-slate-300 block mb-1">Contact Phone</label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+91 98100 00000"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-white dark:bg-[#0d182e] text-[#002045] dark:text-white font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Photo URL</label>
+                <label className="font-black text-slate-700 dark:text-slate-300 block mb-1">Photo URL</label>
                 <input
                   type="url"
                   value={formData.photoUrl}
                   onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-white dark:bg-[#0d182e] text-[#002045] dark:text-white font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Voice Greeting Note</label>
+                <label className="font-black text-slate-700 dark:text-slate-300 block mb-1">Voice Greeting Note</label>
                 <input
                   type="text"
                   value={formData.voiceNote}
                   onChange={(e) => setFormData({ ...formData, voiceNote: e.target.value })}
                   placeholder="e.g. Hello Dadaji, thinking of you always!"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-white dark:bg-[#0d182e] text-[#002045] dark:text-white font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
               <div>
-                <label className="font-black text-slate-700 block mb-1">Key Memories (Separated by semicolon ;)</label>
+                <label className="font-black text-slate-700 dark:text-slate-300 block mb-1">Key Memories (Separated by semicolon ;)</label>
                 <textarea
                   rows={2}
                   value={formData.memories}
                   onChange={(e) => setFormData({ ...formData, memories: e.target.value })}
                   placeholder="Shared Shimla trip in 2019; Loves drinking morning ginger tea together"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#FF6321]"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-white dark:bg-[#0d182e] text-[#002045] dark:text-white font-medium focus:ring-2 focus:ring-[#FF6321]"
                 />
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-200 dark:border-[#1e3a6a]">
                 <button
                   type="button"
                   onClick={() => setIsAddFamilyModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
                 >
                   Cancel
                 </button>

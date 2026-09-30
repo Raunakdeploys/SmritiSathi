@@ -44,11 +44,11 @@ export function ThankYouModal({
       aria-modal="true"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div className="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-8 text-center shadow-2xl border border-slate-200 space-y-5 relative">
+      <div className="bg-[#0b1d3a] text-white rounded-3xl max-w-sm w-full p-6 sm:p-8 text-center shadow-2xl border border-blue-900/60 space-y-5 relative">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-blue-950 transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
@@ -66,7 +66,7 @@ export function ThankYouModal({
           <span className="text-[11px] font-black uppercase tracking-wider text-orange-700 bg-orange-100 px-3 py-1 rounded-full">
             Cognitive Milestone Achieved
           </span>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#002045] mt-2.5">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-2.5">
             {title}
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">
@@ -100,7 +100,7 @@ export function ThankYouModal({
             <button
               type="button"
               onClick={handleShare}
-              className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 py-2 rounded-xl bg-blue-950 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               {copied ? (
                 <>
@@ -118,7 +118,7 @@ export function ThankYouModal({
             <button
               type="button"
               onClick={onClose}
-              className="py-2 px-4 rounded-xl text-slate-500 hover:text-slate-800 text-xs font-semibold hover:bg-slate-100 transition-colors cursor-pointer"
+              className="py-2 px-4 rounded-xl text-slate-500 hover:text-slate-800 text-xs font-semibold hover:bg-blue-950 transition-colors cursor-pointer"
             >
               Close
             </button>

@@ -308,17 +308,17 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
   return (
     <div
       id="realtime-gps-assessment-container"
-      className="bg-[#F8F9FA] text-[#0F172A] p-4 sm:p-6 rounded-3xl border-3 border-[#0F172A]/20 shadow-xl space-y-6 animate-fadeIn"
+      className="bg-[#0b1d3a] text-white p-4 sm:p-6 rounded-3xl border-3 border-[#0F172A]/20 shadow-xl space-y-6 animate-fadeIn"
     >
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-200 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-blue-900/60 pb-4">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-[#0F172A] text-white rounded-2xl shadow-md">
             <Radio className="w-7 h-7 text-[#FF6321] animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-xl sm:text-2xl font-black text-[#0F172A]">
+              <h3 className="text-xl sm:text-2xl font-black text-white">
                 Live GPS & Spatial Orientation Assessment
               </h3>
               <span className="bg-[#FF6321] text-white text-xs font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
@@ -333,7 +333,7 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
 
         <button
           onClick={handleHearTelemetry}
-          className="bg-white hover:bg-slate-50 text-[#0F172A] border-2 border-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs transition-transform active:scale-95 cursor-pointer"
+          className="bg-white hover:bg-[#00142b] text-white border-2 border-blue-800 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs transition-transform active:scale-95 cursor-pointer"
         >
           <Volume2 className="w-4 h-4 text-[#FF6321]" />
           <span>Hear Telemetry</span>
@@ -435,7 +435,7 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
       {/* 4 Dynamic Orientation Quizzes */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="font-black text-base sm:text-lg text-[#0F172A] flex items-center space-x-2">
+          <h4 className="font-black text-base sm:text-lg text-white flex items-center space-x-2">
             <Compass className="w-5 h-5 text-[#FF6321]" />
             <span>Spatial Orientation Quizzes</span>
           </h4>
@@ -461,7 +461,7 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
                       : 'bg-rose-50/70 border-rose-300'
                     : isAnswered
                     ? 'bg-amber-50/50 border-amber-300 shadow-xs'
-                    : 'bg-white border-slate-200 shadow-xs'
+                    : 'bg-white border-blue-900/60 shadow-xs'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
@@ -469,13 +469,13 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
                     <span className="w-6 h-6 rounded-full bg-[#0F172A] text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">
                       {qIndex + 1}
                     </span>
-                    <p className="font-extrabold text-sm sm:text-base text-[#0F172A]">
+                    <p className="font-extrabold text-sm sm:text-base text-white">
                       {q.question}
                     </p>
                   </div>
                   <button
                     onClick={() => speakText(q.question, true)}
-                    className="p-1.5 text-slate-500 hover:text-[#0F172A] rounded-lg"
+                    className="p-1.5 text-slate-500 hover:text-white rounded-lg"
                     title="Read question aloud"
                   >
                     <Volume2 className="w-4 h-4" />
@@ -494,7 +494,7 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
                         className={`p-3 rounded-xl font-bold text-xs sm:text-sm text-left transition-all border-2 flex items-center justify-between cursor-pointer ${
                           isOptSelected
                             ? 'bg-[#0F172A] text-white border-[#FF6321] shadow-sm'
-                            : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
+                            : 'bg-white hover:bg-[#00142b] text-slate-800 border-blue-900/60'
                         }`}
                       >
                         <span className="line-clamp-2">{opt}</span>
@@ -508,7 +508,7 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
 
                 {/* Hint / Feedback */}
                 {isSubmitted && (
-                  <div className="mt-2.5 pt-2.5 border-t border-slate-200 flex items-center justify-between text-xs font-bold">
+                  <div className="mt-2.5 pt-2.5 border-t border-blue-900/60 flex items-center justify-between text-xs font-bold">
                     <span className={isCorrect ? 'text-emerald-700' : 'text-rose-700'}>
                       {isCorrect ? '✓ Correct Answer!' : `Expected: ${q.correctAnswer}`}
                     </span>
@@ -522,11 +522,11 @@ export const RealTimeLocationOrientationTest: React.FC<RealTimeLocationOrientati
       </div>
 
       {/* Submission Footer */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t-2 border-slate-200">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t-2 border-blue-900/60">
         {onCancel && !isSubmitted && (
           <button
             onClick={onCancel}
-            className="bg-white hover:bg-slate-100 text-slate-700 border-2 border-slate-300 px-5 py-3 rounded-2xl font-black text-sm cursor-pointer"
+            className="bg-white hover:bg-blue-950 text-slate-700 border-2 border-blue-800 px-5 py-3 rounded-2xl font-black text-sm cursor-pointer"
           >
             Cancel
           </button>

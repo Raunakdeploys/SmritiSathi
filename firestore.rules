@@ -65,6 +65,14 @@ service cloud.firestore {
              data.cause is string && data.cause.size() > 0 && data.cause.size() <= 150;
     }
 
+    // Validation Blueprint for ChatThread (ChatGPT style persistent conversations)
+    function isValidChatThread(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.createdAt is string && data.updatedAt is string;
+    }
+
+
     // Users Collection
     match /users/{userId} {
       allow get: if isOwner(userId) && isValidId(userId);
@@ -104,6 +112,14 @@ service cloud.firestore {
         allow update: if isOwner(userId) && isValidId(userId) && isValidId(alertId) && isValidAlertLogEntry(incoming());
         allow delete: if isOwner(userId) && isValidId(userId) && isValidId(alertId);
       }
+
+      // Chat Threads Sub-collection (OpenAI ChatGPT style persistent conversations)
+      match /chatThreads/{threadId} {
+        allow get, list: if isOwner(userId) && isValidId(userId);
+        allow create, update: if isOwner(userId) && isValidId(userId) && isValidId(threadId) && isValidChatThread(incoming());
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(threadId);
+      }
     }
   }
 }
+

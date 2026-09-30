@@ -414,5 +414,33 @@
       }
     ],
     "memories": []
+  },
+  "chatThreads": {
+    "topmostproffesor234@gmail.com": [
+      {
+        "id": "thread-test-1",
+        "title": "Who is the President of US",
+        "role": "companion",
+        "createdAt": "2026-09-30T17:50:40.762Z",
+        "updatedAt": "2026-09-30T17:50:40.762Z",
+        "lastMessage": "Donald Trump is the President of the United States.",
+        "userEmail": "topmostproffesor234@gmail.com",
+        "userId": "user_test_123",
+        "messages": [
+          {
+            "id": "1",
+            "role": "user",
+            "text": "Who is the president of US?",
+            "timestamp": "10:45 AM"
+          },
+          {
+            "id": "2",
+            "role": "model",
+            "text": "Donald Trump is the President of the United States.",
+            "timestamp": "10:45 AM"
+          }
+        ]
+      }
+    ]
   }
 }

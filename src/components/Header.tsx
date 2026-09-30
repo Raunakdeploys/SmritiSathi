@@ -11,6 +11,10 @@ interface HeaderProps {
   onOpenProfile: () => void;
   onOpenMobileMenu: () => void;
   onOpenRewards: () => void;
+  onOpenSearch?: () => void;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
+  onOpenPrintReport?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,6 +23,10 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenMobileMenu,
   onOpenRewards,
+  onOpenSearch,
+  isDarkMode = false,
+  onToggleDarkMode,
+  onOpenPrintReport,
 }) => {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -65,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       id="top-app-bar"
-      className="bg-[#f9f9ff] fixed top-0 left-0 md:left-64 right-0 border-b-2 border-[#c4c6cf] flex justify-between items-center px-3 sm:px-6 md:px-8 h-[72px] z-30 shadow-xs box-border overflow-hidden"
+      className="bg-white dark:bg-[#070d18] fixed top-0 left-0 md:left-64 right-0 border-b-2 border-slate-200 dark:border-[#1e3a6a] flex justify-between items-center px-3 sm:px-6 md:px-8 h-[72px] z-30 shadow-xs box-border overflow-hidden transition-colors"
     >
       <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
         {/* Mobile menu trigger */}
@@ -73,27 +81,88 @@ export const Header: React.FC<HeaderProps> = ({
           id="btn-mobile-menu-toggle"
           onClick={onOpenMobileMenu}
           aria-label="Open Navigation Menu"
-          className="md:hidden p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-lg min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045] shrink-0 cursor-pointer"
+          className="md:hidden p-2 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-lg min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-blue-500 shrink-0 cursor-pointer"
         >
           <span className="material-symbols-outlined text-[26px]">menu</span>
         </button>
 
         <h1
           id="app-main-title"
-          className="font-extrabold text-[18px] sm:text-[24px] md:text-[28px] tracking-tight text-[#002045] select-none truncate"
+          className="font-extrabold text-[18px] sm:text-[24px] md:text-[28px] tracking-tight text-slate-900 dark:text-white select-none truncate"
         >
           SmritiSaathi
         </h1>
+
+        {/* Site Search Bar / Trigger */}
+        {onOpenSearch && (
+          <button
+            id="btn-header-site-search"
+            type="button"
+            onClick={onOpenSearch}
+            title="Search features, games & emergency actions (Cmd+K)"
+            aria-label="Site Search (Cmd+K)"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-slate-50 dark:bg-[#0f1b36] text-slate-600 dark:text-slate-300 hover:border-blue-500 dark:hover:border-sky-400 text-xs transition-all cursor-pointer shadow-xs ml-4"
+          >
+            <span className="material-symbols-outlined text-[18px] text-slate-400 dark:text-slate-400">search</span>
+            <span>Search features...</span>
+            <kbd className="ml-2 font-mono text-[10px] bg-slate-200 dark:bg-[#1a2d52] text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-300 dark:border-[#233d6d]">
+              ⌘K
+            </kbd>
+          </button>
+        )}
       </div>
 
-      <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+      <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+        {/* Mobile Search Button */}
+        {onOpenSearch && (
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            title="Search features"
+            aria-label="Search features"
+            className="md:hidden p-1.5 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[38px] min-w-[38px] flex items-center justify-center cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[22px]">search</span>
+          </button>
+        )}
+
+        {/* Print Cognitive Handover Report */}
+        {onOpenPrintReport && (
+          <button
+            id="btn-header-print-report"
+            type="button"
+            onClick={onOpenPrintReport}
+            title="Print Clinical Summary & Emergency Handover Card"
+            aria-label="Print Clinical Summary"
+            className="p-1.5 sm:p-2 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[22px] sm:text-[24px]">print</span>
+          </button>
+        )}
+
+        {/* Dark Mode Toggle */}
+        {onToggleDarkMode && (
+          <button
+            id="btn-header-dark-mode"
+            type="button"
+            onClick={onToggleDarkMode}
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="p-1.5 sm:p-2 text-slate-700 dark:text-amber-300 hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[22px] sm:text-[24px]">
+              {isDarkMode ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+        )}
+
         {/* Audio narration button for accessible low-vision reading */}
         <button
           id="btn-read-aloud"
           onClick={handleReadAloud}
           title="Read screen aloud with voice guidance"
           aria-label="Read screen aloud"
-          className="p-1.5 sm:p-2 text-[#002045] hover:bg-[#d9e3f9] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer shrink-0"
+          className="p-1.5 sm:p-2 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-blue-500 cursor-pointer shrink-0"
         >
           <span className="material-symbols-outlined text-[22px] sm:text-[26px]">volume_up</span>
         </button>
@@ -103,16 +172,16 @@ export const Header: React.FC<HeaderProps> = ({
           id="header-mind-points-chip"
           onClick={onOpenRewards}
           title="Click to view and redeem Mind Points"
-          className="hidden sm:flex items-center bg-[#ffdeaa] hover:bg-[#f8bc4b] text-[#271900] px-2.5 sm:px-3 py-1.5 rounded-full transition-all border border-[#f8bc4b] min-h-[38px] cursor-pointer shadow-xs active:scale-95 shrink-0"
+          className="hidden sm:flex items-center bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/80 dark:hover:bg-amber-900/90 text-amber-950 dark:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-full transition-all border border-amber-300 dark:border-amber-700 min-h-[38px] cursor-pointer shadow-xs active:scale-95 shrink-0"
         >
-          <span className="material-symbols-outlined mr-1 filled-icon text-[#2d1d00] text-[18px] sm:text-[20px]">stars</span>
+          <span className="material-symbols-outlined mr-1 filled-icon text-amber-600 dark:text-amber-300 text-[18px] sm:text-[20px]">stars</span>
           <span className="font-extrabold text-[14px] sm:text-[16px]">{mindPointsFormatted}</span>
-          <span className="hidden md:inline text-xs ml-1 text-[#5f4100] font-semibold">pts</span>
+          <span className="hidden md:inline text-xs ml-1 text-amber-800 dark:text-amber-300/80 font-semibold">pts</span>
         </button>
 
         {/* Google Sign In / Account Status */}
         {user?.isGoogleLinked ? (
-          <div className="flex items-center space-x-1 sm:space-x-2 bg-[#e7eeff] pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-1 rounded-full border border-[#adc7f7]">
+          <div className="flex items-center space-x-1 sm:space-x-2 bg-blue-50 dark:bg-[#111f3d] pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-1 rounded-full border border-blue-200 dark:border-[#1e3a6a]">
             <button
               id="btn-user-google-profile"
               onClick={onOpenProfile}
@@ -123,16 +192,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-sky-400 object-cover"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-blue-400 object-cover"
                 />
               ) : (
-                <span className="material-symbols-outlined text-[24px] sm:text-[26px] text-[#002045]">account_circle</span>
+                <span className="material-symbols-outlined text-[24px] sm:text-[26px] text-slate-800 dark:text-slate-200">account_circle</span>
               )}
               <div className="hidden lg:block text-left pr-1">
-                <p className="text-xs font-extrabold text-[#002045] truncate max-w-[100px] leading-tight">
+                <p className="text-xs font-extrabold text-slate-900 dark:text-white truncate max-w-[100px] leading-tight">
                   {user.name}
                 </p>
-                <p className="text-[10px] text-emerald-700 font-bold flex items-center gap-0.5">
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
                   <CheckCircle2 className="w-2.5 h-2.5" /> Google Synced
                 </p>
               </div>
@@ -142,7 +211,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-header-signout"
               onClick={handleGoogleSignOut}
               title="Sign out of Google"
-              className="p-1 sm:p-1.5 text-[#43474e] hover:text-rose-600 hover:bg-white/80 rounded-full transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/80 dark:hover:bg-[#1a2d52] rounded-full transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
@@ -153,9 +222,9 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-header-google-signin"
               onClick={onOpenProfile}
               title="Sign in to backup your progress across devices"
-              className="flex items-center space-x-1 bg-white hover:bg-[#f0f3ff] text-[#002045] font-bold text-xs px-2.5 sm:px-3 py-1.5 rounded-full border-2 border-[#adc7f7] shadow-xs hover:border-[#002045] transition-all cursor-pointer min-h-[38px] shrink-0"
+              className="flex items-center space-x-1 bg-white hover:bg-blue-50 dark:bg-[#111f3d] dark:hover:bg-[#1a2d52] text-slate-800 dark:text-white font-bold text-xs px-2.5 sm:px-3 py-1.5 rounded-full border-2 border-slate-300 dark:border-[#1e3a6a] shadow-xs hover:border-blue-600 dark:hover:border-sky-400 transition-all cursor-pointer min-h-[38px] shrink-0"
             >
-              <LogIn className="w-3.5 h-3.5 text-[#002045]" />
+              <LogIn className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400" />
               <span className="hidden xs:inline sm:inline">Sign In</span>
             </button>
 
@@ -163,7 +232,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-user-account"
               onClick={onOpenProfile}
               aria-label={`Account profile for ${user?.name || 'Asha Devi'}`}
-              className="text-[#002045] hover:bg-[#dee8ff] transition-colors p-1 rounded-full min-h-[38px] min-w-[38px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer shrink-0"
+              className="text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] transition-colors p-1 rounded-full min-h-[38px] min-w-[38px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-blue-500 cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined filled-icon text-[26px] sm:text-[28px]">account_circle</span>
             </button>

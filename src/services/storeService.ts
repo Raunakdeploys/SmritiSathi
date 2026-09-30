@@ -1378,6 +1378,34 @@ class StoreService {
     };
   }
 
+  public setAdaptiveBridgeState(
+    gameId: string,
+    active: boolean,
+    reason?: string
+  ): void {
+    const progress = this.getGameProgress(gameId);
+    if (active) {
+      progress.activeBridge = {
+        status: 'active',
+        difficulty: 'easy',
+        visualCluesEnabled: true,
+        extraTimeEnabled: true,
+        reductionFactor: 0.75,
+        reason: reason || 'Manual caregiver activation',
+      };
+    } else {
+      progress.activeBridge = {
+        status: 'idle',
+        difficulty: 'standard',
+        visualCluesEnabled: false,
+        extraTimeEnabled: false,
+        reductionFactor: 1,
+      };
+    }
+    this.saveDatabase();
+    this.notifyListeners();
+  }
+
   public addLocationCheck(record: Omit<LocationCheckRecord, 'id' | 'timestamp'>): LocationCheckRecord {
     const newRecord: LocationCheckRecord = {
       ...record,

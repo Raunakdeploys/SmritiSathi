@@ -395,6 +395,33 @@ export interface MemoryCard {
   location?: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: string;
+  modelUsed?: string;
+  roleUsed?: string;
+  error?: boolean;
+  isLiveAI?: boolean;
+  source?: string;
+  groundingSources?: Array<{ title?: string; uri?: string }>;
+  webSearchQueries?: string[];
+  webSearchUsed?: boolean;
+}
+
+export interface ChatThread {
+  id: string;
+  title: string;
+  role: 'companion' | 'quick' | 'complex';
+  createdAt: string;
+  updatedAt: string;
+  lastMessage?: string;
+  userEmail?: string;
+  userId?: string;
+  messages: ChatMessage[];
+}
+
 export interface AppDatabase {
   user: UserProfile;
   familyMembers?: FamilyMember[];
@@ -417,4 +444,6 @@ export interface AppDatabase {
     alertLogs: AlertLogEntry[];
     memories: MemoryCard[];
   };
+  chatThreads?: Record<string, ChatThread[]>;
 }
+
