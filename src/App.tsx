@@ -50,6 +50,9 @@ import { LiveCameraSpotterGame } from './components/games/LiveCameraSpotterGame'
 import { NameThatFaceGame } from './components/games/NameThatFaceGame';
 import { ShapeSorterGame } from './components/games/ShapeSorterGame';
 import { WordPairGame } from './components/games/WordPairGame';
+import { DualNBackGame } from './components/games/DualNBackGame';
+import { StroopGame } from './components/games/StroopGame';
+import { SpatialGridGame } from './components/games/SpatialGridGame';
 
 export default function App() {
 
@@ -69,8 +72,10 @@ export default function App() {
   const familyMembers = database.familyMembers;
   const rewards = database.rewards;
 
-  // Active game modal ID
+  // Active game modal ID & level state
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
+  const [activeGameLevel, setActiveGameLevel] = useState<number | undefined>(undefined);
+  const [activeCustomLevelData, setActiveCustomLevelData] = useState<any>(undefined);
   const [isDailyTrainingOpen, setIsDailyTrainingOpen] = useState(false);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -478,7 +483,11 @@ export default function App() {
           {currentTab === 'games' && (
             <GamesView
               games={games}
-              onPlayGame={(gameId) => setActiveGameId(gameId)}
+              onPlayGame={(gameId, levelOverride, customLevelData) => {
+                setActiveGameId(gameId);
+                setActiveGameLevel(levelOverride);
+                setActiveCustomLevelData(customLevelData);
+              }}
               onToggleFavorite={handleToggleFavorite}
             />
           )}
@@ -770,10 +779,52 @@ export default function App() {
 
       {activeGameId === 'word-pair-recall' && (
         <WordPairGame
-          currentLevel={games.find((g) => g.id === 'word-pair-recall')?.level || 1}
-          maxLevel={3}
+          currentLevel={activeGameLevel || games.find((g) => g.id === 'word-pair-recall')?.level || 2}
+          maxLevel={10}
           onComplete={(score, pts, acc, lvl) =>
-            handleGameComplete('word-pair-recall', score, pts, acc, 'Memory', 'Word Pair Memory', lvl)
+            handleGameComplete('word-pair-recall', score, pts, acc, 'Memory', 'Word Pair & Reminiscence Memory', lvl)
+          }
+          onClose={() => setActiveGameId(null)}
+          voiceGuidanceEnabled={user?.preferences?.voiceAssistance ?? true}
+        />
+      )}
+
+      {/* 8. Dual N-Back Working Memory Trainer */}
+      {activeGameId === 'dual-nback' && (
+        <DualNBackGame
+          currentLevel={activeGameLevel || games.find((g) => g.id === 'dual-nback')?.level || 2}
+          maxLevel={10}
+          customLevelData={activeCustomLevelData}
+          onComplete={(score, pts, acc, lvl) =>
+            handleGameComplete('dual-nback', score, pts, acc, 'Attention', 'Dual N-Back Working Memory', lvl)
+          }
+          onClose={() => setActiveGameId(null)}
+          voiceGuidanceEnabled={user?.preferences?.voiceAssistance ?? true}
+        />
+      )}
+
+      {/* 9. Stroop Executive Inhibitory Challenge */}
+      {activeGameId === 'stroop-executive' && (
+        <StroopGame
+          currentLevel={activeGameLevel || games.find((g) => g.id === 'stroop-executive')?.level || 2}
+          maxLevel={10}
+          customLevelData={activeCustomLevelData}
+          onComplete={(score, pts, acc, lvl) =>
+            handleGameComplete('stroop-executive', score, pts, acc, 'Executive', 'Stroop Executive Inhibition', lvl)
+          }
+          onClose={() => setActiveGameId(null)}
+          voiceGuidanceEnabled={user?.preferences?.voiceAssistance ?? true}
+        />
+      )}
+
+      {/* 10. Spatial Pattern Memory Grid */}
+      {activeGameId === 'spatial-grid' && (
+        <SpatialGridGame
+          currentLevel={activeGameLevel || games.find((g) => g.id === 'spatial-grid')?.level || 2}
+          maxLevel={10}
+          customLevelData={activeCustomLevelData}
+          onComplete={(score, pts, acc, lvl) =>
+            handleGameComplete('spatial-grid', score, pts, acc, 'Spatial', 'Spatial Pattern Memory Grid', lvl)
           }
           onClose={() => setActiveGameId(null)}
           voiceGuidanceEnabled={user?.preferences?.voiceAssistance ?? true}

@@ -152,3 +152,7 @@ export function stopSpeaking() {
     }
   }
 }
+
+export const playSuccessBell = playSuccessChime;
+export const playSoftMistakeSound = playBridgeChime;
+

@@ -1,18 +1,37 @@
 {
+  "id": "/",
   "name": "SmritiSaathi - Cognitive Health & Memory Companion",
   "short_name": "SmritiSaathi",
-  "description": "Adaptive cognitive stimulation, reminiscence therapy, and caregiver safety compass for seniors.",
+  "description": "Adaptive cognitive stimulation, reminiscence therapy, and caregiver safety compass for seniors with MCI and Alzheimer's.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#002045",
+  "background_color": "#ffffff",
   "theme_color": "#002045",
   "orientation": "portrait-primary",
+  "categories": [
+    "health",
+    "lifestyle",
+    "medical"
+  ],
   "icons": [
     {
       "src": "/favicon.svg",
-      "sizes": "any",
+      "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }

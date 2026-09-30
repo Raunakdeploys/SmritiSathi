@@ -10,7 +10,10 @@ export type GameId =
   | 'name-that-face'
   | 'shape-sorter'
   | 'word-pair-recall'
-  | 'live-camera-spotter';
+  | 'live-camera-spotter'
+  | 'dual-nback'
+  | 'stroop-executive'
+  | 'spatial-grid';
 
 export interface HomeLocation {
   label: string;
