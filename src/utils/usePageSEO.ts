@@ -37,6 +37,10 @@ const TAB_TITLES: Record<string, { title: string; description: string }> = {
     title: 'Help, Senior Safety Helplines & Caregiver Support',
     description: 'Access 24/7 Elder Helpline 14567, emergency 112, user guides, and FAQs.',
   },
+  'android-app': {
+    title: 'Download Android APK & App – SmritiSaathi',
+    description: 'Install or download the SmritiSaathi native Android APK / TWA with live AI Chat, Firebase persistence, and GPS geofencing.',
+  },
 };
 
 export function usePageSEO(currentTab: string) {

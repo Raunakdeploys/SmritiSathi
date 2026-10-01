@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { UserProfile } from '../types';
-import { usePWAInstall } from '../hooks/usePWAInstall';
-import { AndroidAPKModal } from './AndroidAPKModal';
 
 interface SidebarProps {
   currentTab: string;
@@ -16,9 +14,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onStartDailyTraining,
   user,
 }) => {
-  const [showAPKModal, setShowAPKModal] = useState(false);
-  const { isInstallable, isInstalled, isIOS, isAndroid, install } = usePWAInstall();
-
   const avatarUrl =
     user?.avatarUrl ||
     'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=500&auto=format&fit=crop&q=80';
@@ -89,6 +84,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       iconActiveColor: 'text-white',
       iconDefaultColor: 'text-purple-700 dark:text-purple-300',
     },
+    {
+      id: 'android-app',
+      label: 'Android App & APK',
+      icon: 'smartphone',
+      badge: 'APK',
+      badgeColor: 'bg-emerald-600 text-white',
+      accentColor: 'border-emerald-500',
+      iconActiveColor: 'text-white',
+      iconDefaultColor: 'text-emerald-700 dark:text-emerald-400',
+    },
   ];
 
   const secondaryNavItems = [
@@ -140,18 +145,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           Ready to train?
         </p>
 
+        {/* Start Daily Workout Action Button */}
         <button
-          id="btn-start-daily-training-sidebar"
+          id="btn-sidebar-daily-workout"
           onClick={onStartDailyTraining}
-          className="mt-2.5 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 dark:bg-blue-600 dark:hover:bg-blue-500 text-white w-full py-2.5 px-3 rounded-xl flex items-center justify-center min-h-[44px] text-[15px] font-bold shadow-xs transition-all focus:outline-hidden focus:ring-4 focus:ring-blue-400 focus:ring-offset-2 cursor-pointer hover:shadow-sm"
+          aria-label="Start Daily Brain Training"
+          className="mt-3.5 w-full py-2.5 px-3 rounded-xl bg-[#002045] hover:bg-[#1a365d] active:scale-98 text-white font-extrabold text-[13px] tracking-wide transition-all shadow-sm flex items-center justify-center space-x-1.5 focus:outline-none focus:ring-4 focus:ring-blue-400 cursor-pointer"
         >
-          <span className="material-symbols-outlined mr-2 filled-icon text-[20px]">play_circle</span>
-          <span>Start Daily Training</span>
+          <span className="material-symbols-outlined text-[18px]">psychology</span>
+          <span>Daily Training</span>
         </button>
       </div>
 
-      {/* Main Navigation Links */}
-      <div className="space-y-1">
+      {/* Primary Navigation Links */}
+      <div className="flex-1 space-y-1">
         {navItems.map((item) => {
           const isActive = currentTab === item.id;
           return (
@@ -160,18 +167,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id={`nav-btn-${item.id}`}
               onClick={() => onSelectTab(item.id)}
               aria-current={isActive ? 'page' : undefined}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all min-h-[42px] cursor-pointer text-left ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all min-h-[44px] cursor-pointer text-left ${
                 isActive
-                  ? item.id === 'patient-mode'
-                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white font-extrabold shadow-xs'
-                    : `bg-blue-700 dark:bg-blue-600 text-white font-extrabold shadow-xs ${item.accentColor ? `border-l-4 ${item.accentColor}` : ''}`
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-[#111f3d] hover:text-blue-900 dark:hover:text-white'
+                  ? 'bg-[#002045] dark:bg-blue-600 text-white font-extrabold shadow-sm'
+                  : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#111f3d] hover:text-[#002045] dark:hover:text-white'
               }`}
             >
               <div className="flex items-center min-w-0">
                 <span
                   className={`material-symbols-outlined mr-2.5 text-[22px] shrink-0 ${
-                    isActive ? `filled-icon ${item.iconActiveColor}` : item.iconDefaultColor
+                    isActive ? item.iconActiveColor : item.iconDefaultColor
                   }`}
                 >
                   {item.icon}
@@ -180,7 +185,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               {item.badge && (
                 <span
-                  className={`text-[10px] uppercase font-black px-1.5 py-0.5 rounded shrink-0 ml-1 ${item.badgeColor}`}
+                  className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1 shrink-0 ${
+                    isActive ? 'bg-white text-[#002045]' : item.badgeColor
+                  }`}
                 >
                   {item.badge}
                 </span>
@@ -190,7 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </div>
 
-      {/* Secondary Links Section (Settings & Help) */}
+      {/* Secondary Links Section (Settings, Help, Design System) */}
       <div className="pt-2 mt-2 border-t border-slate-200 dark:border-[#1e3a6a] space-y-1">
         {secondaryNavItems.map((item) => {
           const isActive = currentTab === item.id;
@@ -218,32 +225,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           );
         })}
       </div>
-
-      {/* Android APK / Native PWA App Entry */}
-      <div className="pt-2 mt-auto border-t border-slate-200 dark:border-[#1e3a6a]">
-        <button
-          id="nav-btn-android-app"
-          onClick={() => setShowAPKModal(true)}
-          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold shadow-sm transition-all text-left cursor-pointer"
-        >
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[20px]">android</span>
-            <span className="text-sm">Get Android App</span>
-          </div>
-          <span className="bg-white/20 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase">
-            APK
-          </span>
-        </button>
-      </div>
-
-      <AndroidAPKModal
-        isOpen={showAPKModal}
-        onClose={() => setShowAPKModal(false)}
-        isInstallable={isInstallable}
-        isIOS={isIOS}
-        isAndroid={isAndroid}
-        onDirectInstall={install}
-      />
     </nav>
   );
 };

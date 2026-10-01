@@ -88,6 +88,14 @@ export const CommandPaletteSearch: React.FC<CommandPaletteSearchProps> = ({
       action: () => { onSelectTab('saathi-chat'); onClose(); },
       icon: 'voice_chat',
     },
+    {
+      id: 'nav-android-app',
+      title: 'Android App & APK Center (Download / Install)',
+      category: 'Tool',
+      description: 'Package, download APK/AAB for Google Play, or 1-tap install on Android',
+      action: () => { onSelectTab('android-app'); onClose(); },
+      icon: 'smartphone',
+    },
     // Cognitive Games
     {
       id: 'game-wayback',

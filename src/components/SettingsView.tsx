@@ -33,6 +33,7 @@ interface SettingsViewProps {
   onAddFamilyFace: (face: Omit<FamilyFaceItem, 'id'>) => Promise<void>;
   onDeleteFamilyFace: (id: string) => Promise<void>;
   onResetDemo: () => Promise<void>;
+  onNavigateToTab?: (tab: string) => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -42,6 +43,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onAddFamilyFace,
   onDeleteFamilyFace,
   onResetDemo,
+  onNavigateToTab,
 }) => {
   const [userName, setUserName] = useState(user?.name || 'Asha Devi');
   const [caregiverName, setCaregiverName] = useState(user?.caregiverName || 'Rohan Sharma (Son)');
@@ -488,11 +490,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
           <button
             type="button"
-            onClick={() => setShowAPKModal(true)}
+            onClick={() => {
+              if (onNavigateToTab) {
+                onNavigateToTab('android-app');
+              } else {
+                setShowAPKModal(true);
+              }
+            }}
             className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-3 rounded-xl font-bold text-sm cursor-pointer whitespace-nowrap shadow-md transition-all active:scale-95 flex items-center gap-2 shrink-0"
           >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            <span>Get Android App</span>
+            <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+            <span>Open Android App Center</span>
           </button>
         </div>
 

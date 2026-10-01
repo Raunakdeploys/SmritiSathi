@@ -39,6 +39,7 @@ import { FloatingContactButton } from './components/FloatingContactButton';
 import { CommandPaletteSearch } from './components/CommandPaletteSearch';
 import { PrintReportModal } from './components/PrintReportModal';
 import { DesignSystemView } from './components/DesignSystemView';
+import { AndroidAppView } from './components/AndroidAppView';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
@@ -362,6 +363,7 @@ export default function App() {
                   { id: 'reality-quest', label: 'Reality Quest', icon: 'explore' },
                   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
                   { id: 'caregiver', label: 'Caregiver Portal', icon: 'supervised_user_circle' },
+                  { id: 'android-app', label: 'Android App & APK', icon: 'smartphone' },
                   { id: 'settings', label: 'Settings', icon: 'settings' },
                   { id: 'help', label: 'Help & Guide', icon: 'help' },
                   { id: 'design', label: 'Design System', icon: 'palette' },
@@ -541,6 +543,10 @@ export default function App() {
               }
               onDeleteFamilyFace={handleDeleteFamilyMember}
               onResetDemo={handleResetDemo}
+              onNavigateToTab={(tab) => {
+                setCurrentTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
             />
           )}
 
@@ -552,6 +558,16 @@ export default function App() {
               onBackToApp={() => setCurrentTab('dashboard')}
               isDarkMode={isDarkMode}
               onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+            />
+          )}
+
+          {/* Android App & APK Center Section */}
+          {currentTab === 'android-app' && (
+            <AndroidAppView
+              onBackToDashboard={() => {
+                setCurrentTab('dashboard');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
             />
           )}
 
@@ -568,6 +584,7 @@ export default function App() {
             'settings',
             'help',
             'design',
+            'android-app',
           ].includes(currentTab) && (
             <NotFoundView
               onNavigateHome={() => setCurrentTab('dashboard')}
