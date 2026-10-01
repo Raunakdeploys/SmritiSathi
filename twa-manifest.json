@@ -1,0 +1,41 @@
+{
+  "packageId": "com.smritisathi.app",
+  "host": "ais-dev-shb7446nbubn7jhnzagw6i-583635606143.asia-southeast1.run.app",
+  "name": "SmritiSaathi – Cognitive Health & Memory Companion",
+  "launcherName": "SmritiSaathi",
+  "themeColor": "#002045",
+  "navigationColor": "#002045",
+  "navigationColorDark": "#001026",
+  "navigationDividerColor": "#002045",
+  "navigationDividerColorDark": "#001026",
+  "backgroundColor": "#002045",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "/pwa-512x512.png",
+  "maskableIconUrl": "/pwa-maskable-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "alias": "android",
+    "storeFile": "android.keystore"
+  },
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false
+}

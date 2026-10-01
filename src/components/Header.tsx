@@ -4,6 +4,7 @@ import { speakText, playGentleClick, playSuccessChime } from '../utils/audio';
 import { signInWithGoogle, signOutUser } from '../firebase';
 import { storeService } from '../services/storeService';
 import { LogIn, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   user: UserProfile | null;
@@ -166,6 +167,9 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <span className="material-symbols-outlined text-[22px] sm:text-[26px]">volume_up</span>
         </button>
+
+        {/* Android App APK / PWA Install Button */}
+        <PWAInstallButton />
 
         {/* Mind Points Display (Clickable to redeem rewards) */}
         <button

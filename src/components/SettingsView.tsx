@@ -21,7 +21,10 @@ import {
   Settings,
   Image,
   RefreshCw,
+  Smartphone,
 } from 'lucide-react';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { AndroidAPKModal } from './AndroidAPKModal';
 
 interface SettingsViewProps {
   user: UserProfile | null;
@@ -46,6 +49,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [fontSize, setFontSize] = useState(user?.preferences?.fontSize || 'large');
   const [voiceGuidance, setVoiceGuidance] = useState(user?.preferences?.voiceGuidance ?? true);
   const [soundEffects, setSoundEffects] = useState(user?.preferences?.soundEffects ?? true);
+  const [showAPKModal, setShowAPKModal] = useState(false);
+  const { isInstallable, isInstalled, isIOS, isAndroid, install } = usePWAInstall();
 
   const [isSaved, setIsSaved] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
@@ -461,6 +466,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
+        {/* Android Mobile App (APK / PWA) */}
+        <div className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-[#081a17] dark:to-[#091e23] rounded-2xl border-2 border-emerald-300 dark:border-emerald-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+              <Smartphone className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-[18px] text-emerald-950 dark:text-emerald-100">
+                  SmritiSaathi for Android (APK / WebAPK)
+                </h3>
+                <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                  Native Experience
+                </span>
+              </div>
+              <p className="text-xs text-emerald-900 dark:text-emerald-300 font-medium mt-0.5">
+                Download the APK package or install directly onto your Android device with live Gemini 2.5 voice chat, AI Game Forge, and Firebase Firestore persistence.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAPKModal(true)}
+            className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-3 rounded-xl font-bold text-sm cursor-pointer whitespace-nowrap shadow-md transition-all active:scale-95 flex items-center gap-2 shrink-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">download</span>
+            <span>Get Android App</span>
+          </button>
+        </div>
+
         {/* Database Demo Reset */}
         <div className="p-6 bg-rose-50 dark:bg-[#201115] rounded-2xl border border-rose-200 dark:border-[#6b2131] flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
@@ -544,6 +579,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Android APK Modal */}
+      <AndroidAPKModal
+        isOpen={showAPKModal}
+        onClose={() => setShowAPKModal(false)}
+        isInstallable={isInstallable}
+        isIOS={isIOS}
+        isAndroid={isAndroid}
+        onDirectInstall={install}
+      />
     </main>
   );
 };

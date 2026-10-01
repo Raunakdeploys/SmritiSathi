@@ -39,6 +39,7 @@ import { FloatingContactButton } from './components/FloatingContactButton';
 import { CommandPaletteSearch } from './components/CommandPaletteSearch';
 import { PrintReportModal } from './components/PrintReportModal';
 import { DesignSystemView } from './components/DesignSystemView';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
 import { WayBackGame } from './components/games/WayBackGame';
@@ -993,6 +994,9 @@ export default function App() {
         anchorName={database.careCompass?.config?.anchorName || 'Home Sweet Home'}
         safeRadius={database.careCompass?.config?.anchorRadiusMeters || 100}
       />
+
+      {/* Connectivity & Offline Status Banner */}
+      <OfflineIndicator />
     </div>
   );
 }

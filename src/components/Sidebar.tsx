@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { UserProfile } from '../types';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { AndroidAPKModal } from './AndroidAPKModal';
 
 interface SidebarProps {
   currentTab: string;
@@ -14,6 +16,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onStartDailyTraining,
   user,
 }) => {
+  const [showAPKModal, setShowAPKModal] = useState(false);
+  const { isInstallable, isInstalled, isIOS, isAndroid, install } = usePWAInstall();
+
   const avatarUrl =
     user?.avatarUrl ||
     'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=500&auto=format&fit=crop&q=80';
@@ -213,6 +218,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
           );
         })}
       </div>
+
+      {/* Android APK / Native PWA App Entry */}
+      <div className="pt-2 mt-auto border-t border-slate-200 dark:border-[#1e3a6a]">
+        <button
+          id="nav-btn-android-app"
+          onClick={() => setShowAPKModal(true)}
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold shadow-sm transition-all text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px]">android</span>
+            <span className="text-sm">Get Android App</span>
+          </div>
+          <span className="bg-white/20 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase">
+            APK
+          </span>
+        </button>
+      </div>
+
+      <AndroidAPKModal
+        isOpen={showAPKModal}
+        onClose={() => setShowAPKModal(false)}
+        isInstallable={isInstallable}
+        isIOS={isIOS}
+        isAndroid={isAndroid}
+        onDirectInstall={install}
+      />
     </nav>
   );
 };
