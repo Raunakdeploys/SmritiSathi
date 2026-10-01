@@ -3,7 +3,7 @@ services:
     name: smritisathi
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: node dist/server.cjs
     healthCheckPath: /api/health
     envVars:
