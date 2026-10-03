@@ -1,27 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Heart,
-  Users,
   Volume2,
   CheckCircle2,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   RotateCcw,
   ZoomIn,
-  Smile,
   X,
-  Phone,
 } from 'lucide-react';
 import { storeService } from '../../services/storeService';
 import { BridgeBanner } from '../BridgeBanner';
 import { GameResultsModal } from '../GameResultsModal';
-import { playGentleClick, playSuccessChime, speakText } from '../../utils/audio';
+import { playGentleClick, speakText } from '../../utils/audio';
 import type { FamilyMember } from '../../types';
 
 interface FaceBondGameProps {
   currentLevel?: number;
   onComplete?: (score: number, points: number, accuracy: number, level: number) => void;
   onClose: () => void;
+  onBackToDashboard?: () => void;
   voiceGuidanceEnabled?: boolean;
 }
 
@@ -36,14 +35,160 @@ interface QuestionItem {
   hint: string;
 }
 
+const generateQuestionsForLevel = (lvl: number, rawMembers: FamilyMember[]): QuestionItem[] => {
+  const fallbackMembers: FamilyMember[] = [
+    {
+      id: 'mem-1',
+      name: 'Pooja Sharma',
+      relation: 'Daughter',
+      relationCategory: 'immediate',
+      age: 42,
+      photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
+      keyMemories: ['Bakes cardamom cookies on Sunday mornings with you', 'Calls every evening at 7 PM'],
+      voiceNote: 'Namaste Papa! Remember our Sunday tea garden walks?',
+    },
+    {
+      id: 'mem-2',
+      name: 'Aarav Sharma',
+      relation: 'Grandson',
+      relationCategory: 'immediate',
+      age: 12,
+      photoUrl: 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=400&auto=format&fit=crop&q=80',
+      keyMemories: ['Plays carrom and solves jigsaw puzzles with Dadaji', 'Showed you his science fair rocket'],
+      voiceNote: 'Dadaji! Looking forward to our chess game this weekend!',
+    },
+    {
+      id: 'mem-3',
+      name: 'Rohan Sharma',
+      relation: 'Son',
+      relationCategory: 'immediate',
+      age: 46,
+      photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
+      keyMemories: ['Travelled together to Varanasi ghats in 2018', 'Helps with morning garden walks'],
+      voiceNote: 'Pranam Baba! Have your morning medicines on time.',
+    },
+  ];
+
+  const members = rawMembers && rawMembers.length > 0 ? rawMembers : fallbackMembers;
+  const qList: QuestionItem[] = [];
+
+  if (lvl === 1) {
+    // Level 1: Face to Name
+    members.forEach((m, idx) => {
+      const otherNames = members.filter((o) => o.id !== m.id).map((o) => o.name);
+      const options = [m.name, otherNames[0] || 'Meera Devi', otherNames[1] || 'Suresh Kumar'].sort(
+        () => 0.5 - Math.random()
+      );
+      qList.push({
+        id: `lvl1-${idx}`,
+        type: 'face',
+        prompt: 'Look at the photograph. Who is this family member?',
+        subPrompt: `Family Role: ${m.relation}`,
+        targetMember: m,
+        options,
+        correctAnswer: m.name,
+        hint: `They are your cherished ${m.relation}.`,
+      });
+    });
+  } else if (lvl === 2) {
+    // Level 2: Kinship & Role Relationship
+    const allRelations = Array.from(
+      new Set([...members.map((m) => m.relation), 'Grandson', 'Sister', 'Cousin', 'Uncle'])
+    );
+
+    members.forEach((m, idx) => {
+      const otherRelations = allRelations.filter((r) => r.toLowerCase() !== m.relation.toLowerCase());
+      const options = [m.relation, otherRelations[0] || 'Nephew', otherRelations[1] || 'Cousin'].sort(
+        () => 0.5 - Math.random()
+      );
+      qList.push({
+        id: `lvl2-${idx}`,
+        type: 'kinship',
+        prompt: `What is ${m.name}'s relationship to you?`,
+        subPrompt: `Identify their exact kinship and generational bond in your household.`,
+        targetMember: m,
+        options,
+        correctAnswer: m.relation,
+        hint: `Consider your family tree and their generational ties with you.`,
+      });
+    });
+  } else if (lvl === 3) {
+    // Level 3: Episodic Memory Retrieval
+    members.forEach((m, idx) => {
+      const primaryMemory =
+        m.keyMemories && m.keyMemories.length > 0
+          ? m.keyMemories[0]
+          : `Shares warm moments and calls you regularly.`;
+      const otherNames = members.filter((o) => o.id !== m.id).map((o) => o.name);
+      const options = [m.name, otherNames[0] || 'Sunita Verma', otherNames[1] || 'Rajiv Sharma'].sort(
+        () => 0.5 - Math.random()
+      );
+      qList.push({
+        id: `lvl3-${idx}`,
+        type: 'memory',
+        prompt: `Who shares this special episodic memory with you?`,
+        subPrompt: `"${primaryMemory}"`,
+        targetMember: m,
+        options,
+        correctAnswer: m.name,
+        hint: `Their relation to you is ${m.relation}.`,
+      });
+    });
+  } else {
+    // Level 4: Smart Level Generator
+    members.forEach((m, idx) => {
+      const isOdd = idx % 2 === 0;
+      if (isOdd) {
+        const otherNames = members.filter((o) => o.id !== m.id).map((o) => o.name);
+        const options = [m.name, otherNames[0] || 'Aarav Sharma', otherNames[1] || 'Pooja Verma'].sort(
+          () => 0.5 - Math.random()
+        );
+        const memory = m.keyMemories?.[1] || m.keyMemories?.[0] || 'Special family moments';
+        qList.push({
+          id: `lvl4-gen-${idx}`,
+          type: 'memory',
+          prompt: `Caregiver Dynamic Memory: Who is associated with "${memory}"?`,
+          subPrompt: `Personalized memory recorded in your family care directory.`,
+          targetMember: m,
+          options,
+          correctAnswer: m.name,
+          hint: `Relation: ${m.relation}`,
+        });
+      } else {
+        const otherRelations = ['Granddaughter', 'Son', 'Brother', 'Daughter-in-law'].filter(
+          (r) => r.toLowerCase() !== m.relation.toLowerCase()
+        );
+        const options = [m.relation, otherRelations[0] || 'Friend', otherRelations[1] || 'Caregiver'].sort(
+          () => 0.5 - Math.random()
+        );
+        qList.push({
+          id: `lvl4-gen-${idx}`,
+          type: 'kinship',
+          prompt: `Smart Directory: What is ${m.name}'s recorded relationship to you?`,
+          subPrompt: `Personalized profile from your family directory.`,
+          targetMember: m,
+          options,
+          correctAnswer: m.relation,
+          hint: `Their age is ${m.age} and lives in your family circle.`,
+        });
+      }
+    });
+  }
+
+  return qList;
+};
+
 export const FaceBondGame: React.FC<FaceBondGameProps> = ({
   currentLevel = 2,
   onComplete,
   onClose,
+  onBackToDashboard,
   voiceGuidanceEnabled = true,
 }) => {
   const [level, setLevel] = useState<number>(Math.min(4, Math.max(1, currentLevel)));
-  const [questions, setQuestions] = useState<QuestionItem[]>([]);
+  const [questions, setQuestions] = useState<QuestionItem[]>(() =>
+    generateQuestionsForLevel(Math.min(4, Math.max(1, currentLevel)), storeService.getFamilyMembers())
+  );
   const [currentQIndex, setCurrentQIndex] = useState<number>(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [isPhotoZoomed, setIsPhotoZoomed] = useState<boolean>(false);
@@ -57,120 +202,10 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
 
   const gameProgress = storeService.getGameProgress('facebond');
   const isBridgeActive = gameProgress?.activeBridge?.status === 'active';
-  const familyMembers = storeService.getFamilyMembers();
 
-  // Generate dynamic questions based on current level and family members
-  useEffect(() => {
-    generateQuestions();
-  }, [level]);
-
-  const generateQuestions = () => {
-    const members = familyMembers.length > 0 ? familyMembers : storeService.getFamilyMembers();
-    const qList: QuestionItem[] = [];
-
-    if (level === 1) {
-      // Level 1: Face to Name
-      members.forEach((m, idx) => {
-        const otherNames = members.filter((o) => o.id !== m.id).map((o) => o.name);
-        const options = [m.name, otherNames[0] || 'Meera Devi', otherNames[1] || 'Suresh Kumar'].sort(
-          () => 0.5 - Math.random()
-        );
-        qList.push({
-          id: `lvl1-${idx}`,
-          type: 'face',
-          prompt: 'Look at the photograph. Who is this family member?',
-          subPrompt: `Family Role: ${m.relation}`,
-          targetMember: m,
-          options,
-          correctAnswer: m.name,
-          hint: `They are your cherished ${m.relation}.`,
-        });
-      });
-    } else if (level === 2) {
-      // Level 2: Kinship & Role Relationship
-      const allRelations = Array.from(
-        new Set([...members.map((m) => m.relation), 'Grandson', 'Sister', 'Cousin', 'Uncle'])
-      );
-
-      members.forEach((m, idx) => {
-        const otherRelations = allRelations.filter((r) => r.toLowerCase() !== m.relation.toLowerCase());
-        const options = [m.relation, otherRelations[0] || 'Nephew', otherRelations[1] || 'Cousin'].sort(
-          () => 0.5 - Math.random()
-        );
-        qList.push({
-          id: `lvl2-${idx}`,
-          type: 'kinship',
-          prompt: `What is ${m.name}'s relationship to you?`,
-          subPrompt: `Identify their exact kinship and generational bond in your household.`,
-          targetMember: m,
-          options,
-          correctAnswer: m.relation,
-          hint: `Consider your family tree and their generational ties with you.`,
-        });
-      });
-    } else if (level === 3) {
-      // Level 3: Episodic Memory Retrieval
-      members.forEach((m, idx) => {
-        const primaryMemory =
-          m.keyMemories && m.keyMemories.length > 0
-            ? m.keyMemories[0]
-            : `Shares warm moments and calls you regularly.`;
-        const otherNames = members.filter((o) => o.id !== m.id).map((o) => o.name);
-        const options = [m.name, otherNames[0] || 'Sunita Verma', otherNames[1] || 'Rajiv Sharma'].sort(
-          () => 0.5 - Math.random()
-        );
-        qList.push({
-          id: `lvl3-${idx}`,
-          type: 'memory',
-          prompt: `Who shares this special episodic memory with you?`,
-          subPrompt: `"${primaryMemory}"`,
-          targetMember: m,
-          options,
-          correctAnswer: m.name,
-          hint: `Their relation to you is ${m.relation}.`,
-        });
-      });
-    } else {
-      // Level 4: Smart Level Generator (Caregiver Portal dynamic family members & custom notes)
-      members.forEach((m, idx) => {
-        const isOdd = idx % 2 === 0;
-        if (isOdd) {
-          const otherNames = members.filter((o) => o.id !== m.id).map((o) => o.name);
-          const options = [m.name, otherNames[0] || 'Aarav Sharma', otherNames[1] || 'Pooja Verma'].sort(
-            () => 0.5 - Math.random()
-          );
-          const memory = m.keyMemories?.[1] || m.keyMemories?.[0] || 'Special family moments';
-          qList.push({
-            id: `lvl4-gen-${idx}`,
-            type: 'memory',
-            prompt: `Caregiver Dynamic Memory: Who is associated with "${memory}"?`,
-            subPrompt: `Personalized memory recorded in your family care directory.`,
-            targetMember: m,
-            options,
-            correctAnswer: m.name,
-            hint: `Relation: ${m.relation}`,
-          });
-        } else {
-          const otherRelations = ['Granddaughter', 'Son', 'Brother', 'Daughter-in-law'].filter(
-            (r) => r.toLowerCase() !== m.relation.toLowerCase()
-          );
-          const options = [m.relation, otherRelations[0] || 'Friend', otherRelations[1] || 'Caregiver'].sort(
-            () => 0.5 - Math.random()
-          );
-          qList.push({
-            id: `lvl4-gen-${idx}`,
-            type: 'kinship',
-            prompt: `Smart Directory: What is ${m.name}'s recorded relationship to you?`,
-            subPrompt: `Personalized profile from your family directory.`,
-            targetMember: m,
-            options,
-            correctAnswer: m.relation,
-            hint: `Their age is ${m.age} and lives in your family circle.`,
-          });
-        }
-      });
-    }
-
+  const generateQuestions = useCallback(() => {
+    const rawMembers = storeService.getFamilyMembers();
+    const qList = generateQuestionsForLevel(level, rawMembers);
     setQuestions(qList);
     setCurrentQIndex(0);
     setSelectedAnswers({});
@@ -179,7 +214,35 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
     if (qList[0]) {
       speakText(`${qList[0].prompt}. ${qList[0].subPrompt}`, voiceGuidanceEnabled);
     }
-  };
+  }, [level, voiceGuidanceEnabled]);
+
+  // Handle level change
+  useEffect(() => {
+    generateQuestions();
+  }, [level, generateQuestions]);
+
+  // Keyboard Escape listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const currentQ = questions[currentQIndex] || questions[0];
+  const selectedAnswer = selectedAnswers[currentQIndex];
+  const isAnswered = selectedAnswer !== undefined;
+
+  // Bridge option filter: eliminate 1 distractor
+  const optionsToRender = useMemo(() => {
+    if (!currentQ || !currentQ.options) return [];
+    if (!isBridgeActive || currentQ.options.length <= 2) return currentQ.options;
+    const wrong = currentQ.options.filter((o) => o !== currentQ.correctAnswer);
+    return [currentQ.correctAnswer, wrong[0] || currentQ.options[0]].sort();
+  }, [currentQ, isBridgeActive]);
 
   const handleSelectOption = (opt: string) => {
     playGentleClick();
@@ -191,7 +254,9 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
     if (currentQIndex < questions.length - 1) {
       setCurrentQIndex((prev) => prev + 1);
       const nextQ = questions[currentQIndex + 1];
-      speakText(`${nextQ.prompt}. ${nextQ.subPrompt}`, voiceGuidanceEnabled);
+      if (nextQ) {
+        speakText(`${nextQ.prompt}. ${nextQ.subPrompt}`, voiceGuidanceEnabled);
+      }
     } else {
       evaluateResults();
     }
@@ -205,7 +270,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
       }
     });
 
-    const score = Math.round((correctCount / questions.length) * 100);
+    const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 100;
     const accuracy = score;
     const basePoints = 45;
 
@@ -233,18 +298,23 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
     }
   };
 
-  const currentQ = questions[currentQIndex];
-  if (!currentQ) return null;
-
-  const selectedAnswer = selectedAnswers[currentQIndex];
-  const isAnswered = selectedAnswer !== undefined;
-
-  // Bridge option filter: eliminate 1 distractor
-  const optionsToRender = React.useMemo(() => {
-    if (!isBridgeActive || currentQ.options.length <= 2) return currentQ.options;
-    const wrong = currentQ.options.filter((o) => o !== currentQ.correctAnswer);
-    return [currentQ.correctAnswer, wrong[0]].sort();
-  }, [currentQ, isBridgeActive]);
+  if (!currentQ) {
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="bg-[#0b1d3a] text-white p-8 rounded-3xl border border-white/20 text-center max-w-md">
+          <Heart className="w-12 h-12 text-[#FF6321] mx-auto mb-4 animate-pulse" />
+          <h3 className="text-xl font-bold mb-2">Loading FaceBond</h3>
+          <p className="text-sm text-slate-300 mb-6">Preparing family kinship portraits...</p>
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -257,15 +327,23 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
         onClick={(e) => e.stopPropagation()}
         className="bg-[#0b1d3a] text-white w-full max-w-4xl rounded-3xl shadow-2xl border-3 border-[#0F172A]/20 overflow-hidden flex flex-col max-h-[94vh] my-auto"
       >
-        {/* Top Header */}
+        {/* Top Header with Back and Close */}
         <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white px-5 sm:px-7 py-4 flex items-center justify-between shadow-md border-b-3 border-[#FF6321]">
           <div className="flex items-center space-x-3.5">
+            <button
+              onClick={onBackToDashboard || onClose}
+              title="Back (Esc)"
+              aria-label="Back to exercises"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer mr-1"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <div className="p-2.5 bg-gradient-to-br from-[#FF6321] to-[#EA580C] text-white rounded-2xl shadow-md">
-              <Heart className="w-7 h-7" />
+              <Heart className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white">
                   FaceBond
                 </h2>
                 <span className="bg-[#FF6321] text-white text-[11px] sm:text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -284,7 +362,8 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
           <button
             onClick={onClose}
             aria-label="Close FaceBond"
-            className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+            title="Close FaceBond (Esc)"
+            className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-6 h-6" />
           </button>
@@ -376,7 +455,7 @@ export const FaceBondGame: React.FC<FaceBondGameProps> = ({
                 />
                 <button
                   onClick={() => setIsPhotoZoomed(!isPhotoZoomed)}
-                  className="absolute bottom-2.5 right-2.5 bg-[#0F172A]/80 hover:bg-[#0F172A] text-white p-2 rounded-xl backdrop-blur-xs text-xs font-bold flex items-center space-x-1 transition-transform active:scale-95"
+                  className="absolute bottom-2.5 right-2.5 bg-[#0F172A]/80 hover:bg-[#0F172A] text-white p-2 rounded-xl backdrop-blur-xs text-xs font-bold flex items-center space-x-1 transition-transform active:scale-95 cursor-pointer"
                   title="Toggle Photo Zoom"
                 >
                   <ZoomIn className="w-4 h-4 text-[#FF6321]" />

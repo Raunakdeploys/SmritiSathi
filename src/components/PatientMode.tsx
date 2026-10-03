@@ -15,6 +15,8 @@ import {
   Unlock,
   Radio,
   Sparkles,
+  ArrowLeft,
+  X,
 } from 'lucide-react';
 import type { CareCompassTelemetry, CareCompassConfig } from '../types';
 import {
@@ -42,6 +44,7 @@ export interface PatientModeProps {
   onTriggerSOS?: (cause?: string) => void;
   onSwitchToCaregiver?: () => void;
   onExitToCaregiver?: () => void;
+  onBackToDashboard?: () => void;
 }
 
 export const PatientMode: React.FC<PatientModeProps> = ({
@@ -50,6 +53,7 @@ export const PatientMode: React.FC<PatientModeProps> = ({
   onTriggerSOS,
   onSwitchToCaregiver,
   onExitToCaregiver,
+  onBackToDashboard,
 }) => {
   const [localTelemetry, setLocalTelemetry] = useState<CareCompassTelemetry>(() =>
     propTelemetry || storeService.getCareCompassTelemetry() || INITIAL_CARE_COMPASS_TELEMETRY
@@ -242,6 +246,16 @@ export const PatientMode: React.FC<PatientModeProps> = ({
                 <span>Hear Voice</span>
               </>
             )}
+          </button>
+
+          <button
+            onClick={onBackToDashboard || onExitToCaregiver || onSwitchToCaregiver}
+            title="Exit Patient Mode and return to Dashboard (Esc)"
+            className="p-3 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 rounded-2xl border border-slate-700 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 text-sky-400" />
+            <span className="hidden sm:inline">Exit to Dashboard</span>
+            <span className="sm:hidden">Exit</span>
           </button>
 
           <button

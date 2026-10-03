@@ -81,6 +81,7 @@ import {
 import { DirectCallModal } from './DirectCallModal';
 import { emergencySosService, triggerEmergencySOS } from '../services/emergencySosService';
 import type { AutomatedSOSDispatchResult } from '../types';
+import { ViewNavigationBar } from './ViewNavigationBar';
 
 export interface CaregiverDashboardProps {
   telemetry?: CareCompassTelemetry;
@@ -91,6 +92,7 @@ export interface CaregiverDashboardProps {
   onAddAlertLog?: (entry: Omit<AlertLogEntry, 'id' | 'timestamp'>) => void;
   onAcknowledgeAlert?: (id: string) => void;
   onSwitchToPatientMode?: () => void;
+  onBackToDashboard?: () => void;
 }
 
 export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
@@ -102,6 +104,7 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
   onAddAlertLog: propOnAddAlertLog,
   onAcknowledgeAlert: propOnAcknowledgeAlert,
   onSwitchToPatientMode,
+  onBackToDashboard,
 }) => {
   // Resilient state fallbacks with live storeService synchronization
   const [localTelemetry, setLocalTelemetry] = useState<CareCompassTelemetry>(() =>
@@ -567,6 +570,16 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
       aria-label="Caregiver Safety Dashboard"
       className="min-h-screen bg-[#070D18] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6 w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
+      {/* Reusable Universal Navigation Bar with Back & Close */}
+      {onBackToDashboard && (
+        <ViewNavigationBar
+          title={`CareCompass Radar (${config.patientName})`}
+          breadcrumbs={[{ label: 'Dashboard', onClick: onBackToDashboard }]}
+          onBack={onBackToDashboard}
+          onClose={onBackToDashboard}
+        />
+      )}
+
       {/* Top Header & Mode Switcher */}
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 p-5 rounded-3xl shadow-2xl backdrop-blur-md">
         <div className="flex items-center space-x-3.5">

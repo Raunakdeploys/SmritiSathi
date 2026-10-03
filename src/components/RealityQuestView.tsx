@@ -9,6 +9,7 @@ import {
   Sparkles,
   RotateCcw,
   ArrowRight,
+  ArrowLeft,
   Eye,
   Check,
   X,
@@ -28,6 +29,8 @@ interface RealityQuestViewProps {
   user: UserProfile | null;
   questData?: any;
   onCompleteQuest: () => void;
+  onBackToDashboard?: () => void;
+  onClose?: () => void;
   voiceGuidanceEnabled?: boolean;
 }
 
@@ -47,6 +50,8 @@ interface QuestQuestion {
 export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
   user,
   onCompleteQuest,
+  onBackToDashboard,
+  onClose,
   voiceGuidanceEnabled = true,
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -276,9 +281,25 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
       className="flex-1 p-4 sm:p-6 md:p-10 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors"
     >
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header Ribbon */}
+        {/* Top Navigation Bar with Back & Close Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-100 dark:border-[#1e3a6a] pb-5">
           <div className="flex items-center space-x-3.5">
+            {onBackToDashboard && (
+              <button
+                type="button"
+                onClick={() => {
+                  playGentleClick();
+                  onBackToDashboard();
+                }}
+                title="Back to Dashboard (Esc)"
+                aria-label="Back to Dashboard"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-[#111e38] dark:hover:bg-[#1b2f56] text-[#002045] dark:text-white border border-slate-200 dark:border-[#1e3a6a] font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#002045] dark:text-sky-300" />
+                <span className="hidden sm:inline">Back</span>
+              </button>
+            )}
+
             <div className="p-3 bg-[#002045] dark:bg-blue-600 text-white rounded-2xl shadow-md">
               <Compass className="w-7 h-7 text-amber-300" />
             </div>
@@ -300,11 +321,28 @@ export const RealityQuestView: React.FC<RealityQuestViewProps> = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={() => speakText(`${currentQ.prompt}. ${currentQ.subPrompt}`, true)}
-              className="bg-slate-50 dark:bg-[#111e38] hover:bg-slate-100 dark:hover:bg-[#162544] text-[#002045] dark:text-white border-2 border-slate-200 dark:border-[#1e3a6a] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs cursor-pointer"
+              className="bg-slate-50 dark:bg-[#111e38] hover:bg-slate-100 dark:hover:bg-[#162544] text-[#002045] dark:text-white border-2 border-slate-200 dark:border-[#1e3a6a] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs cursor-pointer active:scale-95"
             >
               <Volume2 className="w-4 h-4 text-[#FF6321]" />
               <span>Hear Question</span>
             </button>
+
+            {(onClose || onBackToDashboard) && (
+              <button
+                type="button"
+                onClick={() => {
+                  playGentleClick();
+                  if (onClose) onClose();
+                  else if (onBackToDashboard) onBackToDashboard();
+                }}
+                title="Close RealityQuest and return to Dashboard"
+                aria-label="Close RealityQuest"
+                className="flex items-center gap-1 px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50 font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Close</span>
+              </button>
+            )}
           </div>
         </div>
 

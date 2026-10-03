@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Info,
   AlertCircle,
+  ArrowLeft,
   X,
   ExternalLink,
   ChevronDown,
@@ -1062,8 +1063,19 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
         {/* TOP APP BAR */}
         <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-5 py-2.5 shrink-0 shadow-xs z-20 w-full box-border transition-colors">
           <div className="flex items-center justify-between gap-2 w-full">
-            {/* Left: Sidebar Toggle, Persona Name & Title */}
+            {/* Left: Back Button, Sidebar Toggle, Persona Name & Title */}
             <div className="flex items-center gap-2 min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() => onNavigateTab ? onNavigateTab('dashboard') : undefined}
+                title="Back to Dashboard (Esc)"
+                aria-label="Back to Dashboard"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition-all cursor-pointer shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#002045] dark:text-sky-300" />
+                <span className="hidden sm:inline">Back</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -1180,6 +1192,17 @@ export const GeminiChatView: React.FC<GeminiChatViewProps> = ({ user, onNavigate
               >
                 <Eye className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                 <span>{fontSizeMode === 'normal' ? 'A' : fontSizeMode === 'large' ? 'A+' : 'A++'}</span>
+              </button>
+
+              {/* Close Button returning to Dashboard */}
+              <button
+                type="button"
+                onClick={() => onNavigateTab('dashboard')}
+                title="Close chat and return to Dashboard (Esc)"
+                aria-label="Close chat"
+                className="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-950/60 text-slate-700 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>

@@ -13,6 +13,7 @@ import {
   Send,
   Sparkles,
   Locate,
+  ArrowLeft,
 } from 'lucide-react';
 import type { CareCompassConfig } from '../types';
 import { PAN_INDIA_PRESETS, INDIAN_LANGUAGES, LocationPreset } from '../utils/geoUtils';
@@ -153,26 +154,37 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
     >
       <div className="bg-slate-900 border-4 border-slate-700 rounded-3xl max-w-3xl w-full p-6 sm:p-8 text-white shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-[#002045] border border-blue-400/40 rounded-2xl text-blue-300">
-              <Settings className="w-6 h-6" />
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4 gap-3">
+          <div className="flex items-center space-x-3 min-w-0">
+            <button
+              type="button"
+              onClick={onClose}
+              title="Back to Radar"
+              className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
+            </button>
+            <div className="p-2.5 bg-[#002045] border border-blue-400/40 rounded-2xl text-blue-300 shrink-0">
+              <Settings className="w-5 h-5" />
             </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-white">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-black text-white truncate">
                 CareCompass Safety & Geofence Settings
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300">
-                Configure patient profile, home base coordinates, dual geofence radii, and emergency dispatch
+              <p className="text-xs text-slate-300 truncate">
+                Dual geofence thresholds, WhatsApp dispatch & coordinates
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 hover:text-white transition-all cursor-pointer"
+            className="flex items-center gap-1 px-3 py-2 bg-slate-800 hover:bg-rose-900/60 rounded-xl text-slate-300 hover:text-white transition-all cursor-pointer text-xs font-bold shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline">Close</span>
           </button>
         </div>
 
@@ -884,17 +896,18 @@ export const CareCompassSettingsModal: React.FC<CareCompassSettingsModalProps> =
         <div className="flex items-center space-x-3 pt-2">
           <button
             type="button"
+            onClick={onClose}
+            className="py-3 px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs sm:text-sm border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Radar</span>
+          </button>
+          <button
+            type="button"
             onClick={handleSave}
             className="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-lg transition-all cursor-pointer"
           >
             Save All Settings
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="py-3.5 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-sm border border-slate-700 transition-all cursor-pointer"
-          >
-            Cancel
           </button>
         </div>
       </div>

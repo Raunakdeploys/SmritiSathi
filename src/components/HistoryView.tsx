@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { ActivityItem, UserProfile } from '../types';
 import { playGentleClick } from '../utils/audio';
+import { ViewNavigationBar } from './ViewNavigationBar';
 
 interface HistoryViewProps {
   activities: ActivityItem[];
@@ -28,21 +29,22 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   );
 
   return (
-    <main id="history-view-main" className="flex-1 p-4 sm:p-6 md:p-10 lg:p-12 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors">
+    <main id="history-view-main" className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors pb-24">
+      {/* Universal Navigation Bar with Back & Close */}
+      <ViewNavigationBar
+        title="Training History"
+        breadcrumbs={[{ label: 'Dashboard', onClick: onBackToDashboard }]}
+        onBack={onBackToDashboard}
+        onClose={onBackToDashboard}
+      />
+
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <button
-            onClick={onBackToDashboard}
-            className="inline-flex items-center text-[#002045] dark:text-sky-300 font-bold text-base hover:underline mb-2 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[20px] mr-1">arrow_back</span>
-            Back to Dashboard
-          </button>
           <h1 className="font-extrabold text-[28px] md:text-[34px] leading-tight text-[#002045] dark:text-white">
             Training Activity History
           </h1>
-          <p className="font-normal text-[18px] text-slate-600 dark:text-slate-300">
+          <p className="font-normal text-[16px] md:text-[18px] text-slate-600 dark:text-slate-300">
             Comprehensive timeline of your cognitive sessions and brain stimulation milestones.
           </p>
         </div>

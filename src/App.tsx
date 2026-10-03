@@ -448,7 +448,8 @@ export default function App() {
               onUpdateConfig={(updated) => storeService.updateCareCompassConfig(updated)}
               onAddAlertLog={(entry) => storeService.addAlertLog(entry)}
               onAcknowledgeAlert={(id) => storeService.acknowledgeAlertLog(id)}
-              onSwitchToPatientMode={() => setCurrentTab('patient-mode')}
+              onSwitchToPatientMode={() => navigateToTab('patient-mode')}
+              onBackToDashboard={() => navigateToTab('dashboard')}
             />
           )}
 
@@ -473,8 +474,9 @@ export default function App() {
                   whatsappDispatched: true,
                 });
               }}
-              onSwitchToCaregiver={() => setCurrentTab('carecompass')}
-              onExitToCaregiver={() => setCurrentTab('carecompass')}
+              onSwitchToCaregiver={() => navigateToTab('carecompass')}
+              onExitToCaregiver={() => navigateToTab('dashboard')}
+              onBackToDashboard={() => navigateToTab('dashboard')}
             />
           )}
 
@@ -512,6 +514,7 @@ export default function App() {
                 setActiveCustomLevelData(customLevelData);
               }}
               onToggleFavorite={handleToggleFavorite}
+              onBackToDashboard={() => navigateToTab('dashboard')}
             />
           )}
 
@@ -519,13 +522,15 @@ export default function App() {
             <RealityQuestView
               user={user}
               onCompleteQuest={handleRealityQuestComplete}
+              onBackToDashboard={() => navigateToTab('dashboard')}
+              onClose={() => navigateToTab('dashboard')}
               voiceGuidanceEnabled={user?.preferences?.voiceAssistance ?? true}
             />
           )}
 
           {currentTab === 'caregiver' && (
             <CaregiverPortal
-              onBackToApp={() => setCurrentTab('dashboard')}
+              onBackToApp={() => navigateToTab('dashboard')}
               voiceGuidanceEnabled={user?.preferences?.voiceAssistance ?? true}
             />
           )}
@@ -534,7 +539,7 @@ export default function App() {
             <HistoryView
               activities={activities}
               user={user}
-              onBackToDashboard={() => setCurrentTab('dashboard')}
+              onBackToDashboard={() => navigateToTab('dashboard')}
             />
           )}
 
@@ -563,14 +568,17 @@ export default function App() {
               }
               onDeleteFamilyFace={handleDeleteFamilyMember}
               onResetDemo={handleResetDemo}
-              onNavigateToTab={(tab) => {
-                setCurrentTab(tab);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigateToTab={navigateToTab}
+              onBackToDashboard={() => navigateToTab('dashboard')}
             />
           )}
 
-          {currentTab === 'help' && <HelpView user={user} />}
+          {currentTab === 'help' && (
+            <HelpView
+              user={user}
+              onBackToDashboard={() => navigateToTab('dashboard')}
+            />
+          )}
 
           {/* Design System & Component States (Layer 6 Standard) */}
           {currentTab === 'design' && (

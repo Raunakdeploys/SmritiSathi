@@ -4,16 +4,20 @@ import { playGentleClick } from '../utils/audio';
 import { AILevelGeneratorModal } from './AILevelGeneratorModal';
 import { AIGeneratedLevel } from '../services/aiLevelGeneratorService';
 
+import { ViewNavigationBar } from './ViewNavigationBar';
+
 interface GamesViewProps {
   games: GameInfo[];
   onPlayGame: (gameId: string, levelOverride?: number, customLevelData?: any) => void;
   onToggleFavorite: (gameId: string, currentFav: boolean) => void;
+  onBackToDashboard?: () => void;
 }
 
 export const GamesView: React.FC<GamesViewProps> = ({
   games,
   onPlayGame,
   onToggleFavorite,
+  onBackToDashboard,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState<boolean>(false);
@@ -47,25 +51,34 @@ export const GamesView: React.FC<GamesViewProps> = ({
   return (
     <main
       id="games-view-main"
-      className="flex-1 p-4 sm:p-6 md:p-10 lg:p-12 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors"
+      className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors pb-24"
     >
+      {/* Top Navigation Bar with Back & Close */}
+      {onBackToDashboard && (
+        <ViewNavigationBar
+          title="Cognitive Games & Exercises"
+          breadcrumbs={[{ label: 'Dashboard', onClick: onBackToDashboard }]}
+          onBack={onBackToDashboard}
+          onClose={onBackToDashboard}
+        />
+      )}
+
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 max-w-7xl mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2 mb-1">
-              <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-300 dark:border-emerald-800">
-                Peer-Reviewed Clinical Protocol
-              </span>
-              <span className="bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wider border border-blue-300 dark:border-blue-800">
-                Levels 1 - 10
-              </span>
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-bold mb-2">
+              <span>Peer-Reviewed Clinical Drills</span>
+              <span aria-hidden="true">·</span>
+              <span>Levels 1 to 10</span>
+              <span aria-hidden="true">·</span>
+              <span>Adaptive Pace</span>
             </div>
             <h1 className="font-extrabold text-[28px] md:text-[34px] leading-tight text-[#002045] dark:text-white mb-2">
               Dementia Cognitive Exercises &amp; Level Engine
             </h1>
-            <p className="font-normal text-[17px] md:text-[19px] text-slate-600 dark:text-slate-300 max-w-3xl">
-              Scientifically engineered working memory, executive inhibition, spatial navigation, and reminiscence games with dynamic AI level generation and errorless learning.
+            <p className="font-normal text-[16px] md:text-[18px] text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
+              Scientifically engineered working memory, executive inhibition, spatial navigation, and reminiscence games with dynamic AI level generation.
             </p>
           </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { RewardItem } from '../types';
 import { playSuccessChime, playGentleClick, speakText } from '../utils/audio';
 import confetti from 'canvas-confetti';
+import { ArrowLeft, X, Award } from 'lucide-react';
 
 interface RewardsModalProps {
   rewards: RewardItem[];
@@ -46,24 +47,37 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fadeIn">
       <div className="bg-white dark:bg-[#111e38] text-[#002045] dark:text-slate-100 rounded-2xl border-2 border-slate-200 dark:border-[#1e3a6a] p-5 sm:p-7 max-w-3xl w-full shadow-2xl my-auto max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-[#1e3a6a]">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 flex items-center justify-center text-amber-800 dark:text-amber-300">
-              <span className="material-symbols-outlined filled-icon text-[30px]">stars</span>
+        {/* Header */}
+        <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-[#1e3a6a] gap-3">
+          <div className="flex items-center space-x-3 min-w-0">
+            <button
+              type="button"
+              onClick={onClose}
+              title="Back to Dashboard"
+              aria-label="Back to Dashboard"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
+            </button>
+            <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 flex items-center justify-center text-amber-800 dark:text-amber-300 shrink-0">
+              <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
-            <div>
-              <h2 className="font-extrabold text-[22px] sm:text-[26px] text-[#002045] dark:text-white">Mind Points Rewards</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Available balance: <span className="font-bold text-[#FF6321] text-base">{mindPoints.toLocaleString()} pts</span>
+            <div className="min-w-0">
+              <h2 className="font-extrabold text-lg sm:text-2xl text-[#002045] dark:text-white truncate">Mind Points Rewards</h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 truncate">
+                Available balance: <span className="font-bold text-[#FF6321] text-sm sm:text-base">{mindPoints.toLocaleString()} pts</span>
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#162544] rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white rounded-xl bg-slate-100 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-xs font-bold transition-all cursor-pointer shrink-0"
           >
-            <span className="material-symbols-outlined text-[28px]">close</span>
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline">Close</span>
           </button>
         </div>
 

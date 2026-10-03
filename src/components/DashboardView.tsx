@@ -7,8 +7,7 @@ import type {
   CareCompassTelemetry,
   CareCompassConfig,
 } from '../types';
-import { playGentleClick } from '../utils/audio';
-import { InteractiveDailyTrainingProgress } from './InteractiveDailyTrainingProgress';
+import { playGentleClick, speakText } from '../utils/audio';
 import {
   Compass,
   Phone,
@@ -27,6 +26,10 @@ import {
   CheckCircle2,
   Navigation,
   History,
+  MessageSquare,
+  Smile,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -71,7 +74,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // Real-time time & date anchor for cognitive orientation
   const [currentDateTime, setCurrentDateTime] = useState<string>('');
+  const [currentTimeFormatted, setCurrentTimeFormatted] = useState<string>('');
   const [greetingTimeOfDay, setGreetingTimeOfDay] = useState<string>('Morning');
+  const [isPlayingWelcomeAudio, setIsPlayingWelcomeAudio] = useState(false);
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -83,6 +88,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         year: 'numeric',
       };
       setCurrentDateTime(now.toLocaleDateString('en-IN', options));
+      setCurrentTimeFormatted(
+        now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+      );
 
       const hour = now.getHours();
       if (hour < 12) {
@@ -95,535 +103,520 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     };
 
     updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
+    const interval = setInterval(updateDateTime, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Display top 4 recent activities
-  const recentActivities = activities.slice(0, 4);
-
-  // Spotlight family member
-  const spotlightMember = familyMembers.length > 0 ? familyMembers[0] : null;
+  const handleReadAloud = () => {
+    playGentleClick();
+    setIsPlayingWelcomeAudio(true);
+    const text = `Namaste ${userName}. Good ${greetingTimeOfDay}. Today is ${currentDateTime}. The time is ${currentTimeFormatted}. You are safe at your home sanctuary with your family. You have ${mindPoints} Mind Points and a 5 day memory streak. Tap Start Today's Mind Workout whenever you are ready.`;
+    speakText(text, true);
+    setTimeout(() => setIsPlayingWelcomeAudio(false), 8000);
+  };
 
   return (
     <main
       id="dashboard-canvas-main"
-      className="flex-1 p-3.5 sm:p-6 md:p-8 lg:p-10 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto space-y-6 md:space-y-8 w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors"
+      className="flex-1 min-h-screen bg-[#F8FAFC] dark:bg-[#070d18] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors pb-28"
     >
-      {/* 1. Temporal Orientation & Calming Grounding Banner */}
-      <section
-        id="dashboard-orientation-banner"
-        className="bg-gradient-to-r from-[#002045] via-[#083366] to-[#0f4c81] dark:from-[#0f1b38] dark:via-[#16264c] dark:to-[#1a365d] rounded-3xl p-6 sm:p-8 text-white shadow-md border-2 border-[#002045] dark:border-[#1e3a6a] relative overflow-hidden"
-      >
-        <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-sky-200 font-semibold">
-              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full backdrop-blur-xs">
-                <Calendar className="w-4 h-4 text-sky-300" />
-                {currentDateTime || 'Today'}
-              </span>
-              <span className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 px-3 py-1 rounded-full">
-                <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                Safe Home Anchor Active
-              </span>
-              <span className="flex items-center gap-1.5 bg-amber-400/20 text-amber-200 border border-amber-300/30 px-3 py-1 rounded-full">
-                <Flame className="w-4 h-4 text-amber-300" />
-                {streakDays}-Day Brain Streak
-              </span>
-            </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-12 space-y-10 sm:space-y-12">
+        {/* =========================================================================
+            1. CALM & DIGNIFIED SANCTUARY HERO BANNER
+            Spacious, high-contrast, peaceful orientation for seniors
+           ========================================================================= */}
+        <section
+          id="dashboard-orientation-banner"
+          className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#002045] via-[#092954] to-[#0d366b] text-white p-7 sm:p-12 shadow-2xl border border-blue-900/40"
+        >
+          {/* Subtle Ambient Glow */}
+          <div className="absolute right-0 top-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <h1
-              id="dashboard-welcome-heading"
-              className="font-extrabold text-[28px] sm:text-[34px] md:text-[38px] leading-tight tracking-tight text-white"
-            >
-              Good {greetingTimeOfDay}, {userName}
-            </h1>
+          <div className="relative z-10 space-y-6">
+            {/* Unboxed orientation metadata with generous spacing */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-sky-200/90 font-medium">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="flex items-center gap-1.5 font-bold text-white">
+                  <Calendar className="w-4 h-4 text-sky-300 shrink-0" />
+                  <span>{currentDateTime || 'Today'}</span>
+                </span>
+                <span aria-hidden="true" className="text-sky-400/50">·</span>
+                <span className="flex items-center gap-1.5 font-bold text-white">
+                  <Clock className="w-4 h-4 text-sky-300 shrink-0" />
+                  <span>{currentTimeFormatted || '10:30 AM'}</span>
+                </span>
+                <span aria-hidden="true" className="text-sky-400/50">·</span>
+                <span className="text-emerald-300 font-bold flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Safe at Home Sanctuary ({config?.homeLocation?.label || 'Saket'})</span>
+                </span>
+              </div>
 
-            <p className="text-sky-100 text-base sm:text-lg max-w-2xl leading-relaxed font-normal">
-              You are safe at home with your family. Today is peaceful, bright, and your cognitive wellness routine is ready for you.
-            </p>
-          </div>
-
-          {/* Senior Reassurance Action Buttons */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-            {onOpenWhereAmI && (
+              {/* Audio Read Aloud Button for Accessible Low-Vision Reading */}
               <button
-                id="btn-dashboard-where-am-i"
-                onClick={() => {
-                  playGentleClick();
-                  onOpenWhereAmI();
-                }}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-2.5 bg-white text-[#002045] hover:bg-sky-50 active:scale-98 px-5 py-3.5 rounded-2xl font-extrabold text-sm sm:text-base shadow-sm transition-all cursor-pointer min-h-[52px]"
+                type="button"
+                onClick={handleReadAloud}
+                title="Hear this daily orientation read aloud"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-sky-200 transition-all cursor-pointer active:scale-95"
               >
-                <Compass className="w-5 h-5 text-sky-600" />
-                <span>Where Am I?</span>
+                <Volume2 className="w-4 h-4 text-amber-300" />
+                <span>{isPlayingWelcomeAudio ? 'Playing Audio...' : 'Read Aloud'}</span>
               </button>
-            )}
+            </div>
 
-            {onOpenDirectCall && (
+            {/* Reassuring Big Title & Calm Subtitle */}
+            <div className="space-y-3 max-w-3xl">
+              <h1
+                id="dashboard-welcome-heading"
+                className="font-black text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight text-white"
+              >
+                Namaste, {userName}.
+              </h1>
+              <p className="text-base sm:text-xl text-sky-100/90 leading-relaxed font-normal">
+                Good {greetingTimeOfDay}. You are resting safely in your home sanctuary with your family. Today is peaceful, bright, and your memory exercises are ready.
+              </p>
+            </div>
+
+            {/* Senior Touch-Friendly Action Buttons (Height >= 56px, generous hit targets) */}
+            <div className="pt-3 flex flex-wrap items-center gap-3 sm:gap-4">
               <button
-                id="btn-dashboard-call-caregiver"
+                id="btn-dashboard-start-routine"
+                type="button"
                 onClick={() => {
                   playGentleClick();
-                  onOpenDirectCall();
+                  onStartDailyTraining();
                 }}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-2.5 bg-[#FF6321] hover:bg-[#EA580C] text-white active:scale-98 px-5 py-3.5 rounded-2xl font-extrabold text-sm sm:text-base shadow-sm transition-all cursor-pointer min-h-[52px]"
+                className="flex items-center justify-center gap-3 px-7 py-4 rounded-2xl bg-[#FF6321] hover:bg-[#EA580C] text-white font-black text-base sm:text-lg shadow-xl shadow-orange-950/30 active:scale-98 transition-all cursor-pointer min-h-[58px]"
               >
-                <Phone className="w-5 h-5" />
-                <span>Call Caregiver</span>
+                <Play className="w-5 h-5 fill-current" />
+                <span>Start Today's Mind Workout</span>
               </button>
-            )}
-          </div>
-        </div>
-      </section>
 
-      {/* 2. Bento Grid Primary Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full min-w-0">
-        {/* Left 2 Columns: Training Progress & Cognitive Domains */}
-        <div className="lg:col-span-2 space-y-6 w-full min-w-0">
-          {/* Interactive Daily Training Progress Center */}
-          <InteractiveDailyTrainingProgress
-            user={user}
-            progress={progress}
-            onPlayGame={onPlayGame}
-            onStartDailyTraining={onStartDailyTraining}
-          />
+              {onOpenWhereAmI && (
+                <button
+                  id="btn-dashboard-where-am-i"
+                  type="button"
+                  onClick={() => {
+                    playGentleClick();
+                    onOpenWhereAmI();
+                  }}
+                  className="flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-sm sm:text-base backdrop-blur-xs active:scale-98 transition-all cursor-pointer min-h-[58px]"
+                >
+                  <Compass className="w-5 h-5 text-sky-300" />
+                  <span>Where Am I?</span>
+                </button>
+              )}
 
-          {/* 3. Cognitive Domain Health Breakdown Matrix */}
-          <section
-            id="cognitive-domains-matrix"
-            className="bg-white dark:bg-[#111e38] rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-[#1e3a6a] shadow-xs space-y-5 transition-colors"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-[#1e3a6a] pb-4">
-              <div>
-                <h2 className="font-extrabold text-xl text-[#002045] dark:text-white flex items-center gap-2">
-                  <Brain className="w-6 h-6 text-sky-600 dark:text-sky-400" />
-                  Cognitive Health Breakdown
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-                  Continuous multi-domain clinical score calibrated via daily reminiscence and spatial training.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 self-start sm:self-auto bg-sky-50 dark:bg-sky-950/60 px-3 py-1.5 rounded-xl border border-sky-200 dark:border-sky-800">
-                <span className="text-xs font-bold text-sky-900 dark:text-sky-200">Overall Index:</span>
-                <span className="text-sm font-black text-sky-700 dark:text-sky-300">{overallIndex} / 100</span>
-                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-1.5 py-0.5 rounded">
-                  {overallIndex >= 80 ? 'Optimal' : overallIndex >= 65 ? 'Stable' : 'Active'}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Memory Recall Domain */}
-              <div
-                id="domain-card-memory"
-                onClick={() => {
-                  playGentleClick();
-                  onPlayGame('facebond');
-                }}
-                className="bg-[#f0f5ff] dark:bg-[#162544] hover:bg-[#e4edff] dark:hover:bg-[#1c3058] p-4.5 rounded-2xl border border-[#adc7f7] dark:border-[#223d70] transition-all cursor-pointer group space-y-3"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl shadow-xs">
-                      <Heart className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-[#002045] dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
-                        Memory & Kinship
-                      </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">Face & name recognition</p>
-                    </div>
-                  </div>
-                  <span className="font-extrabold text-lg text-indigo-700 dark:text-indigo-300">{memoryPct}%</span>
-                </div>
-
-                <div className="w-full bg-indigo-100 dark:bg-indigo-950/60 h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-indigo-600 dark:bg-indigo-400 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${memoryPct}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between items-center text-xs pt-1 text-indigo-900 dark:text-indigo-200 font-medium">
-                  <span>Level 2 • High Recall</span>
-                  <span className="flex items-center gap-1 text-indigo-700 dark:text-indigo-300 font-bold group-hover:underline">
-                    Train Memory <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-
-              {/* Focus & Visual Attention Domain */}
-              <div
-                id="domain-card-attention"
-                onClick={() => {
-                  playGentleClick();
-                  onPlayGame('shape-sorter');
-                }}
-                className="bg-[#fffbeb] dark:bg-[#252014] hover:bg-[#fef3c7] dark:hover:bg-[#332b1a] p-4.5 rounded-2xl border border-[#fde68a] dark:border-[#4a3b1a] transition-all cursor-pointer group space-y-3"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-amber-600 dark:bg-amber-500 text-white rounded-xl shadow-xs">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-[#002045] dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">
-                        Visual Attention
-                      </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">Shape & color focus</p>
-                    </div>
-                  </div>
-                  <span className="font-extrabold text-lg text-amber-700 dark:text-amber-300">{attentionPct}%</span>
-                </div>
-
-                <div className="w-full bg-amber-100 dark:bg-amber-950/60 h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-amber-500 dark:bg-amber-400 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${attentionPct}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between items-center text-xs pt-1 text-amber-900 dark:text-amber-200 font-medium">
-                  <span>Level 2 • Steady Focus</span>
-                  <span className="flex items-center gap-1 text-amber-700 dark:text-amber-300 font-bold group-hover:underline">
-                    Train Focus <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-
-              {/* Executive Planning Domain */}
-              <div
-                id="domain-card-planning"
-                onClick={() => {
-                  playGentleClick();
-                  onPlayGame('dailyroutine');
-                }}
-                className="bg-[#ecfdf5] dark:bg-[#142921] hover:bg-[#d1fae5] dark:hover:bg-[#1a382d] p-4.5 rounded-2xl border border-[#a7f3d0] dark:border-[#22503d] transition-all cursor-pointer group space-y-3"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-emerald-600 dark:bg-emerald-500 text-white rounded-xl shadow-xs">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-[#002045] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
-                        Executive Planning
-                      </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">Daily routine sequencing</p>
-                    </div>
-                  </div>
-                  <span className="font-extrabold text-lg text-emerald-700 dark:text-emerald-300">{planningPct}%</span>
-                </div>
-
-                <div className="w-full bg-emerald-100 dark:bg-emerald-950/60 h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-emerald-600 dark:bg-emerald-400 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${planningPct}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between items-center text-xs pt-1 text-emerald-900 dark:text-emerald-200 font-medium">
-                  <span>Level 1 • Adaptive Support</span>
-                  <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300 font-bold group-hover:underline">
-                    Plan Routine <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-
-              {/* Spatial Orientation Domain */}
-              <div
-                id="domain-card-spatial"
-                onClick={() => {
-                  playGentleClick();
-                  onPlayGame('wayback');
-                }}
-                className="bg-[#fff7ed] dark:bg-[#2a1d14] hover:bg-[#ffedd5] dark:hover:bg-[#382618] p-4.5 rounded-2xl border border-[#fed7aa] dark:border-[#52331c] transition-all cursor-pointer group space-y-3"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-[#FF6321] text-white rounded-xl shadow-xs">
-                      <Navigation className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-[#002045] dark:text-white group-hover:text-[#FF6321] transition-colors">
-                        Spatial Orientation
-                      </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">Landmark & route recall</p>
-                    </div>
-                  </div>
-                  <span className="font-extrabold text-lg text-[#FF6321] dark:text-orange-300">{spatialPct}%</span>
-                </div>
-
-                <div className="w-full bg-orange-100 dark:bg-orange-950/60 h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#FF6321] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${spatialPct}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between items-center text-xs pt-1 text-orange-900 dark:text-orange-200 font-medium">
-                  <span>Level 2 • Landmarks Mastered</span>
-                  <span className="flex items-center gap-1 text-[#FF6321] dark:text-orange-300 font-bold group-hover:underline">
-                    Navigate <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 4. Quick Cognitive Games Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* WayBack Spatial Navigation Shortcut */}
-            <div
-              id="card-wayback-training"
-              onClick={() => {
-                playGentleClick();
-                onPlayGame('wayback');
-              }}
-              className="bg-[#fff7ed] dark:bg-[#1a2542] p-6 rounded-2xl border-2 border-[#ffedd5] dark:border-[#2a3c68] hover:border-[#FF6321] dark:hover:border-[#FF6321] shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[180px] group cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md"
-            >
-              <div className="relative z-10 flex justify-between items-start">
-                <div>
-                  <span className="bg-[#FF6321] text-white font-black px-3 py-0.5 rounded-full text-[12px] uppercase tracking-wider inline-block mb-2 shadow-xs">
-                    Spatial Core • Live GPS
-                  </span>
-                  <h3 className="font-extrabold text-[22px] text-[#002045] dark:text-white group-hover:text-[#FF6321] transition-colors">
-                    WayBack Route Navigation
-                  </h3>
-                </div>
-                <span className="material-symbols-outlined text-white bg-[#FF6321] p-2.5 rounded-full group-hover:scale-110 transition-all text-[24px] shadow-xs">
-                  navigation
-                </span>
-              </div>
-
-              <div className="relative z-10 mt-3">
-                <p className="font-bold text-[16px] text-[#9A3412] dark:text-orange-300 flex items-center">
-                  <span className="material-symbols-outlined mr-2 text-[18px]">near_me</span>
-                  Temple & Market Landmarks • 4 mins
-                </p>
-              </div>
-            </div>
-
-            {/* LifeThread Milestone Sequencing Shortcut */}
-            <div
-              id="card-lifethread-launcher"
-              onClick={() => {
-                playGentleClick();
-                onPlayGame('lifethread');
-              }}
-              className="bg-[#f8fafc] dark:bg-[#162544] p-6 rounded-2xl border-2 border-slate-200 dark:border-[#223d70] hover:border-[#002045] dark:hover:border-blue-400 shadow-xs relative overflow-hidden flex flex-col justify-between min-h-[180px] group cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md"
-            >
-              <div className="relative z-10 flex justify-between items-start">
-                <div>
-                  <span className="bg-[#002045] dark:bg-blue-600 text-white font-black px-3 py-0.5 rounded-full text-[12px] uppercase tracking-wider inline-block mb-2 shadow-xs">
-                    Reminiscence Therapy
-                  </span>
-                  <h3 className="font-extrabold text-[22px] text-[#002045] dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    LifeThread Milestones
-                  </h3>
-                </div>
-                <span className="material-symbols-outlined text-white bg-[#002045] dark:bg-blue-600 p-2.5 rounded-full group-hover:scale-110 transition-all text-[24px] shadow-xs">
-                  timeline
-                </span>
-              </div>
-
-              <div className="relative z-10 mt-3">
-                <p className="font-bold text-[16px] text-slate-600 dark:text-slate-300 flex items-center">
-                  <span className="material-symbols-outlined mr-2 text-[18px]">history_edu</span>
-                  Chronological Life Journey • 5 mins
-                </p>
-              </div>
+              {onOpenDirectCall && (
+                <button
+                  id="btn-dashboard-call-caregiver"
+                  type="button"
+                  onClick={() => {
+                    playGentleClick();
+                    onOpenDirectCall();
+                  }}
+                  className="flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-sm sm:text-base backdrop-blur-xs active:scale-98 transition-all cursor-pointer min-h-[58px]"
+                >
+                  <Phone className="w-5 h-5 text-emerald-300" />
+                  <span>Call {config?.caregiverName ? config.caregiverName.split(' ')[0] : 'Caregiver'}</span>
+                </button>
+              )}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Right Column: Mind Points, Caregiver Anchor & Family Spotlight */}
-        <div className="space-y-6 w-full min-w-0">
-          {/* Mind Points Summary Card */}
-          <div
-            id="card-mind-points-summary"
-            className="bg-gradient-to-br from-[#ffdeaa] to-[#fcd34d] dark:from-[#2a1d05] dark:to-[#422d08] p-6 sm:p-7 rounded-3xl border border-[#f8bc4b] dark:border-[#78510c] text-center shadow-xs flex flex-col items-center justify-between"
-          >
+        {/* =========================================================================
+            2. CALM VITALITY SUMMARY STRIP (Uncluttered, Unboxed, Senior Friendly)
+           ========================================================================= */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-[#0f1b36] p-5 rounded-2xl border border-slate-200/90 dark:border-[#1e3a6a] shadow-xs flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950/80 text-[#FF6321] flex items-center justify-center font-bold shrink-0">
+              <Brain className="w-5 h-5" />
+            </div>
             <div>
-              <span
-                className="material-symbols-outlined filled-icon text-[#2d1d00] dark:text-amber-300 mb-2 inline-block animate-pulse"
-                style={{ fontSize: '48px' }}
-              >
-                stars
-              </span>
-              <h3 className="font-bold text-[18px] text-[#271900] dark:text-amber-200 mb-1">Total Mind Points</h3>
-              <p className="font-extrabold text-[44px] md:text-[48px] leading-tight text-[#2d1d00] dark:text-amber-300 tracking-tight my-2">
-                {mindPoints}
-              </p>
-              <p className="text-xs text-[#593b00] dark:text-amber-200/80 font-semibold">
-                Earned from daily cognitive games & orientation recall
-              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Daily Workout</p>
+              <p className="text-base font-extrabold text-[#002045] dark:text-white">Ready (3 Drills)</p>
             </div>
-
-            <button
-              id="btn-redeem-rewards-card"
-              onClick={() => {
-                playGentleClick();
-                onOpenRewards();
-              }}
-              className="mt-5 bg-[#2d1d00] dark:bg-amber-400 hover:bg-[#493100] dark:hover:bg-amber-300 active:bg-[#1a1100] text-white dark:text-slate-950 px-6 py-3.5 rounded-2xl font-extrabold text-[17px] w-full min-h-[54px] focus:outline-none focus:ring-4 focus:ring-[#2d1d00] cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2"
-            >
-              <Award className="w-5 h-5 text-amber-300 dark:text-slate-950" />
-              <span>Redeem Rewards</span>
-            </button>
           </div>
 
-          {/* Caregiver & Safe Zone Status Widget */}
-          <div
-            id="card-caregiver-anchor-status"
-            className="bg-white dark:bg-[#111e38] p-6 rounded-3xl border border-slate-200 dark:border-[#1e3a6a] shadow-xs space-y-4 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-[#002045] dark:text-white flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                Caregiver Anchor
-              </span>
-              <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                Live Standby
-              </span>
+          <div className="bg-white dark:bg-[#0f1b36] p-5 rounded-2xl border border-slate-200/90 dark:border-[#1e3a6a] shadow-xs flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-
-            <div className="space-y-2 text-sm text-[#002045] dark:text-slate-200">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                  Primary Contact:
-                </span>
-                <span className="font-extrabold text-[#002045] dark:text-white">
-                  {config?.caregiverName || 'Rohan Sharma (Son)'}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#FF6321]" />
-                  Base Location:
-                </span>
-                <span className="font-bold text-[#002045] dark:text-white">
-                  {config?.anchorName || 'Home Sweet Home'}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400">Safe Zone Radius:</span>
-                <span className="font-bold text-emerald-700 dark:text-emerald-400">100m • Inside Safe Area</span>
-              </div>
+            <div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Home Perimeter</p>
+              <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">Safe (&lt; 250m)</p>
             </div>
-
-            {onOpenCareCompass && (
-              <button
-                id="btn-open-carecompass-shortcut"
-                onClick={() => {
-                  playGentleClick();
-                  onOpenCareCompass();
-                }}
-                className="w-full py-3 bg-slate-50 dark:bg-[#162544] hover:bg-slate-100 dark:hover:bg-[#1c3058] text-[#002045] dark:text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 dark:border-[#223d70] transition-all cursor-pointer"
-              >
-                <Compass className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                <span>Open CareCompass Radar</span>
-              </button>
-            )}
           </div>
 
-          {/* Family Memory Spotlight */}
-          {spotlightMember && (
+          <div className="bg-white dark:bg-[#0f1b36] p-5 rounded-2xl border border-slate-200/90 dark:border-[#1e3a6a] shadow-xs flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
+              <Flame className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Habit Streak</p>
+              <p className="text-base font-extrabold text-[#002045] dark:text-white">{streakDays} Days Active</p>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-[#0f1b36] p-5 rounded-2xl border border-slate-200/90 dark:border-[#1e3a6a] shadow-xs flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-sky-400 flex items-center justify-center font-bold shrink-0">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Mind Points</p>
+              <p className="text-base font-extrabold text-[#002045] dark:text-white font-mono">{mindPoints} pts</p>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            3. THREE DIRECT WELLNESS GATEWAYS (Spacious, Clear & High Contrast)
+           ========================================================================= */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#002045] dark:text-white tracking-tight">
+              Recommended for Today
+            </h2>
+            <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              3 gentle drills · ~10 mins total
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Gateway 1: FaceBond Kinship */}
             <div
-              id="card-family-spotlight"
+              id="card-gateway-saathi"
               onClick={() => {
                 playGentleClick();
                 onPlayGame('facebond');
               }}
-              className="bg-[#f0fdf4] dark:bg-[#14261e] p-5 rounded-3xl border border-[#bbf7d0] dark:border-[#224d38] space-y-3 cursor-pointer hover:shadow-sm transition-all group"
+              className="bg-white dark:bg-[#0f1b36] p-7 rounded-[28px] border border-slate-200/90 dark:border-[#1e3a6a] hover:border-orange-500 dark:hover:border-orange-400 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between min-h-[240px]"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-rose-500" />
-                  Family Memory Spotlight
-                </span>
-                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 group-hover:underline flex items-center gap-0.5">
-                  Reminisce <ChevronRight className="w-3 h-3" />
-                </span>
+              <div className="space-y-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-950/80 text-[#FF6321] flex items-center justify-center font-bold">
+                  <Heart className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-[#002045] dark:text-white group-hover:text-[#FF6321] transition-colors">
+                    FaceBond Kinship
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                    Recognize cherished family faces, remember joyful memories, and hear loving greetings from your children.
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3.5">
-                <img
-                  src={spotlightMember.photoUrl}
-                  alt={spotlightMember.name}
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-300 dark:border-emerald-600 shadow-xs"
-                />
+              <div className="pt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#FF6321] dark:text-orange-400">
+                <span>Family Reminiscence · 3 mins</span>
+                <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  Play Exercise <ChevronRight className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+
+            {/* Gateway 2: Spatial Route Navigation */}
+            <div
+              id="card-gateway-wayback"
+              onClick={() => {
+                playGentleClick();
+                onPlayGame('wayback');
+              }}
+              className="bg-white dark:bg-[#0f1b36] p-7 rounded-[28px] border border-slate-200/90 dark:border-[#1e3a6a] hover:border-sky-500 dark:hover:border-sky-400 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between min-h-[240px]"
+            >
+              <div className="space-y-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 flex items-center justify-center font-bold">
+                  <Navigation className="w-7 h-7" />
+                </div>
                 <div>
-                  <h4 className="font-extrabold text-base text-[#002045] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                    {spotlightMember.name}
-                  </h4>
-                  <p className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold">{spotlightMember.relation}</p>
-                  {spotlightMember.keyMemories?.[0] && (
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-1 mt-0.5">
-                      "{spotlightMember.keyMemories[0]}"
-                    </p>
-                  )}
+                  <h3 className="text-xl font-black text-[#002045] dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    WayBack Landmarks
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                    Navigate through familiar temple, garden, and market landmarks to strengthen spatial orientation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-sky-700 dark:text-sky-400">
+                <span>Spatial Recall · 4 mins</span>
+                <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  Navigate <ChevronRight className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+
+            {/* Gateway 3: Daily Routine Sequencing */}
+            <div
+              id="card-gateway-routine"
+              onClick={() => {
+                playGentleClick();
+                onPlayGame('dailyroutine');
+              }}
+              className="bg-white dark:bg-[#0f1b36] p-7 rounded-[28px] border border-slate-200/90 dark:border-[#1e3a6a] hover:border-emerald-500 dark:hover:border-emerald-400 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between min-h-[240px]"
+            >
+              <div className="space-y-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold">
+                  <CheckCircle2 className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-[#002045] dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Daily Routine Steps
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                    Organize morning tea, herbal garden watering, and medicine schedules in harmonious sequence.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                <span>Executive Planning · 3 mins</span>
+                <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  Plan Steps <ChevronRight className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            4. FAMILY PORTRAIT REASSURANCE ROW (Warm & Heartwarming Connection)
+           ========================================================================= */}
+        {familyMembers.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-black text-[#002045] dark:text-white tracking-tight flex items-center gap-2.5">
+                  <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
+                  <span>Your Loving Family</span>
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                  Tap any portrait to reminisce or hear their voice greeting.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {familyMembers.slice(0, 4).map((member) => (
+                <div
+                  key={member.id}
+                  onClick={() => {
+                    playGentleClick();
+                    onPlayGame('facebond');
+                  }}
+                  className="bg-white dark:bg-[#0f1b36] p-5 rounded-[24px] border border-slate-200/90 dark:border-[#1e3a6a] hover:border-[#002045] dark:hover:border-blue-400 shadow-xs hover:shadow-md transition-all cursor-pointer group flex items-center space-x-4"
+                >
+                  <img
+                    src={member.photoUrl}
+                    alt={member.name}
+                    className="w-18 h-18 rounded-2xl object-cover border-2 border-slate-100 dark:border-slate-800 shadow-sm shrink-0 group-hover:scale-105 transition-transform"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-extrabold text-base text-[#002045] dark:text-white truncate">
+                      {member.name}
+                    </h3>
+                    <p className="text-xs font-bold text-[#FF6321]">{member.relation}</p>
+                    {member.keyMemories?.[0] && (
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400 truncate mt-1">
+                        "{member.keyMemories[0]}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* =========================================================================
+            5. COGNITIVE VITALITY & CAREGIVER PEACE OF MIND
+            Spacious two-column layout: Left is Progress, Right is Safety & Rewards
+           ========================================================================= */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Left: Gentle Cognitive Health Overview */}
+          <div className="bg-white dark:bg-[#0f1b36] p-7 sm:p-9 rounded-[32px] border border-slate-200/90 dark:border-[#1e3a6a] shadow-xs space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-[#002045] dark:text-white flex items-center gap-2.5">
+                  <Brain className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+                  <span>Memory Health Overview</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+                  Calibrated via daily cognitive games
+                </p>
+              </div>
+
+              <div className="text-right">
+                <span className="text-3xl font-black text-[#002045] dark:text-white font-mono">
+                  {overallIndex}%
+                </span>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">Stable & Optimal</p>
+              </div>
+            </div>
+
+            {/* 4 Pillars with Thicker, Highly Visible Progress Bars */}
+            <div className="space-y-5 pt-2">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <span>Memory & Kinship Recall</span>
+                  <span className="font-mono text-indigo-600 dark:text-indigo-400">{memoryPct}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-indigo-600 dark:bg-indigo-400 h-full rounded-full transition-all duration-700"
+                    style={{ width: `${memoryPct}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <span>Spatial Route Orientation</span>
+                  <span className="font-mono text-orange-600 dark:text-orange-400">{spatialPct}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-[#FF6321] h-full rounded-full transition-all duration-700"
+                    style={{ width: `${spatialPct}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <span>Visual Attention & Focus</span>
+                  <span className="font-mono text-amber-600 dark:text-amber-400">{attentionPct}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-amber-500 h-full rounded-full transition-all duration-700"
+                    style={{ width: `${attentionPct}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <span>Executive Planning</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400">{planningPct}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-emerald-600 h-full rounded-full transition-all duration-700"
+                    style={{ width: `${planningPct}%` }}
+                  />
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Recent Activity List */}
-          <div
-            id="card-recent-activity"
-            className="bg-white dark:bg-[#111e38] p-6 rounded-3xl border border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between transition-colors"
-          >
-            <div>
-              <h3 className="font-bold text-[20px] text-[#002045] dark:text-white mb-4 flex items-center">
-                <History className="w-5 h-5 mr-2.5 text-[#002045] dark:text-white" />
-                Recent Cognitive Activities
-              </h3>
+            <div className="pt-3 border-t border-slate-100 dark:border-[#1e3a6a] flex justify-between items-center text-xs sm:text-sm">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">
+                Active Habit Streak: <strong className="text-[#FF6321]">🔥 {streakDays} days</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  playGentleClick();
+                  onViewHistory();
+                }}
+                className="text-blue-600 dark:text-sky-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <span>View Full Training History</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
 
-              <ul className="space-y-3">
-                {recentActivities.map((act) => (
-                  <li
-                    key={act.id}
-                    className="flex justify-between items-center p-3 bg-slate-50 dark:bg-[#162544] rounded-2xl hover:bg-slate-100 dark:hover:bg-[#1c3058] transition-colors border border-slate-100 dark:border-[#223d70]"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-[#d6e3ff] dark:bg-blue-900/60 text-[#002045] dark:text-blue-200 p-2 rounded-xl flex-shrink-0 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[20px]">{act.icon}</span>
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm text-[#002045] dark:text-white leading-snug">{act.title}</p>
-                        <p className="font-normal text-xs text-slate-500 dark:text-slate-400">{act.timestamp}</p>
-                      </div>
-                    </div>
-                    <span className="font-extrabold text-sm text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
-                      +{act.points} pts
-                    </span>
-                  </li>
-                ))}
-              </ul>
+          {/* Right: Caregiver Safety Anchor & Mind Points */}
+          <div className="space-y-6">
+            {/* Safety Anchor Card */}
+            <div className="bg-white dark:bg-[#0f1b36] p-7 sm:p-8 rounded-[32px] border border-slate-200/90 dark:border-[#1e3a6a] shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-2xl">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg text-[#002045] dark:text-white">
+                      Caregiver Safety Anchor
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      Continuous CareCompass protection
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Protected</span>
+                </span>
+              </div>
+
+              <div className="p-4.5 bg-slate-50 dark:bg-[#111e38] rounded-2xl border border-slate-100 dark:border-[#1e3a6a] space-y-2.5 text-xs sm:text-sm">
+                <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                  <span>Primary Caregiver:</span>
+                  <strong className="text-[#002045] dark:text-white">
+                    {config?.caregiverName || 'Rohan Sharma (Son)'}
+                  </strong>
+                </div>
+                <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                  <span>Sanctuary Base Location:</span>
+                  <strong className="text-[#002045] dark:text-white truncate max-w-[200px]">
+                    {config?.homeLocation?.label || 'Saket, South Delhi'}
+                  </strong>
+                </div>
+                <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                  <span>Current Distance:</span>
+                  <strong className="text-emerald-700 dark:text-emerald-400">
+                    Inside Safe Boundary (&lt; 250m)
+                  </strong>
+                </div>
+              </div>
+
+              {onOpenCareCompass && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playGentleClick();
+                    onOpenCareCompass();
+                  }}
+                  className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#162544] dark:hover:bg-[#1e325c] text-[#002045] dark:text-white font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200 dark:border-[#1e3a6a]"
+                >
+                  <Compass className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <span>Open CareCompass Live Radar</span>
+                </button>
+              )}
             </div>
 
-            <button
-              id="btn-view-all-history"
-              onClick={() => {
-                playGentleClick();
-                onViewHistory();
-              }}
-              className="w-full mt-4 py-3 text-[#002045] dark:text-white font-bold text-sm text-center hover:bg-slate-100 dark:hover:bg-[#162544] rounded-xl transition-colors min-h-[48px] focus:outline-none focus:ring-4 focus:ring-[#002045] cursor-pointer flex items-center justify-center gap-1 border border-slate-200 dark:border-[#1e3a6a]"
-            >
-              <span>View All Training Logs</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            {/* Mind Points & Rewards Banner */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-[#1e1708] dark:to-[#291e0a] p-7 rounded-[32px] border border-amber-200 dark:border-[#573d10] flex items-center justify-between gap-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                  Total Mind Points
+                </span>
+                <p className="text-3xl sm:text-4xl font-black text-amber-950 dark:text-amber-200 font-mono">
+                  {mindPoints} <span className="text-sm font-bold font-sans">pts</span>
+                </p>
+                <p className="text-xs text-amber-800 dark:text-amber-300/80">
+                  Redeemable for herbal teas, puzzle digests & custom photo prints
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playGentleClick();
+                  onOpenRewards();
+                }}
+                className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs sm:text-sm shadow-sm transition-all cursor-pointer shrink-0 flex items-center gap-2"
+              >
+                <Award className="w-4 h-4" />
+                <span>Rewards</span>
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </main>
-
   );
 };

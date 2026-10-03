@@ -13,6 +13,7 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertTriangle,
+  X,
 } from 'lucide-react';
 import {
   startTelephoneRingingTone,
@@ -289,7 +290,7 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-200"
     >
       <div className="relative w-full max-w-lg bg-slate-900 border-2 border-emerald-500/70 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-100">
-        {/* Top Direct Channel Banner */}
+        {/* Top Direct Channel Banner with Close Button */}
         <div className="bg-emerald-950/80 border-b border-emerald-500/40 px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block" />
@@ -297,9 +298,20 @@ export const DirectCallModal: React.FC<DirectCallModalProps> = ({
               Direct Emergency Voice Line
             </span>
           </div>
-          <div className="flex items-center space-x-2 text-xs font-mono text-emerald-400 font-bold">
-            <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
-            <span>{callState === 'CONNECTED' ? `LIVE • ${formatCallTime(callDuration)}` : 'SIGNALING'}</span>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1.5 text-xs font-mono text-emerald-400 font-bold">
+              <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+              <span>{callState === 'CONNECTED' ? `LIVE • ${formatCallTime(callDuration)}` : 'SIGNALING'}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleEndCall}
+              title="Close and end call (Esc)"
+              aria-label="Close and end call"
+              className="p-1 rounded-lg bg-emerald-900/60 hover:bg-rose-900/80 text-emerald-200 hover:text-rose-200 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
 

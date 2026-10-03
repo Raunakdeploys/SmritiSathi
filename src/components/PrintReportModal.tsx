@@ -1,6 +1,6 @@
 import React from 'react';
 import type { UserProfile, CognitiveProgress, ActivityItem } from '../types';
-import { Printer, X, Shield, Phone, MapPin, Award } from 'lucide-react';
+import { Printer, X, Shield, Phone, MapPin, Award, ArrowLeft } from 'lucide-react';
 
 interface PrintReportModalProps {
   isOpen: boolean;
@@ -42,27 +42,37 @@ export const PrintReportModal: React.FC<PrintReportModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Action Bar */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 no-print">
-          <div className="flex items-center gap-2">
-            <Printer className="w-5 h-5 text-[#002045] dark:text-blue-400" />
-            <h2 id="print-report-title" className="font-bold text-base text-slate-900 dark:text-white">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 no-print gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/80 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-xs cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+            <Printer className="w-5 h-5 text-[#002045] dark:text-blue-400 shrink-0" />
+            <h2 id="print-report-title" className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
               Clinical Cognitive Summary &amp; Emergency Handover Report
             </h2>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handlePrint}
-              className="bg-[#002045] hover:bg-[#1a365d] text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 shadow-xs cursor-pointer active:scale-95"
+              className="bg-[#002045] hover:bg-[#1a365d] text-white px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
             >
               <Printer className="w-4 h-4" />
-              <span>Print Document</span>
+              <span className="hidden sm:inline">Print Document</span>
+              <span className="sm:hidden">Print</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700 cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white rounded-xl bg-slate-200/60 hover:bg-rose-100 dark:hover:bg-rose-950/40 text-xs font-bold cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+              <span>Close</span>
             </button>
           </div>
         </div>

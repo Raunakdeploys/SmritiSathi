@@ -3,7 +3,20 @@ import type { UserProfile } from '../types';
 import { speakText, playGentleClick, playSuccessChime } from '../utils/audio';
 import { signInWithGoogle, signOutUser } from '../firebase';
 import { storeService } from '../services/storeService';
-import { LogIn, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
+import {
+  LogIn,
+  LogOut,
+  CheckCircle2,
+  AlertCircle,
+  Menu,
+  Search,
+  Printer,
+  Sun,
+  Moon,
+  Volume2,
+  Award,
+  User as UserIcon,
+} from 'lucide-react';
 
 interface HeaderProps {
   user: UserProfile | null;
@@ -83,7 +96,7 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Open Navigation Menu"
           className="md:hidden p-2 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-lg min-h-[40px] min-w-[40px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-blue-500 shrink-0 cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[26px]">menu</span>
+          <Menu className="w-6 h-6 text-slate-800 dark:text-white" />
         </button>
 
         <h1
@@ -103,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="Site Search (Cmd+K)"
             className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-[#1e3a6a] bg-slate-50 dark:bg-[#0f1b36] text-slate-600 dark:text-slate-300 hover:border-blue-500 dark:hover:border-sky-400 text-xs transition-all cursor-pointer shadow-xs ml-4"
           >
-            <span className="material-symbols-outlined text-[18px] text-slate-400 dark:text-slate-400">search</span>
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-400" />
             <span>Search features...</span>
             <kbd className="ml-2 font-mono text-[10px] bg-slate-200 dark:bg-[#1a2d52] text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-300 dark:border-[#233d6d]">
               ⌘K
@@ -122,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="Search features"
             className="md:hidden p-1.5 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[38px] min-w-[38px] flex items-center justify-center cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[22px]">search</span>
+            <Search className="w-5 h-5 text-slate-800 dark:text-white" />
           </button>
         )}
 
@@ -136,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="Print Clinical Summary"
             className="p-1.5 sm:p-2 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[22px] sm:text-[24px]">print</span>
+            <Printer className="w-5 h-5 text-slate-700 dark:text-white" />
           </button>
         )}
 
@@ -150,9 +163,11 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             className="p-1.5 sm:p-2 text-slate-700 dark:text-amber-300 hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[22px] sm:text-[24px]">
-              {isDarkMode ? 'light_mode' : 'dark_mode'}
-            </span>
+            {isDarkMode ? (
+              <Sun className="w-5 h-5 text-amber-300" />
+            ) : (
+              <Moon className="w-5 h-5 text-slate-700" />
+            )}
           </button>
         )}
 
@@ -164,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Read screen aloud"
           className="p-1.5 sm:p-2 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-[#111f3d] rounded-full min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-blue-500 cursor-pointer shrink-0"
         >
-          <span className="material-symbols-outlined text-[22px] sm:text-[26px]">volume_up</span>
+          <Volume2 className="w-5 h-5 text-slate-700 dark:text-white" />
         </button>
 
         {/* Mind Points Display (Clickable to redeem rewards) */}
@@ -174,7 +189,7 @@ export const Header: React.FC<HeaderProps> = ({
           title="Click to view and redeem Mind Points"
           className="hidden sm:flex items-center bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/80 dark:hover:bg-amber-900/90 text-amber-950 dark:text-amber-200 px-2.5 sm:px-3 py-1.5 rounded-full transition-all border border-amber-300 dark:border-amber-700 min-h-[38px] cursor-pointer shadow-xs active:scale-95 shrink-0"
         >
-          <span className="material-symbols-outlined mr-1 filled-icon text-amber-600 dark:text-amber-300 text-[18px] sm:text-[20px]">stars</span>
+          <Award className="w-4 h-4 mr-1 text-amber-600 dark:text-amber-300" />
           <span className="font-extrabold text-[14px] sm:text-[16px]">{mindPointsFormatted}</span>
           <span className="hidden md:inline text-xs ml-1 text-amber-800 dark:text-amber-300/80 font-semibold">pts</span>
         </button>

@@ -24,6 +24,7 @@ import {
   Search,
   Printer,
   ChevronRight,
+  ArrowLeft,
   ShieldCheck,
   Activity,
   Smile,
@@ -230,6 +231,19 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
           </div>
 
           <div className="flex items-center space-x-2.5 flex-wrap">
+            {onBackToApp && (
+              <button
+                type="button"
+                onClick={onBackToApp}
+                title="Back to Dashboard"
+                aria-label="Back to Dashboard"
+                className="bg-white/15 hover:bg-white/25 text-white border border-white/30 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all cursor-pointer active:scale-95"
+              >
+                <ArrowLeft className="w-4 h-4 text-sky-300" />
+                <span>Back to Dashboard</span>
+              </button>
+            )}
+
             <button
               onClick={printReport}
               className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 transition-all cursor-pointer"
@@ -240,11 +254,14 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
 
             {onBackToApp && (
               <button
+                type="button"
                 onClick={onBackToApp}
-                className="bg-[#FF6321] hover:bg-[#EA580C] text-white px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm shadow-md flex items-center space-x-1.5 transition-transform active:scale-95 cursor-pointer"
+                title="Close Caregiver Portal"
+                aria-label="Close Portal"
+                className="bg-rose-500/80 hover:bg-rose-600 text-white px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center space-x-1.5 transition-transform active:scale-95 cursor-pointer"
               >
-                <span>Back to Patient App</span>
-                <ChevronRight className="w-4 h-4" />
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Close</span>
               </button>
             )}
           </div>

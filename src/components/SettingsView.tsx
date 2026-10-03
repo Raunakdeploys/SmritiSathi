@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { AndroidAPKModal } from './AndroidAPKModal';
+import { ViewNavigationBar } from './ViewNavigationBar';
 
 interface SettingsViewProps {
   user: UserProfile | null;
@@ -34,6 +35,7 @@ interface SettingsViewProps {
   onDeleteFamilyFace: (id: string) => Promise<void>;
   onResetDemo: () => Promise<void>;
   onNavigateToTab?: (tab: string) => void;
+  onBackToDashboard?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -44,6 +46,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onDeleteFamilyFace,
   onResetDemo,
   onNavigateToTab,
+  onBackToDashboard,
 }) => {
   const [userName, setUserName] = useState(user?.name || 'Asha Devi');
   const [caregiverName, setCaregiverName] = useState(user?.caregiverName || 'Rohan Sharma (Son)');
@@ -107,12 +110,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <main id="settings-view-main" className="flex-1 p-4 sm:p-6 md:p-10 lg:p-12 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors">
-      <div className="mb-8">
+    <main id="settings-view-main" className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 bg-white dark:bg-[#0a1128] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors pb-24">
+      {/* Universal Navigation Bar with Back & Close */}
+      {onBackToDashboard && (
+        <ViewNavigationBar
+          title="Settings & Profile"
+          breadcrumbs={[{ label: 'Dashboard', onClick: onBackToDashboard }]}
+          onBack={onBackToDashboard}
+          onClose={onBackToDashboard}
+        />
+      )}
+
+      <div className="mb-8 max-w-4xl">
         <h1 className="font-extrabold text-[28px] md:text-[34px] leading-tight text-[#002045] dark:text-white mb-2">
-          Settings & Preferences
+          Settings &amp; Preferences
         </h1>
-        <p className="font-normal text-[18px] md:text-[20px] text-slate-600 dark:text-slate-300">
+        <p className="font-normal text-[16px] md:text-[18px] text-slate-600 dark:text-slate-300">
           Manage accessibility, caregiver connection, and personalized family memory album.
         </p>
       </div>

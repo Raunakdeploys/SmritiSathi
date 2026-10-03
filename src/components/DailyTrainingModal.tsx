@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { UserProfile, CognitiveProgress } from '../types';
 import { playSuccessChime, playGentleClick, speakText } from '../utils/audio';
 import confetti from 'canvas-confetti';
+import { ArrowLeft, X } from 'lucide-react';
 
 interface DailyTrainingModalProps {
   user: UserProfile | null;
@@ -93,29 +94,44 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
     >
       <div className="bg-white dark:bg-[#0d172e] border-2 border-slate-200 dark:border-[#1e3a6a] rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden text-slate-900 dark:text-slate-100">
         {/* Header */}
-        <div className="p-6 bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-700 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner">
+        {/* Header with Back and Close buttons */}
+        <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-700 text-white flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                playGentleClick();
+                onClose();
+              }}
+              aria-label="Back to previous screen"
+              className="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-white flex items-center gap-1 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
+            </button>
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner shrink-0">
               🎯
             </div>
             <div>
-              <h2 id="daily-training-modal-title" className="text-xl font-bold tracking-tight text-white">
-                Daily Brain Workout Protocol
+              <h2 id="daily-training-modal-title" className="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+                Daily Brain Workout
               </h2>
-              <p className="text-blue-100 text-xs font-medium">
-                Personalized for {user?.name || 'Sadhana Ji'} • Designed for MCI Neuroplasticity
+              <p className="text-blue-100 text-xs font-medium truncate max-w-[200px] sm:max-w-none">
+                {user?.name || 'Asha Devi'} • MCI Neuroplasticity
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={() => {
               playGentleClick();
               onClose();
             }}
-            className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all focus:outline-hidden focus:ring-2 focus:ring-white"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/15 hover:bg-rose-500/80 text-white text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
             aria-label="Close modal"
           >
-            ✕
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline">Close</span>
           </button>
         </div>
 
@@ -308,17 +324,27 @@ export const DailyTrainingModal: React.FC<DailyTrainingModalProps> = ({
 
         {/* Footer */}
         <div className="p-4 bg-white dark:bg-[#0d172e] border-t border-slate-200 dark:border-[#1e3a6a] flex items-center justify-between">
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            Auto-synced with Caregiver Portal
-          </span>
           <button
+            type="button"
             onClick={() => {
               playGentleClick();
               onClose();
             }}
-            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer"
           >
-            Done for Now
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Dashboard</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              playGentleClick();
+              onClose();
+            }}
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Done & Close</span>
           </button>
         </div>
       </div>
