@@ -61,6 +61,29 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const [previousTab, setPreviousTab] = useState<string>('dashboard');
+
+  const navigateToTab = (newTab: string) => {
+    if (newTab !== currentTab) {
+      setPreviousTab(currentTab);
+      setCurrentTab(newTab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const TAB_LABELS: Record<string, string> = {
+    dashboard: 'Dashboard',
+    carecompass: 'CareCompass Radar',
+    'patient-mode': 'Patient Mode',
+    'saathi-chat': 'Saathi AI Chat',
+    games: 'Games',
+    'reality-quest': 'Reality Quest',
+    caregiver: 'Caregiver Portal',
+    settings: 'Settings',
+    help: 'Help & Guide',
+    design: 'Design System',
+    'android-app': 'Android App & APK',
+  };
 
   // Dynamic SEO Page Title & Meta Tags
   usePageSEO(currentTab);
@@ -310,10 +333,7 @@ export default function App() {
       {/* Desktop Side Navigation Bar */}
       <Sidebar
         currentTab={currentTab}
-        onSelectTab={(tab) => {
-          setCurrentTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onSelectTab={navigateToTab}
         onStartDailyTraining={() => setIsDailyTrainingOpen(true)}
         user={user}
       />
@@ -371,7 +391,7 @@ export default function App() {
                   <li key={item.id}>
                     <button
                       onClick={() => {
-                        setCurrentTab(item.id);
+                        navigateToTab(item.id);
                         setIsMobileMenuOpen(false);
                       }}
                       className={`w-full text-left p-3.5 rounded-xl font-bold text-base flex items-center ${
@@ -564,10 +584,9 @@ export default function App() {
           {/* Android App & APK Center Section */}
           {currentTab === 'android-app' && (
             <AndroidAppView
-              onBackToDashboard={() => {
-                setCurrentTab('dashboard');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              previousTabName={TAB_LABELS[previousTab] || 'Dashboard'}
+              onBack={() => navigateToTab(previousTab || 'dashboard')}
+              onClose={() => navigateToTab('dashboard')}
             />
           )}
 

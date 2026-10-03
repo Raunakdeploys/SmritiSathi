@@ -28,10 +28,18 @@ export interface UserProfile {
   id?: string;
   name: string;
   age: number;
+  gender?: string;
   stage?: string;
+  clinicalDiagnosis?: string;
+  baselineMocaScore?: number;
+  physicianName?: string;
+  caregiverRelation?: string;
+  homeAddress?: string;
+  homeCoordinates?: { lat: number; lng: number };
   dailyStreak?: number;
   totalMindPoints?: number;
   mindPoints?: number; // legacy alias
+  totalPoints?: number; // legacy alias
   currentStreak?: number; // legacy alias
   avatarUrl: string;
   homeLocation?: HomeLocation;

@@ -121,9 +121,19 @@ export const DesignSystemView: React.FC<DesignSystemViewProps> = ({
 
             <button
               onClick={onBackToApp}
-              className="bg-[#002045] hover:bg-[#1a365d] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+              className="bg-[#002045] hover:bg-[#1a365d] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5"
             >
-              Return to App
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              <span>Back</span>
+            </button>
+
+            <button
+              onClick={onBackToApp}
+              title="Close Design System (Esc)"
+              aria-label="Close Design System"
+              className="bg-slate-200 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/50 text-slate-700 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300 p-2 rounded-xl text-sm font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
         </div>

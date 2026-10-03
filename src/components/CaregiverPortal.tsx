@@ -186,6 +186,19 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
         (log.notes && log.notes.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
+  const homeAddr = user?.homeAddress || user?.homeLocation?.label || user?.homeLocation?.area || 'C-42, Saket, South Delhi, 110017';
+  const homeLat = user?.homeCoordinates?.lat ?? user?.homeLocation?.latitude ?? 28.5244;
+  const homeLng = user?.homeCoordinates?.lng ?? user?.homeLocation?.longitude ?? 77.2167;
+  const patientGender = user?.gender || 'Female';
+  const clinicalDiagnosis = user?.clinicalDiagnosis || user?.stage || 'Early Mild Cognitive Impairment';
+  const baselineMoca = user?.baselineMocaScore ?? 23;
+  const primaryCaregiver = user?.caregiverName || 'Rohan Sharma';
+  const caregiverRel = user?.caregiverRelation || 'Son';
+  const caregiverPh = user?.caregiverPhone || '+91 98112 34567';
+  const primaryPhysician = user?.physicianName || 'Dr. Arvind Mehra (Neurologist)';
+  const mindPointsTotal = user?.totalPoints ?? user?.totalMindPoints ?? user?.mindPoints ?? 240;
+  const streakCount = user?.currentStreak ?? user?.dailyStreak ?? 4;
+
   return (
     <main
       id="caregiver-portal-main"
@@ -279,15 +292,15 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
               <div className="md:col-span-4 bg-white dark:bg-[#111e38] p-6 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs space-y-4">
                 <div className="flex items-center space-x-4">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#002045] to-[#1E293B] dark:from-blue-600 dark:to-indigo-900 border-2 border-[#FF6321] flex items-center justify-center text-white text-2xl font-black shadow-md">
-                    RS
+                    {user?.name ? user.name.slice(0, 2).toUpperCase() : 'AD'}
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-[#002045] dark:text-white">{user.name}</h2>
+                    <h2 className="text-xl font-black text-[#002045] dark:text-white">{user?.name || 'Asha Devi'}</h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                      Age {user.age} • {user.gender}
+                      Age {user?.age || 72} • {patientGender}
                     </p>
                     <span className="inline-block mt-1 bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-800">
-                      {user.clinicalDiagnosis}
+                      {clinicalDiagnosis}
                     </span>
                   </div>
                 </div>
@@ -295,24 +308,24 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                 <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-[#1e3a6a] text-xs">
                   <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
                     <span className="font-bold text-slate-500 dark:text-slate-400">Baseline MoCA:</span>
-                    <span className="font-black text-[#002045] dark:text-white">{user.baselineMocaScore} / 30</span>
+                    <span className="font-black text-[#002045] dark:text-white">{baselineMoca} / 30</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
                     <span className="font-bold text-slate-500 dark:text-slate-400">Primary Caregiver:</span>
-                    <span className="font-black text-[#002045] dark:text-white">{user.caregiverName} ({user.caregiverRelation})</span>
+                    <span className="font-black text-[#002045] dark:text-white">{primaryCaregiver} ({caregiverRel})</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
                     <span className="font-bold text-slate-500 dark:text-slate-400">Caregiver Contact:</span>
-                    <span className="font-black text-[#002045] dark:text-white">{user.caregiverPhone}</span>
+                    <span className="font-black text-[#002045] dark:text-white">{caregiverPh}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100 dark:border-[#1e3a6a]">
                     <span className="font-bold text-slate-500 dark:text-slate-400">Primary Physician:</span>
-                    <span className="font-black text-[#002045] dark:text-white">{user.physicianName}</span>
+                    <span className="font-black text-[#002045] dark:text-white">{primaryPhysician}</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span className="font-bold text-slate-500 dark:text-slate-400">Registered Safe Home:</span>
                     <span className="font-black text-[#002045] dark:text-white text-right truncate max-w-[160px]">
-                      {user.homeAddress}
+                      {homeAddr}
                     </span>
                   </div>
                 </div>
@@ -323,7 +336,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                 <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Mind Points</span>
                   <div className="my-2">
-                    <span className="text-3xl font-black text-[#002045] dark:text-white">{user.totalPoints}</span>
+                    <span className="text-3xl font-black text-[#002045] dark:text-white">{mindPointsTotal}</span>
                     <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-1.5">+180 this week</span>
                   </div>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Cognitive effort currency</span>
@@ -332,7 +345,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                 <div className="bg-white dark:bg-[#111e38] p-5 rounded-3xl border-2 border-slate-200 dark:border-[#1e3a6a] shadow-xs flex flex-col justify-between">
                   <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Active Daily Streak</span>
                   <div className="my-2 flex items-center space-x-1.5">
-                    <span className="text-3xl font-black text-[#FF6321]">🔥 {user.currentStreak}</span>
+                    <span className="text-3xl font-black text-[#FF6321]">🔥 {streakCount}</span>
                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Days</span>
                   </div>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Consecutive engagement</span>
@@ -388,7 +401,7 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
                       Emergency Safe-Return & Spatial Geofence Anchor
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      Registered Safe Anchor: {user.homeAddress} (Lat {user.homeCoordinates.lat}, Lng {user.homeCoordinates.lng})
+                      Registered Safe Anchor: {homeAddr} (Lat {homeLat.toFixed(4)}, Lng {homeLng.toFixed(4)})
                     </p>
                   </div>
                 </div>
@@ -842,19 +855,19 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 dark:bg-[#0d182e] p-4 rounded-2xl border border-slate-200 dark:border-[#1e3a6a] text-xs">
               <div>
                 <span className="font-bold text-slate-400 block">PATIENT NAME</span>
-                <span className="font-black text-sm text-[#002045] dark:text-white">{user.name}</span>
+                <span className="font-black text-sm text-[#002045] dark:text-white">{user?.name || 'Asha Devi'}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">AGE / GENDER</span>
-                <span className="font-black text-sm text-[#002045] dark:text-white">{user.age} Yrs / {user.gender}</span>
+                <span className="font-black text-sm text-[#002045] dark:text-white">{user?.age || 72} Yrs / {patientGender}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">DIAGNOSIS</span>
-                <span className="font-black text-sm text-amber-900 dark:text-amber-300">{user.clinicalDiagnosis}</span>
+                <span className="font-black text-sm text-amber-900 dark:text-amber-300">{clinicalDiagnosis}</span>
               </div>
               <div>
                 <span className="font-bold text-slate-400 block">BASELINE MoCA</span>
-                <span className="font-black text-sm text-[#002045] dark:text-white">{user.baselineMocaScore} / 30</span>
+                <span className="font-black text-sm text-[#002045] dark:text-white">{baselineMoca} / 30</span>
               </div>
             </div>
 
@@ -900,12 +913,12 @@ export const CaregiverPortal: React.FC<CaregiverPortalProps> = ({
             <div className="pt-8 flex justify-between items-end text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-[#1e3a6a]">
               <div>
                 <p>Signed electronically by:</p>
-                <p className="font-black text-sm text-[#002045] dark:text-white mt-1">{user.caregiverName}</p>
-                <p>Primary Caregiver ({user.caregiverRelation})</p>
+                <p className="font-black text-sm text-[#002045] dark:text-white mt-1">{primaryCaregiver}</p>
+                <p>Primary Caregiver ({caregiverRel})</p>
               </div>
               <div className="text-right">
                 <p>Clinical Reviewer:</p>
-                <p className="font-black text-sm text-[#002045] dark:text-white mt-1">{user.physicianName}</p>
+                <p className="font-black text-sm text-[#002045] dark:text-white mt-1">{primaryPhysician}</p>
                 <p>Neurology Consultant, Apollo Hospitals Delhi</p>
               </div>
             </div>
