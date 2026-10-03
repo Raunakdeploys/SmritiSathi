@@ -120,7 +120,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       id="dashboard-canvas-main"
       className="flex-1 min-h-screen bg-[#F8FAFC] dark:bg-[#070d18] text-[#002045] dark:text-slate-100 overflow-y-auto w-full min-w-0 max-w-full overflow-x-hidden box-border transition-colors pb-28"
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-12 space-y-10 sm:space-y-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-5 sm:py-7 space-y-8 sm:space-y-10">
         {/* =========================================================================
             1. CALM & DIGNIFIED SANCTUARY HERO BANNER
             Spacious, high-contrast, peaceful orientation for seniors

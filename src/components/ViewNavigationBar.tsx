@@ -14,6 +14,7 @@ interface ViewNavigationBarProps {
   onBack: () => void;
   onClose?: () => void;
   extraActions?: React.ReactNode;
+  isDarkTheme?: boolean;
 }
 
 export const ViewNavigationBar: React.FC<ViewNavigationBarProps> = ({
@@ -24,6 +25,7 @@ export const ViewNavigationBar: React.FC<ViewNavigationBarProps> = ({
   onBack,
   onClose,
   extraActions,
+  isDarkTheme = false,
 }) => {
   // Listen for Escape key to trigger onBack or onClose
   useEffect(() => {
@@ -45,79 +47,93 @@ export const ViewNavigationBar: React.FC<ViewNavigationBarProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onBack, onClose]);
 
+  const navContainerClass = isDarkTheme
+    ? 'bg-slate-900/95 border-slate-800 text-white'
+    : 'bg-slate-50/90 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 text-[#002045] dark:text-white';
+
+  const btnClass = isDarkTheme
+    ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
+    : 'bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#002045] dark:text-white border-slate-200 dark:border-slate-700';
+
+  const closeBtnClass = isDarkTheme
+    ? 'bg-slate-800 hover:bg-rose-950/60 text-slate-200 hover:text-rose-300 border-slate-700'
+    : 'bg-white hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-950/60 text-slate-700 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300 border-slate-200 dark:border-slate-700';
+
   return (
-    <div className="sticky top-[72px] z-20 -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 px-4 sm:px-6 md:px-8 lg:px-12 py-3 bg-white/95 dark:bg-[#070d18]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#1e3a6a] transition-all mb-6">
-      <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto">
-        {/* Left: Back Button & Breadcrumbs */}
-        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+    <div
+      className={`w-full py-2.5 px-4 sm:px-6 rounded-2xl border transition-all mb-6 flex items-center justify-between shadow-xs ${navContainerClass}`}
+    >
+      {/* Left: Back Button & Breadcrumbs */}
+      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+        <button
+          type="button"
+          onClick={() => {
+            playGentleClick();
+            onBack();
+          }}
+          aria-label={backLabel}
+          title={`${backLabel} (or press Esc)`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer shrink-0 ${btnClass}`}
+        >
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          <span className="hidden sm:inline">{backLabel}</span>
+          <span className="sm:hidden">Back</span>
+        </button>
+
+        {/* Breadcrumb Trail */}
+        <nav
+          aria-label="Breadcrumb"
+          className={`hidden md:flex items-center space-x-1.5 text-xs font-medium truncate ${
+            isDarkTheme ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          {breadcrumbs.map((crumb, idx) => (
+            <React.Fragment key={crumb.label}>
+              {idx > 0 && <span className={isDarkTheme ? 'text-slate-600' : 'text-slate-300 dark:text-slate-600'}>/</span>}
+              {crumb.onClick ? (
+                <button
+                  onClick={() => {
+                    playGentleClick();
+                    crumb.onClick!();
+                  }}
+                  className={isDarkTheme ? 'hover:text-sky-400 transition-colors cursor-pointer' : 'hover:text-blue-600 dark:hover:text-sky-400 transition-colors cursor-pointer'}
+                >
+                  {crumb.label}
+                </button>
+              ) : (
+                <span>{crumb.label}</span>
+              )}
+            </React.Fragment>
+          ))}
+          <span className={isDarkTheme ? 'text-slate-600' : 'text-slate-300 dark:text-slate-600'}>/</span>
+          <span className={`font-bold truncate max-w-[220px] ${isDarkTheme ? 'text-white' : 'text-[#002045] dark:text-white'}`}>
+            {title}
+          </span>
+        </nav>
+      </div>
+
+      {/* Right: Custom Actions & Close (✕) Button */}
+      <div className="flex items-center space-x-2 shrink-0">
+        {extraActions}
+
+        {onClose && (
           <button
             type="button"
             onClick={() => {
               playGentleClick();
-              onBack();
+              onClose();
             }}
-            aria-label={backLabel}
-            title={`${backLabel} (or press Esc)`}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#111e38] dark:hover:bg-[#1b2f56] text-[#002045] dark:text-white border border-slate-200 dark:border-[#1e3a6a] font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+            title="Close and return to Dashboard (Esc)"
+            aria-label="Close and return to Dashboard"
+            className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border font-bold text-xs transition-all active:scale-95 cursor-pointer ${closeBtnClass}`}
           >
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-            <span className="hidden sm:inline">{backLabel}</span>
-            <span className="sm:hidden">Back</span>
-          </button>
-
-          {/* Breadcrumb Trail */}
-          <nav
-            aria-label="Breadcrumb"
-            className="hidden md:flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium truncate"
-          >
-            {breadcrumbs.map((crumb, idx) => (
-              <React.Fragment key={crumb.label}>
-                {idx > 0 && <span className="text-slate-300 dark:text-slate-600">/</span>}
-                {crumb.onClick ? (
-                  <button
-                    onClick={() => {
-                      playGentleClick();
-                      crumb.onClick!();
-                    }}
-                    className="hover:text-blue-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
-                  >
-                    {crumb.label}
-                  </button>
-                ) : (
-                  <span>{crumb.label}</span>
-                )}
-              </React.Fragment>
-            ))}
-            <span className="text-slate-300 dark:text-slate-600">/</span>
-            <span className="text-[#002045] dark:text-white font-bold truncate max-w-[220px]">
-              {title}
+            <span className="material-symbols-outlined text-[18px]">close</span>
+            <span className="hidden sm:inline">Close</span>
+            <span className={`hidden md:inline font-mono text-[10px] ${isDarkTheme ? 'text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>
+              Esc
             </span>
-          </nav>
-        </div>
-
-        {/* Right: Custom Actions & Close (✕) Button */}
-        <div className="flex items-center space-x-2 shrink-0">
-          {extraActions}
-
-          {onClose && (
-            <button
-              type="button"
-              onClick={() => {
-                playGentleClick();
-                onClose();
-              }}
-              title="Close and return to Dashboard (Esc)"
-              aria-label="Close and return to Dashboard"
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-2 rounded-xl bg-slate-100 hover:bg-rose-100 dark:bg-[#142342] dark:hover:bg-rose-950/60 text-slate-700 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300 border border-slate-200 dark:border-[#1e3a6a] font-bold text-xs transition-all active:scale-95 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">close</span>
-              <span className="hidden sm:inline">Close</span>
-              <span className="hidden md:inline font-mono text-[10px] text-slate-400 dark:text-slate-500">
-                Esc
-              </span>
-            </button>
-          )}
-        </div>
+          </button>
+        )}
       </div>
     </div>
   );

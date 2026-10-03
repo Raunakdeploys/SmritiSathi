@@ -5,12 +5,12 @@ import {
   Download,
   ExternalLink,
   X,
-  ArrowLeft,
   Sparkles,
   HelpCircle,
-  Share2,
+  FileDown,
 } from 'lucide-react';
 import { playGentleClick, playSuccessBell } from '../utils/audio';
+import { downloadAndroidAPK } from '../utils/apkDownloader';
 
 interface AndroidAPKModalProps {
   isOpen: boolean;
@@ -30,6 +30,7 @@ export const AndroidAPKModal: React.FC<AndroidAPKModalProps> = ({
   onDirectInstall,
 }) => {
   const [showManualSteps, setShowManualSteps] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -63,6 +64,14 @@ export const AndroidAPKModal: React.FC<AndroidAPKModalProps> = ({
     setShowManualSteps(true);
   };
 
+  const handleDirectApkDownload = () => {
+    playGentleClick();
+    downloadAndroidAPK('SmritiSaathi_v2.4_Release.apk');
+    setDownloadSuccess(true);
+    playSuccessBell();
+    setTimeout(() => setDownloadSuccess(false), 4000);
+  };
+
   return (
     <div
       role="dialog"
@@ -82,8 +91,8 @@ export const AndroidAPKModal: React.FC<AndroidAPKModalProps> = ({
               <Smartphone className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-extrabold text-xl text-white">Get SmritiSaathi App</h2>
-              <p className="text-xs text-emerald-200">Native Android WebAPK &amp; Direct Package</p>
+              <h2 className="font-extrabold text-xl text-white">Get SmritiSaathi Android App</h2>
+              <p className="text-xs text-emerald-200">Official Standalone Package &amp; 1-Tap Installer</p>
             </div>
           </div>
           <button
@@ -100,63 +109,100 @@ export const AndroidAPKModal: React.FC<AndroidAPKModalProps> = ({
         <div className="bg-emerald-50 dark:bg-emerald-950/50 p-4 border-b border-emerald-200 dark:border-emerald-800/60 flex items-start gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
           <div className="text-xs text-emerald-950 dark:text-emerald-200 leading-relaxed">
-            <p className="font-extrabold text-sm mb-0.5">Everything stays 100% live:</p>
+            <p className="font-extrabold text-sm mb-0.5">Includes full cognitive safety suite:</p>
             <ul className="list-disc list-inside space-y-0.5 font-medium">
-              <li>Saathi AI voice companionship &amp; live conversations</li>
-              <li>Real-time GPS geofencing &amp; distress SOS WhatsApp dispatcher</li>
-              <li>Continuous Firestore cloud persistence</li>
+              <li>Saathi AI bilingual voice reminiscence &amp; orientation</li>
+              <li>Real-time CareCompass GPS geofencing &amp; SOS dispatcher</li>
+              <li>13 Clinical CST cognitive training drills with offline support</li>
             </ul>
           </div>
         </div>
 
-        {/* 2 Simple Choices */}
+        {/* Download Feedback Banner */}
+        {downloadSuccess && (
+          <div className="bg-emerald-600 text-white p-3 px-5 flex items-center gap-2 text-xs font-bold animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Downloading <strong>SmritiSaathi_v2.4_Release.apk</strong> to your device now!</span>
+          </div>
+        )}
+
+        {/* Options */}
         <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
-          {/* Method 1: Instant Install on Phone */}
-          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#111f3d] border-2 border-emerald-500/50 space-y-3.5 shadow-sm">
+          {/* Method 1: Instant APK File Download (Direct) */}
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500 space-y-3.5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" />
-                <span>Method 1 • Fastest</span>
+                <FileDown className="w-4 h-4" />
+                <span>Primary • Direct APK Download</span>
               </span>
-              <span className="bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-[10px] font-black px-2.5 py-0.5 rounded-full">
-                Recommended
+              <span className="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
+                Instant .APK File
               </span>
             </div>
 
             <div>
               <h3 className="font-extrabold text-base text-[#002045] dark:text-white">
-                Install Directly on Your Phone
+                Download Release .APK File
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
-                Installs onto your home screen with its own full-screen app icon, offline support, and zero browser bars.
+                Directly download the signed <code className="font-mono font-bold text-emerald-600 dark:text-emerald-400">SmritiSaathi_v2.4_Release.apk</code> installation file onto your device or computer.
+              </p>
+            </div>
+
+            <button
+              onClick={handleDirectApkDownload}
+              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Download className="w-5 h-5" />
+              <span>Download SmritiSaathi.apk (Direct)</span>
+            </button>
+          </div>
+
+          {/* Method 2: WebAPK Phone Install */}
+          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#111f3d] border-2 border-slate-200 dark:border-[#1e3a6a] space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4" />
+                <span>Method 2 • 1-Tap Screen Install</span>
+              </span>
+              <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] font-black px-2.5 py-0.5 rounded-full">
+                Zero Sideloading
+              </span>
+            </div>
+
+            <div>
+              <h3 className="font-extrabold text-base text-[#002045] dark:text-white">
+                Add Directly to Phone Home Screen
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
+                Chrome creates an app icon in your app drawer with fullscreen native capability and offline support.
               </p>
             </div>
 
             <button
               onClick={handleInstallClick}
-              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-[#002045] dark:bg-blue-600 hover:bg-[#1a365d] dark:hover:bg-blue-700 active:scale-98 text-white font-extrabold text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Download className="w-5 h-5" />
-              <span>Install App on My Phone</span>
+              <Smartphone className="w-4 h-4" />
+              <span>Install to Home Screen</span>
             </button>
 
             {showManualSteps && (
               <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-xs text-amber-950 dark:text-amber-200 space-y-1.5 animate-fadeIn">
                 <p className="font-bold flex items-center gap-1.5">
                   <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>To add to your phone in 2 steps:</span>
+                  <span>How to install in browser:</span>
                 </p>
                 <ol className="list-decimal list-inside space-y-1 text-slate-700 dark:text-slate-300 font-medium">
                   {isIOS ? (
                     <>
-                      <li>Tap the <strong>Share</strong> button (box with upward arrow) in Safari.</li>
-                      <li>Scroll down and tap <strong>"Add to Home Screen"</strong>.</li>
+                      <li>Tap the <strong>Share</strong> icon in Safari.</li>
+                      <li>Select <strong>"Add to Home Screen"</strong>.</li>
                     </>
                   ) : (
                     <>
-                      <li>Open this URL in <strong>Google Chrome</strong> on Android.</li>
-                      <li>Tap the three dots (<strong>⋮</strong>) in the top-right corner.</li>
-                      <li>Tap <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
+                      <li>Tap the Chrome menu (<strong>⋮</strong>) in the top right.</li>
+                      <li>Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
                     </>
                   )}
                 </ol>
@@ -164,35 +210,20 @@ export const AndroidAPKModal: React.FC<AndroidAPKModalProps> = ({
             )}
           </div>
 
-          {/* Method 2: Download .APK file for submission / sideloading */}
-          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#111f3d] border-2 border-slate-200 dark:border-[#1e3a6a] space-y-3.5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                Method 2 • Download Package
-              </span>
-              <span className="bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-[10px] font-black px-2.5 py-0.5 rounded-full">
-                Signed .APK
-              </span>
-            </div>
-
+          {/* Method 3: Cloud PWABuilder Store Package */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#111f3d] border border-slate-200 dark:border-[#1e3a6a] flex items-center justify-between gap-3">
             <div>
-              <h3 className="font-extrabold text-base text-[#002045] dark:text-white">
-                Download .APK File for Sideloading
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
-                If you need the raw <strong>.apk</strong> file to transfer to another device or submit for college evaluation:
-              </p>
+              <p className="font-bold text-xs text-[#002045] dark:text-white">Google Play Store .AAB Bundle</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Generate APK/AAB for Play Store Console submission</p>
             </div>
-
             <a
               href={pwabuilderUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3.5 px-4 rounded-xl bg-[#002045] hover:bg-[#1a365d] active:scale-98 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer no-underline text-center"
+              className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-[#002045] dark:text-white font-bold text-xs flex items-center gap-1.5 no-underline shrink-0"
             >
-              <Download className="w-5 h-5 text-amber-400" />
-              <span>Generate &amp; Download Signed .APK</span>
-              <ExternalLink className="w-4 h-4 ml-1" />
+              <span>PWABuilder</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
@@ -200,7 +231,7 @@ export const AndroidAPKModal: React.FC<AndroidAPKModalProps> = ({
         {/* Footer */}
         <div className="bg-slate-100 dark:bg-[#070d18] px-6 py-3.5 border-t border-slate-200 dark:border-[#1e3a6a] flex justify-between items-center">
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            SmritiSaathi Android Release Engine
+            SmritiSaathi Android Release Engine v2.4
           </span>
           <button
             onClick={onClose}

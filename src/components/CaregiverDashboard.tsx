@@ -38,6 +38,7 @@ import {
   Satellite,
   Globe,
   Database,
+  ArrowLeft,
 } from 'lucide-react';
 import type {
   CareCompassTelemetry,
@@ -137,6 +138,18 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
     });
     return () => unsubscribe();
   }, [propTelemetry, propConfig, propAlertLogs]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'Escape' && onBackToDashboard) {
+        onBackToDashboard();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onBackToDashboard]);
 
   const telemetry = propTelemetry || localTelemetry || INITIAL_CARE_COMPASS_TELEMETRY;
   const config = propConfig || localConfig || INITIAL_CARE_COMPASS_CONFIG;
@@ -570,20 +583,10 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
       aria-label="Caregiver Safety Dashboard"
       className="min-h-screen bg-[#070D18] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6 w-full min-w-0 max-w-full overflow-x-hidden box-border"
     >
-      {/* Reusable Universal Navigation Bar with Back & Close */}
-      {onBackToDashboard && (
-        <ViewNavigationBar
-          title={`CareCompass Radar (${config.patientName})`}
-          breadcrumbs={[{ label: 'Dashboard', onClick: onBackToDashboard }]}
-          onBack={onBackToDashboard}
-          onClose={onBackToDashboard}
-        />
-      )}
-
       {/* Top Header & Mode Switcher */}
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 p-5 rounded-3xl shadow-2xl backdrop-blur-md">
         <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#002045] border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-[#002045] border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-md shrink-0">
             <Radio className="w-6 h-6 animate-pulse" />
           </div>
           <div>
@@ -607,6 +610,18 @@ export const CaregiverDashboard: React.FC<CaregiverDashboardProps> = ({
 
         {/* Global Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {onBackToDashboard && (
+            <button
+              onClick={onBackToDashboard}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 rounded-xl border border-slate-700 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+              title="Return to Dashboard (Esc)"
+              aria-label="Back to Dashboard"
+            >
+              <ArrowLeft className="w-4 h-4 text-sky-400" />
+              <span>Back to Dashboard</span>
+            </button>
+          )}
+
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 rounded-xl border border-slate-700 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"

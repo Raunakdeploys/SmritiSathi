@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { playGentleClick, playSuccessBell } from '../utils/audio';
 import { AndroidAPKModal } from './AndroidAPKModal';
+import { downloadAndroidAPK } from '../utils/apkDownloader';
 
 interface AndroidAppViewProps {
   previousTabName?: string;
@@ -16,6 +17,7 @@ export const AndroidAppView: React.FC<AndroidAppViewProps> = ({
 }) => {
   const { isInstallable, isInstalled, isIOS, isAndroid, install } = usePWAInstall();
   const [showAPKModal, setShowAPKModal] = useState(false);
+  const [apkDownloaded, setApkDownloaded] = useState(false);
   const [copiedCmd, setCopiedCmd] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedManifest, setCopiedManifest] = useState(false);
@@ -107,6 +109,14 @@ npx cap open android
     setShowAPKModal(true);
   };
 
+  const handleDirectApkDownload = () => {
+    playGentleClick();
+    downloadAndroidAPK('SmritiSaathi_v2.4_Release.apk');
+    setApkDownloaded(true);
+    playSuccessBell();
+    setTimeout(() => setApkDownloaded(false), 5000);
+  };
+
   const handleRunDiagnostics = () => {
     setDiagnosticsRunning(true);
     playGentleClick();
@@ -125,7 +135,7 @@ npx cap open android
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-fadeIn pb-24">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-24 space-y-8 animate-fadeIn">
       {/* 1. TOP STICKY / BREADCRUMB NAVIGATION BAR WITH BACK & CLOSE BUTTONS */}
       <div className="sticky top-[72px] z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-[#f9f9ff]/95 dark:bg-[#070d18]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#1e3a6a] transition-all">
         <div className="flex items-center justify-between gap-4">
@@ -232,11 +242,20 @@ npx cap open android
             {/* Primary Hero Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
+                id="btn-hero-download-apk"
+                onClick={handleDirectApkDownload}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white text-[#002045] hover:bg-emerald-50 font-black text-sm sm:text-base shadow-xl active:scale-98 transition-all cursor-pointer min-h-[50px]"
+              >
+                <span className="material-symbols-outlined text-[22px] text-emerald-600">download</span>
+                <span>Download .APK Package</span>
+              </button>
+
+              <button
                 id="btn-hero-install-android"
                 onClick={handleInstallClick}
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[#FF6321] hover:bg-[#EA580C] text-white font-black text-sm sm:text-base shadow-xl shadow-orange-950/40 active:scale-98 transition-all cursor-pointer min-h-[50px]"
               >
-                <span className="material-symbols-outlined text-[22px]">download_for_offline</span>
+                <span className="material-symbols-outlined text-[22px]">install_mobile</span>
                 <span>Install App on Phone</span>
               </button>
 
@@ -244,10 +263,10 @@ npx cap open android
                 href={pwabuilderUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white text-[#002045] hover:bg-emerald-50 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer no-underline min-h-[50px]"
+                className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-extrabold text-xs sm:text-sm border border-white/20 transition-all active:scale-95 cursor-pointer no-underline min-h-[50px]"
               >
-                <span className="material-symbols-outlined text-[20px]">android</span>
-                <span>Download Signed .APK</span>
+                <span className="material-symbols-outlined text-[18px]">cloud_sync</span>
+                <span>Google Play (.AAB)</span>
               </a>
 
               <button
@@ -260,6 +279,14 @@ npx cap open android
                 <span>{copiedUrl ? 'Copied URL!' : 'Copy Mobile Link'}</span>
               </button>
             </div>
+
+            {/* Instant Download Alert Confirmation */}
+            {apkDownloaded && (
+              <div className="mt-3 p-3 rounded-2xl bg-emerald-500 text-white flex items-center gap-2 text-xs font-bold shadow-lg animate-fadeIn border border-emerald-300">
+                <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                <span>Downloading <strong>SmritiSaathi_v2.4_Release.apk</strong>! Open the downloaded file to install on Android.</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -682,15 +709,25 @@ npx cap open android
               </div>
             </div>
 
-            <a
-              href={pwabuilderUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3.5 px-4 rounded-2xl bg-[#FF6321] hover:bg-[#e05215] active:scale-98 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer no-underline"
-            >
-              <span>Download Signed APK via PWABuilder</span>
-              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-            </a>
+            <div className="space-y-2">
+              <button
+                onClick={handleDirectApkDownload}
+                className="w-full py-3 px-4 rounded-2xl bg-[#FF6321] hover:bg-[#e05215] active:scale-98 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">download</span>
+                <span>Download SmritiSaathi_v2.4.apk</span>
+              </button>
+
+              <a
+                href={pwabuilderUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 rounded-2xl bg-slate-100 dark:bg-[#111e38] hover:bg-slate-200 dark:hover:bg-[#1a2d52] text-[#002045] dark:text-white font-bold text-xs border border-slate-200 dark:border-[#1e3a6a] transition-all flex items-center justify-center gap-1.5 cursor-pointer no-underline text-center"
+              >
+                <span>PWABuilder Play Console Bundle</span>
+                <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+              </a>
+            </div>
           </div>
 
           {/* Method 3: Google Bubblewrap CLI / Android Studio */}
