@@ -13,6 +13,7 @@ import {
   Clock,
   HelpCircle,
   X,
+  ArrowLeft,
   ListOrdered,
 } from 'lucide-react';
 import { storeService } from '../../services/storeService';
@@ -174,6 +175,7 @@ interface DailyRoutineGameProps {
   currentLevel?: number;
   onComplete?: (score: number, points: number, accuracy: number, level: number) => void;
   onClose: () => void;
+  onBackToDashboard?: () => void;
   voiceGuidanceEnabled?: boolean;
 }
 
@@ -181,8 +183,19 @@ export const DailyRoutineGame: React.FC<DailyRoutineGameProps> = ({
   currentLevel = 2,
   onComplete,
   onClose,
+  onBackToDashboard,
   voiceGuidanceEnabled = true,
 }) => {
+  // Keyboard Escape listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
   const [level, setLevel] = useState<number>(Math.min(3, Math.max(1, currentLevel)));
   const [placedSteps, setPlacedSteps] = useState<(RoutineStep | null)[]>([]);
   const [unplacedSteps, setUnplacedSteps] = useState<RoutineStep[]>([]);
@@ -314,6 +327,14 @@ export const DailyRoutineGame: React.FC<DailyRoutineGameProps> = ({
         {/* Top Header Bar */}
         <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white px-5 sm:px-7 py-4 flex items-center justify-between shadow-md border-b-3 border-[#FF6321]">
           <div className="flex items-center space-x-3.5">
+            <button
+              onClick={onBackToDashboard || onClose}
+              title="Back to Exercises (Esc)"
+              aria-label="Back to exercises"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer mr-1"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <div className="p-2.5 bg-gradient-to-br from-[#FF6321] to-[#EA580C] text-white rounded-2xl shadow-md">
               <IconComponent className="w-7 h-7" />
             </div>

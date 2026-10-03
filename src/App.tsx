@@ -41,6 +41,7 @@ import { PrintReportModal } from './components/PrintReportModal';
 import { DesignSystemView } from './components/DesignSystemView';
 import { AndroidAppView } from './components/AndroidAppView';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { BottomNavigationBar } from './components/BottomNavigationBar';
 
 // SmritiSaathi Core Cognitive & Reminiscence Games
 import { WayBackGame } from './components/games/WayBackGame';
@@ -374,17 +375,17 @@ export default function App() {
               </div>
 
 
-              <ul className="space-y-2">
+              <ul className="space-y-1.5 overflow-y-auto max-h-[60vh] pr-1">
                 {[
-                  { id: 'carecompass', label: 'CareCompass AI (Radar)', icon: 'radar' },
-                  { id: 'patient-mode', label: 'Patient Mode (Dadaji)', icon: 'shield_person' },
-                  { id: 'saathi-chat', label: 'Saathi AI Chat', icon: 'voice_chat' },
-                  { id: 'games', label: 'Games & Exercises', icon: 'videogame_asset' },
+                  { id: 'dashboard', label: 'Dashboard (Home)', icon: 'dashboard' },
+                  { id: 'saathi-chat', label: 'Saathi AI Companion', icon: 'voice_chat' },
+                  { id: 'games', label: 'Games & Mind Exercises', icon: 'videogame_asset' },
                   { id: 'reality-quest', label: 'Reality Quest', icon: 'explore' },
-                  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+                  { id: 'carecompass', label: 'CareCompass Radar', icon: 'radar' },
+                  { id: 'patient-mode', label: 'Patient Mode (Dadaji)', icon: 'shield_person' },
                   { id: 'caregiver', label: 'Caregiver Portal', icon: 'supervised_user_circle' },
                   { id: 'android-app', label: 'Android App & APK', icon: 'smartphone' },
-                  { id: 'settings', label: 'Settings', icon: 'settings' },
+                  { id: 'settings', label: 'Settings & Profile', icon: 'settings' },
                   { id: 'help', label: 'Help & Guide', icon: 'help' },
                   { id: 'design', label: 'Design System', icon: 'palette' },
                 ].map((item) => (
@@ -394,10 +395,10 @@ export default function App() {
                         navigateToTab(item.id);
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`w-full text-left p-3.5 rounded-xl font-bold text-base flex items-center ${
+                      className={`w-full text-left p-3 rounded-xl font-bold text-sm sm:text-base flex items-center transition-colors cursor-pointer ${
                         currentTab === item.id
                           ? 'bg-[#002045] dark:bg-blue-600 text-white'
-                          : 'text-[#43474e] dark:text-slate-300 hover:bg-[#d9e3f9] dark:hover:bg-slate-800'
+                          : 'text-[#43474e] dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
                       <span className="material-symbols-outlined mr-3 text-[22px]">{item.icon}</span>
@@ -950,7 +951,15 @@ export default function App() {
         />
       )}
 
-      {/* Floating Saathi AI Chat Launcher (Visible on all tabs except saathi-chat or full-screen games) */}
+      {/* Mobile Bottom Navigation Bar (Ergonomic, Thumb-Friendly, Zero Clutter) */}
+      {currentTab !== 'patient-mode' && !activeGameId && (
+        <BottomNavigationBar
+          currentTab={currentTab}
+          onSelectTab={navigateToTab}
+        />
+      )}
+
+      {/* Floating Saathi AI Chat Launcher (Desktop Only) */}
       {currentTab !== 'saathi-chat' && !activeGameId && (
         <button
           id="btn-floating-saathi-chat"
@@ -958,13 +967,13 @@ export default function App() {
             setCurrentTab('saathi-chat');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className="fixed bottom-6 right-6 z-40 bg-[#002045] hover:bg-[#1a365d] text-white p-3.5 sm:px-5 sm:py-3.5 rounded-full shadow-2xl border-2 border-white flex items-center gap-2.5 transition-all hover:scale-105 active:scale-95 cursor-pointer group"
+          className="hidden md:flex fixed bottom-6 right-6 z-40 bg-[#002045] hover:bg-[#1a365d] text-white p-3.5 sm:px-5 sm:py-3.5 rounded-full shadow-2xl border-2 border-white items-center gap-2.5 transition-all hover:scale-105 active:scale-95 cursor-pointer group"
           title="Chat with Saathi AI"
         >
           <span className="material-symbols-outlined text-[24px] text-[#FF6321] group-hover:rotate-12 transition-transform">
             voice_chat
           </span>
-          <span className="hidden sm:inline font-bold text-sm tracking-wide">
+          <span className="font-bold text-sm tracking-wide">
             Saathi AI Chat
           </span>
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -997,18 +1006,20 @@ export default function App() {
       {/* Back to Top Floating Button (REQ2 #4) */}
       <BackToTopButton />
 
-      {/* Floating Emergency & Direct Contact Hub (REQ2 #20) */}
+      {/* Floating Emergency & Direct Contact Hub (Desktop Only) */}
       {currentTab !== 'patient-mode' && (
-        <FloatingContactButton
-          onOpenDirectCall={() => setIsDirectCallOpen(true)}
-          onOpenWhereAmI={() => setIsWhereAmIOpen(true)}
-          onOpenChat={() => {
-            setCurrentTab('saathi-chat');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          caregiverName={database.careCompass?.config?.caregiverName || 'Rohan Sharma'}
-          caregiverPhone={database.careCompass?.config?.emergencyPhone || '+91 98765 43210'}
-        />
+        <div className="hidden md:block">
+          <FloatingContactButton
+            onOpenDirectCall={() => setIsDirectCallOpen(true)}
+            onOpenWhereAmI={() => setIsWhereAmIOpen(true)}
+            onOpenChat={() => {
+              setCurrentTab('saathi-chat');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            caregiverName={database.careCompass?.config?.caregiverName || 'Rohan Sharma'}
+            caregiverPhone={database.careCompass?.config?.emergencyPhone || '+91 98765 43210'}
+          />
+        </div>
       )}
 
       {/* Command Palette Site Search Modal (REQ2 #3) */}

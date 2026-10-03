@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { playGentleClick, playSuccessBell } from '../utils/audio';
+import { AndroidAPKModal } from './AndroidAPKModal';
 
 interface AndroidAppViewProps {
   previousTabName?: string;
@@ -14,6 +15,7 @@ export const AndroidAppView: React.FC<AndroidAppViewProps> = ({
   onClose,
 }) => {
   const { isInstallable, isInstalled, isIOS, isAndroid, install } = usePWAInstall();
+  const [showAPKModal, setShowAPKModal] = useState(false);
   const [copiedCmd, setCopiedCmd] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedManifest, setCopiedManifest] = useState(false);
@@ -95,10 +97,14 @@ npx cap open android
 
   const handleInstallClick = async () => {
     playGentleClick();
-    const success = await install();
-    if (success) {
-      playSuccessBell();
+    if (isInstallable) {
+      const success = await install();
+      if (success) {
+        playSuccessBell();
+        return;
+      }
     }
+    setShowAPKModal(true);
   };
 
   const handleRunDiagnostics = () => {
@@ -159,16 +165,16 @@ npx cap open android
 
           {/* Right: Quick Actions & Explicit Close (✕) Button */}
           <div className="flex items-center space-x-2 shrink-0">
-            {/* Direct 1-Tap install shortcut if installable */}
-            {isInstallable && (
-              <button
-                onClick={handleInstallClick}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition-all active:scale-95 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">download</span>
-                <span>Install on Phone</span>
-              </button>
-            )}
+            {/* Direct 1-Tap install shortcut (Always visible) */}
+            <button
+              id="btn-nav-install-android"
+              onClick={handleInstallClick}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-sm transition-all active:scale-95 cursor-pointer"
+              title="Install SmritiSaathi on your Android device"
+            >
+              <span className="material-symbols-outlined text-[18px]">download_for_offline</span>
+              <span>Install App</span>
+            </button>
 
             {/* Share via WhatsApp */}
             <button
@@ -204,7 +210,7 @@ npx cap open android
       {/* 2. HERO BANNER: ARCHITECTURAL ASSURANCE */}
       <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-700 via-teal-800 to-[#002045] text-white shadow-xl border-2 border-emerald-500/30">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-3xl">
+          <div className="space-y-3.5 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="bg-white/20 backdrop-blur-md text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-white/20">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -222,28 +228,38 @@ npx cap open android
             <p className="text-sm sm:text-base text-emerald-100 font-medium leading-relaxed">
               Deploy, install, or compile the authentic native Android package (<code className="bg-black/30 px-1.5 py-0.5 rounded text-emerald-300 font-mono font-bold">.apk</code> / <code className="bg-black/30 px-1.5 py-0.5 rounded text-emerald-300 font-mono font-bold">.aab</code>) for your friend’s device or the Google Play Console. Includes 100% live voice AI, hardware GPS geofencing, and real-time Firestore persistence.
             </p>
-          </div>
 
-          <div className="flex flex-wrap lg:flex-col gap-3 shrink-0">
-            <button
-              onClick={handleCopyUrl}
-              className="flex-1 lg:flex-initial flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white text-[#002045] hover:bg-emerald-50 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                {copiedUrl ? 'check_circle' : 'link'}
-              </span>
-              <span>{copiedUrl ? 'Copied URL!' : 'Copy Mobile Link'}</span>
-            </button>
+            {/* Primary Hero Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                id="btn-hero-install-android"
+                onClick={handleInstallClick}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[#FF6321] hover:bg-[#EA580C] text-white font-black text-sm sm:text-base shadow-xl shadow-orange-950/40 active:scale-98 transition-all cursor-pointer min-h-[50px]"
+              >
+                <span className="material-symbols-outlined text-[22px]">download_for_offline</span>
+                <span>Install App on Phone</span>
+              </button>
 
-            <button
-              onClick={handleCopyManifest}
-              className="flex-1 lg:flex-initial flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs transition-all active:scale-95 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {copiedManifest ? 'check' : 'data_object'}
-              </span>
-              <span>{copiedManifest ? 'Copied Manifest!' : 'Copy Manifest URL'}</span>
-            </button>
+              <a
+                href={pwabuilderUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white text-[#002045] hover:bg-emerald-50 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer no-underline min-h-[50px]"
+              >
+                <span className="material-symbols-outlined text-[20px]">android</span>
+                <span>Download Signed .APK</span>
+              </a>
+
+              <button
+                onClick={handleCopyUrl}
+                className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer min-h-[50px]"
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {copiedUrl ? 'check_circle' : 'link'}
+                </span>
+                <span>{copiedUrl ? 'Copied URL!' : 'Copy Mobile Link'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -622,26 +638,13 @@ npx cap open android
             </div>
 
             <div>
-              {isInstalled ? (
-                <div className="w-full py-3.5 px-4 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 text-center font-black text-sm flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-[20px]">check_circle</span>
-                  <span>Running in Standalone Mode</span>
-                </div>
-              ) : isInstallable ? (
-                <button
-                  onClick={handleInstallClick}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[20px]">download_for_offline</span>
-                  <span>Install WebAPK Now</span>
-                </button>
-              ) : (
-                <div className="w-full py-3 px-4 rounded-2xl bg-slate-100 dark:bg-[#111e38] text-slate-600 dark:text-slate-400 text-xs font-bold text-center border border-slate-200 dark:border-[#1e3a6a]">
-                  {isIOS
-                    ? 'On iOS Safari: Tap Share (⎋) → Add to Home Screen'
-                    : 'Open in Chrome on Android to trigger 1-tap installation'}
-                </div>
-              )}
+              <button
+                onClick={handleInstallClick}
+                className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">download_for_offline</span>
+                <span>{isInstalled ? 'App Installed (Open / Reinstall)' : 'Install SmritiSaathi App Now'}</span>
+              </button>
             </div>
           </div>
 
@@ -873,6 +876,16 @@ npx cap open android
           Package target: <code className="font-mono font-bold">com.smritisathi.app</code> • Built for Senior Safety
         </p>
       </div>
+
+      {/* Direct APK & Guided Mobile Installation Modal */}
+      <AndroidAPKModal
+        isOpen={showAPKModal}
+        onClose={() => setShowAPKModal(false)}
+        isInstallable={isInstallable}
+        isIOS={isIOS}
+        isAndroid={isAndroid}
+        onDirectInstall={install}
+      />
     </div>
   );
 };
